@@ -45,7 +45,7 @@ func main() {
 	cfg := NewConfig(cfgPath)
 
 	log := NewLog()
-	log.Info("Running FlexDXCluster version 2.0")
+	log.Info("Running FlexDXCluster version 2.1")
 	log.Infof("Callsign: %s", cfg.General.Callsign)
 
 	DeleteDatabase("./flex.sqlite", log)
