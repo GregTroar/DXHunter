@@ -1,0 +1,1580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlexDXCluster Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body, html { 
+            margin: 0;
+            padding: 0; 
+            overflow: hidden; 
+            height: 100vh; 
+            width: 100vw; 
+        }
+        .animate-spin { animation: spin 1s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+        .full-height { height: 100vh; display: flex; flex-direction: column; }
+        .scrollable { overflow-y: auto; flex: 1; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: rgb(15 23 42); }
+        ::-webkit-scrollbar-thumb { background: rgb(51 65 85); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgb(71 85 105); }
+        
+        input[type="text"] {
+            font-family: inherit;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+        }
+
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .status-connected {
+            background: rgba(34, 197, 94, 0.2);
+            color: rgb(34, 197, 94);
+        }
+
+        .status-disconnected {
+            background: rgba(239, 68, 68, 0.2);
+            color: rgb(239, 68, 68);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            animation: slideInBottom 0.3s ease-out;
+        }
+        
+        @keyframes slideInBottom {
+            from { transform: translateY(400px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes slideOutBottom {
+            from { transform: translateY(0); opacity: 1; }
+            to { transform: translateY(400px); opacity: 0; }
+        }
+
+        .toast.hiding {
+            animation: slideOutBottom 0.3s ease-out forwards;
+        }
+        
+        .toast-success { background: rgb(34 197 94); color: white; }
+        .toast-error { background: rgb(239 68 68); color: white; }
+        .toast-warning { background: rgb(251 146 60); color: white; }
+        .toast-info { background: rgb(59 130 246); color: white; }
+        
+        .error-banner {
+            background: linear-gradient(to right, rgb(239 68 68), rgb(220 38 38));
+            color: white;
+            padding: 12px;
+            text-align: center;
+            font-size: 14px;
+            border-bottom: 2px solid rgb(185 28 28);
+        }
+        
+        .dx-callsign {
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .dx-callsign:hover {
+            text-shadow: 0 0 8px rgba(59, 130, 246, 0.8);
+            transform: scale(1.05);
+        }
+        
+        .toggle-checkbox {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+            height: 0;
+            width: 0;
+        }
+        
+        .toggle-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            background-color: rgb(51 65 85);
+            border-radius: 24px;
+            transition: background-color 0.3s ease;
+            flex-shrink: 0;
+        }
+        
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background-color: white;
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+        }
+        
+        .toggle-checkbox:checked + .toggle-label .toggle-switch {
+            background-color: rgb(59 130 246);
+        }
+        
+        .toggle-checkbox:checked + .toggle-label .toggle-switch::after {
+            transform: translateX(20px);
+        }
+        
+        .toggle-label:hover .toggle-switch {
+            background-color: rgb(71 85 105);
+        }
+        
+        .toggle-checkbox:checked + .toggle-label:hover .toggle-switch {
+            background-color: rgb(37 99 235);
+        }
+        
+        .ws-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        
+        .ws-connected {
+            background: rgba(34, 197, 94, 0.2);
+            color: rgb(34, 197, 94);
+        }
+        
+        .ws-disconnected {
+            background: rgba(239, 68, 68, 0.2);
+            color: rgb(239, 68, 68);
+        }
+        
+        .ws-connecting {
+            background: rgba(251, 146, 60, 0.2);
+            color: rgb(251, 146, 60);
+        }
+
+        .band-bar {
+            transition: all 0.5s ease;
+            cursor: pointer;
+        }
+
+        .band-bar:hover {
+            opacity: 0.8;
+            transform: scaleY(1.05);
+        }
+
+        .tab-button {
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: transparent;
+            color: rgb(148, 163, 184);
+            border: none;
+        }
+
+        .tab-button:hover {
+            background: rgba(51, 65, 85, 0.5);
+            color: rgb(203, 213, 225);
+        }
+
+        .tab-button.active {
+            background: rgba(59, 130, 246, 0.2);
+            color: rgb(96, 165, 250);
+            border-bottom: 2px solid rgb(59, 130, 246);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            height: 100%;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
+    <div id="error-banner"></div>
+    <div id="toast-container"></div>
+    <div id="app" class="full-height p-4"></div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:8080/api';
+        const WS_URL = 'ws://localhost:8080/api/ws';
+
+        const BANDS = ['160M', '80M', '60M', '40M', '30M', '20M', '17M', '15M', '12M', '10M', '6M'];
+        const BAND_COLORS = {
+            '160M': '#ef4444',
+            '80M': '#f97316',
+            '60M': '#f59e0b',
+            '40M': '#eab308',
+            '30M': '#84cc16',
+            '20M': '#22c55e',
+            '17M': '#10b981',
+            '15M': '#14b8a6',
+            '12M': '#06b6d4',
+            '10M': '#0ea5e9',
+            '6M': '#3b82f6'
+        };
+        
+        let ws = null;
+        let wsReconnectTimer = null;
+        let wsReconnectAttempts = 0;
+        let maxReconnectAttempts = 10;
+
+        let state = {
+            spots: [],
+            filteredSpots: [],
+            watchlistScrollTop: 0,
+            recentQSOs: [],
+            logStats: { today: 0, thisWeek: 0, thisMonth: 0, total: 0 },
+            dxccProgress: { worked: 0, total: 340 },
+            solarData: {
+                sfi: 'N/A',
+                sunspots: 'N/A',
+                aIndex: 'N/A',
+                kIndex: 'N/A'
+            },
+            stats: {
+                totalSpots: 0,
+                activeSpotters: 0,
+                newDXCC: 0,
+                connectedClients: 0,
+                totalContacts: 0,
+                clusterStatus: 'disconnected',
+                flexStatus: 'disconnected',
+                myCallsign: '',
+                filters: { skimmer: false, ft8: false, ft4: false }
+            },
+            topSpotters: [],
+            loading: true,
+            wsStatus: 'disconnected',
+            activeTab: 'stats',
+            watchlist: [],
+            spotFilters: {
+                showAll: true,
+                showNewDXCC: false,
+                showNewBand: false,
+                showNewMode: false,
+                showNewBandMode: false,
+                showNewSlot: false,
+                showWorked: false,
+                showWatchlist: false,
+                showDigital: false,
+                showSSB: false,
+                showCW: false,
+                band160M: false,
+                band80M: false,
+                band60M: false,
+                band40M: false,
+                band30M: false,
+                band20M: false,
+                band17M: false,
+                band15M: false,
+                band12M: false,
+                band10M: false,
+                band6M: false
+            }
+        };
+
+        // WebSocket Connection Management
+        function connectWebSocket() {
+            if (ws && (ws.readyState === WebSocket.CONNECTING || ws.readyState === WebSocket.OPEN)) {
+                return;
+            }
+
+            state.wsStatus = 'connecting';
+            render();
+
+            try {
+                ws = new WebSocket(WS_URL);
+
+                ws.onopen = () => {
+                    console.log('WebSocket connected');
+                    state.wsStatus = 'connected';
+                    state.loading = false;
+                    wsReconnectAttempts = 0;
+                    hideErrorBanner();
+                    showToast('Connected to server', 'success');
+                    render();
+                };
+
+                ws.onmessage = (event) => {
+                    try {
+                        const message = JSON.parse(event.data);
+                        handleWebSocketMessage(message);
+                    } catch (error) {
+                        console.error('Error parsing WebSocket message:', error);
+                    }
+                };
+
+                ws.onerror = (error) => {
+                    console.error('WebSocket error:', error);
+                    state.wsStatus = 'disconnected';
+                };
+
+                ws.onclose = () => {
+                    console.log('WebSocket closed');
+                    state.wsStatus = 'disconnected';
+                    render();
+                    
+                    if (wsReconnectAttempts < maxReconnectAttempts) {
+                        wsReconnectAttempts++;
+                        const delay = Math.min(1000 * Math.pow(2, wsReconnectAttempts), 30000);
+                        showErrorBanner(`Connection lost. Reconnecting in ${delay/1000}s... (attempt ${wsReconnectAttempts}/${maxReconnectAttempts})`);
+                        
+                        wsReconnectTimer = setTimeout(() => {
+                            connectWebSocket();
+                        }, delay);
+                    } else {
+                        showErrorBanner('Unable to connect to server. Please refresh the page.');
+                    }
+                };
+            } catch (error) {
+                console.error('Error creating WebSocket:', error);
+                state.wsStatus = 'disconnected';
+                render();
+            }
+        }
+
+        function handleWebSocketMessage(message) {
+            switch (message.type) {
+                case 'stats':
+                    state.stats = message.data;
+                    break;
+                case 'spots':
+                    state.spots = message.data || [];
+                    applySpotFilters();
+                    break;
+                case 'spotters':
+                    state.topSpotters = message.data || [];
+                    break;
+                case 'watchlist': 
+                    state.watchlist = message.data || [];
+                    // Force la mise à jour de la watchlist même si on est dans l'input
+                    if (state.activeTab === 'watchlist') {
+                        updateWatchlistItems();
+                        updateWatchlistCounters();
+                    }   
+                    break;
+                case 'log':
+                    state.recentQSOs = message.data || [];
+                    break;
+                case 'logStats':
+                    state.logStats = message.data || {};
+                    break;
+                }
+            render();
+        }
+
+        // Toast notifications
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.innerHTML = `
+                <div class="flex items-center gap-2">
+                    ${type === 'success' ? '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>' : ''}
+                    ${type === 'error' ? '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>' : ''}
+                    ${type === 'warning' ? '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>' : ''}
+                    <span>${message}</span>
+                </div>
+            `;
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.add('hiding');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function showErrorBanner(message) {
+            const banner = document.getElementById('error-banner');
+            banner.innerHTML = `
+                <div class="flex items-center justify-between max-w-7xl mx-auto">
+                    <div class="flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                        </svg>
+                        <span>${message}</span>
+                    </div>
+                    <button onclick="hideErrorBanner()" class="hover:bg-red-700 px-3 py-1 rounded">✕</button>
+                </div>
+            `;
+            banner.className = 'error-banner';
+        }
+
+        function hideErrorBanner() {
+            document.getElementById('error-banner').className = '';
+            document.getElementById('error-banner').innerHTML = '';
+        }
+
+        async function fetchWithRetry(url, options = {}) {
+            try {
+                const response = await fetch(url, options);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return response;
+            } catch (error) {
+                throw error;
+            }
+        }
+
+        function switchTab(tabName) {
+            state.activeTab = tabName;
+            render();
+        }
+
+        async function sendCallsignToLog4OM(callsign, frequency, mode) {
+            try {
+                const response = await fetchWithRetry(`${API_BASE_URL}/send-callsign`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        callsign: callsign,
+                        frequency: frequency,
+                        mode: mode
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    showToast(`${callsign} envoyé - Radio tunée sur ${frequency} en ${mode}`, 'success');
+                } else {
+                    showToast('Échec de l\'envoi', 'error');
+                }
+            } catch (error) {
+                console.error('Erreur lors de l\'envoi:', error);
+                showToast(`Erreur: ${error.message}`, 'error');
+            }
+        }
+
+        let filterCache = new Map();
+
+        async function fetchPropagationData() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/solar`);
+                const json = await response.json();
+                
+                if (!json.success) {
+                    throw new Error(json.error || 'Failed to fetch solar data');
+                }
+                
+                return {
+                    sfi: json.data.sfi || 'N/A',
+                    sunspots: json.data.sunspots || 'N/A',
+                    aIndex: json.data.aIndex || 'N/A',
+                    kIndex: json.data.kIndex || 'N/A'
+                };
+            } catch (error) {
+                console.error('Error fetching propagation data:', error);
+                return {
+                    sfi: 'N/A',
+                    sunspots: 'N/A',
+                    aIndex: 'N/A',
+                    kIndex: 'N/A'
+                };
+            }
+        }
+
+        async function fetchLogData() {
+            try {
+                // Fetch recent QSOs
+                const qsosResponse = await fetch(`${API_BASE_URL}/log/recent?limit=5`);
+                const qsosJson = await qsosResponse.json();
+                if (qsosJson.success) {
+                    state.recentQSOs = qsosJson.data || [];
+                }
+                
+                // Fetch stats
+                const statsResponse = await fetch(`${API_BASE_URL}/log/stats`);
+                const statsJson = await statsResponse.json();
+                if (statsJson.success) {
+                    state.logStats = statsJson.data || { today: 0, thisWeek: 0, thisMonth: 0, total: 0 };
+                }
+                
+                // Fetch DXCC progress
+                const dxccResponse = await fetch(`${API_BASE_URL}/log/dxcc-progress`);
+                const dxccJson = await dxccResponse.json();
+                if (dxccJson.success) {
+                    state.dxccProgress = dxccJson.data || { worked: 0, total: 340, percentage: 0 };
+                }
+                
+                render();
+            } catch (error) {
+                console.error('Error fetching log data:', error);
+            }
+        }
+        
+        function applySpotFilters() {
+            if (state.spotFilters.showAll) {
+                state.filteredSpots = state.spots;
+                return;
+            }
+
+            const bandFiltersActive = state.spotFilters.band160M || state.spotFilters.band80M || 
+                state.spotFilters.band60M || state.spotFilters.band40M || state.spotFilters.band30M || 
+                state.spotFilters.band20M || state.spotFilters.band17M || state.spotFilters.band15M || 
+                state.spotFilters.band12M || state.spotFilters.band10M || state.spotFilters.band6M;
+
+            const typeFiltersActive = state.spotFilters.showNewDXCC || state.spotFilters.showNewBand || 
+                state.spotFilters.showNewMode || state.spotFilters.showNewBandMode || 
+                state.spotFilters.showNewSlot || state.spotFilters.showWorked || state.spotFilters.showWatchlist;
+
+            const modeFiltersActive = state.spotFilters.showDigital || state.spotFilters.showSSB || state.spotFilters.showCW;
+
+            state.filteredSpots = state.spots.filter(spot => {
+                let matchesBand = false;
+                let matchesType = false;
+                let matchesMode = false;
+
+                // Filtres de bande
+                if (bandFiltersActive) {
+                    matchesBand = (
+                        (state.spotFilters.band160M && spot.Band === '160M') ||
+                        (state.spotFilters.band80M && spot.Band === '80M') ||
+                        (state.spotFilters.band60M && spot.Band === '60M') ||
+                        (state.spotFilters.band40M && spot.Band === '40M') ||
+                        (state.spotFilters.band30M && spot.Band === '30M') ||
+                        (state.spotFilters.band20M && spot.Band === '20M') ||
+                        (state.spotFilters.band17M && spot.Band === '17M') ||
+                        (state.spotFilters.band15M && spot.Band === '15M') ||
+                        (state.spotFilters.band12M && spot.Band === '12M') ||
+                        (state.spotFilters.band10M && spot.Band === '10M') ||
+                        (state.spotFilters.band6M && spot.Band === '6M')
+                    );
+                }
+
+                // Filtres de type
+                if (typeFiltersActive) {
+                    if (state.spotFilters.showWatchlist) {
+                        const inWatchlist = state.watchlist.some(pattern => {
+                            return spot.DX === pattern || spot.DX.startsWith(pattern);
+                        });
+                        if (inWatchlist) {
+                            matchesType = true;
+                        }
+                    }
+                    if (state.spotFilters.showNewDXCC && spot.NewDXCC) {
+                        matchesType = true;
+                    } else if (state.spotFilters.showNewBandMode && spot.NewBand && spot.NewMode && !spot.NewDXCC) {
+                        matchesType = true;
+                    } else if (state.spotFilters.showNewBand && spot.NewBand && !spot.NewMode && !spot.NewDXCC) {
+                        matchesType = true;
+                    } else if (state.spotFilters.showNewMode && spot.NewMode && !spot.NewBand && !spot.NewDXCC) {
+                        matchesType = true;
+                    } else if (state.spotFilters.showNewSlot && spot.NewSlot && !spot.NewDXCC && !spot.NewBand && !spot.NewMode) {
+                        matchesType = true;
+                    } else if (state.spotFilters.showWorked && spot.Worked) {
+                        matchesType = true;
+                    }
+                }
+
+                // Filtres de mode
+                if (modeFiltersActive) {
+                    const mode = spot.Mode || '';
+                    if (state.spotFilters.showDigital) {
+                        if (mode === 'FT8' || mode === 'FT4' || mode === 'RTTY') {
+                            matchesMode = true;
+                        }
+                    }
+                    if (state.spotFilters.showSSB) {
+                        if (mode === 'SSB' || mode === 'USB' || mode === 'LSB') {
+                            matchesMode = true;
+                        }
+                    }
+                    if (state.spotFilters.showCW) {
+                        if (mode === 'CW') {
+                            matchesMode = true;
+                        }
+                    }
+                }
+
+                // Logique de combinaison des filtres
+                const numActiveFilterTypes = [bandFiltersActive, typeFiltersActive, modeFiltersActive].filter(Boolean).length;
+
+                if (numActiveFilterTypes === 0) return false;
+                if (numActiveFilterTypes === 1) {
+                    if (bandFiltersActive) return matchesBand;
+                    if (typeFiltersActive) return matchesType;
+                    if (modeFiltersActive) return matchesMode;
+                }
+                if (numActiveFilterTypes === 2) {
+                    if (bandFiltersActive && typeFiltersActive) return matchesBand && matchesType;
+                    if (bandFiltersActive && modeFiltersActive) return matchesBand && matchesMode;
+                    if (typeFiltersActive && modeFiltersActive) return matchesType && matchesMode;
+                }
+                if (numActiveFilterTypes === 3) {
+                    return matchesBand && matchesType && matchesMode;
+                }
+                
+                return false;
+            });
+        }
+
+        function toggleSpotFilter(filterName) {
+            if (filterName === 'showAll') {
+                state.spotFilters = {
+                    showAll: true,
+                    showNewDXCC: false,
+                    showNewBand: false,
+                    showNewMode: false,
+                    showNewBandMode: false,
+                    showNewSlot: false,
+                    showWorked: false,
+                    showWatchlist: false,
+                    showDigital: false,
+                    showSSB: false,
+                    showCW: false,
+                    band160M: false,
+                    band80M: false,
+                    band60M: false,
+                    band40M: false,
+                    band30M: false,
+                    band20M: false,
+                    band17M: false,
+                    band15M: false,
+                    band12M: false,
+                    band10M: false,
+                    band6M: false
+                };
+            } else {
+                state.spotFilters.showAll = false;
+                state.spotFilters[filterName] = !state.spotFilters[filterName];
+                
+                const anyActive = Object.keys(state.spotFilters).some(key => 
+                    key !== 'showAll' && state.spotFilters[key]
+                );
+                if (!anyActive) {
+                    state.spotFilters.showAll = true;
+                }
+            }
+            
+            applySpotFilters();
+            render();
+        }
+
+        async function updateFilter(filterName, value) {
+            try {
+                const response = await fetchWithRetry(`${API_BASE_URL}/filters`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ [filterName]: value })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    state.stats.filters[filterName] = value;
+                    showToast(`Filtre ${filterName} mis à jour`, 'success');
+                }
+            } catch (error) {
+                console.error('Erreur lors de la mise à jour du filtre:', error);
+                showToast(`Erreur de mise à jour: ${error.message}`, 'error');
+            }
+        }
+
+        async function shutdownApp() {      
+            try {
+                const response = await fetchWithRetry(`${API_BASE_URL}/shutdown`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    showToast('FlexDXCluster s\'arrête...', 'info');
+                    if (ws) ws.close();
+                    setTimeout(() => {
+                        document.body.innerHTML = '<div class="min-h-screen flex items-center justify-center bg-slate-900 text-white"><div class="text-center"><h1 class="text-4xl font-bold mb-4">FlexDXCluster Arrêté</h1><p class="text-slate-400">L\'application a été arrêtée avec succès.</p></div></div>';
+                    }, 1000);
+                }
+            } catch (error) {
+                console.error('Erreur lors de l\'arrêt:', error);
+                showToast(`Impossible d\'arrêter l\'application: ${error.message}`, 'error');
+            }
+        }
+
+        function getPriorityColor(spot) {
+            const inWatchlist = state.watchlist.some(pattern => {
+                return spot.DX === pattern || spot.DX.startsWith(pattern);
+            });
+            if (inWatchlist) return 'bg-pink-500/20 text-pink-400 border-pink-500/50';
+            if (spot.DX === state.stats.myCallsign) return 'bg-red-500/20 text-red-400 border-red-500/50';
+            if (spot.NewDXCC) return 'bg-green-500/20 text-green-400 border-green-500/50';
+            if (spot.NewBand && spot.NewMode) return 'bg-purple-500/20 text-purple-400 border-purple-500/50';
+            if (spot.NewBand) return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/50';
+            if (spot.NewMode) return 'bg-orange-500/20 text-orange-400 border-orange-500/50';
+            if (spot.Worked) return 'bg-cyan-500/20 text-cyan-400 border-cyan-500/50';
+            return 'bg-gray-500/20 text-gray-400 border-gray-500/50';
+        }
+
+        function getStatusLabel(spot) {
+            
+            const inWatchlist = state.watchlist.some(pattern => {
+                return spot.DX === pattern || spot.DX.startsWith(pattern);
+            });
+    
+            if (inWatchlist) return 'Watchlist';
+            if (spot.DX === state.stats.myCallsign) return 'My Call';
+            if (spot.NewDXCC) return 'New DXCC';
+            if (spot.NewBand && spot.NewMode) return 'New B&M';
+            if (spot.NewBand) return 'New Band';
+            if (spot.NewMode) return 'New Mode';
+            if (spot.NewSlot) return 'New Slot';
+            if (spot.Worked) return 'Worked';
+            return '';
+        }
+
+        let countCache = {};
+
+        function countSpotsByType(type) {
+            if (countCache[type] !== undefined) return countCache[type];
+            
+            let count;
+            switch(type) {
+                case 'newDXCC': 
+                    count = state.spots.filter(s => s.NewDXCC).length; 
+                    break;
+                case 'newBandMode': 
+                    count = state.spots.filter(s => s.NewBand && s.NewMode && !s.NewDXCC).length; 
+                    break;
+                case 'newBand': 
+                    count = state.spots.filter(s => s.NewBand && !s.NewMode && !s.NewDXCC).length; 
+                    break;
+                case 'newMode': 
+                    count = state.spots.filter(s => s.NewMode && !s.NewBand && !s.NewDXCC).length; 
+                    break;
+                case 'newSlot': 
+                    count = state.spots.filter(s => s.NewSlot && !s.NewDXCC && !s.NewBand && !s.NewMode).length; 
+                    break;
+                case 'worked': 
+                    count = state.spots.filter(s => s.Worked).length; 
+                    break;
+                case '160M': count = state.spots.filter(s => s.Band === '160M').length; break;
+                case '80M': count = state.spots.filter(s => s.Band === '80M').length; break;
+                case '60M': count = state.spots.filter(s => s.Band === '60M').length; break;
+                case '40M': count = state.spots.filter(s => s.Band === '40M').length; break;
+                case '30M': count = state.spots.filter(s => s.Band === '30M').length; break;
+                case '20M': count = state.spots.filter(s => s.Band === '20M').length; break;
+                case '17M': count = state.spots.filter(s => s.Band === '17M').length; break;
+                case '15M': count = state.spots.filter(s => s.Band === '15M').length; break;
+                case '12M': count = state.spots.filter(s => s.Band === '12M').length; break;
+                case '10M': count = state.spots.filter(s => s.Band === '10M').length; break;
+                case '6M': count = state.spots.filter(s => s.Band === '6M').length; break;
+                default: count = state.spots.length;
+            }
+            
+            countCache[type] = count;
+            return count;
+        }
+
+        function countSpotsByMode(mode) {
+            if (countCache[mode] !== undefined) return countCache[mode];
+            
+            let count;
+            switch(mode) {
+                case 'digital':
+                    count = state.spots.filter(s => s.Mode === 'FT8' || s.Mode === 'FT4' || s.Mode === 'RTTY').length;
+                    break;
+                case 'ssb':
+                    count = state.spots.filter(s => s.Mode === 'SSB' || s.Mode === 'USB' || s.Mode === 'LSB').length;
+                    break;
+                case 'cw':
+                    count = state.spots.filter(s => s.Mode === 'CW').length;
+                    break;
+                default:
+                    count = 0;
+            }
+            
+            countCache[mode] = count;
+            return count;
+        }
+
+        function countWatchlistSpots() {
+            return state.spots.filter(spot => {
+                return state.watchlist.some(pattern => {
+                    return spot.DX === pattern || spot.DX.startsWith(pattern);
+                });
+            }).length;
+        }
+
+        function getBandStats() {
+            const stats = {};
+            BANDS.forEach(band => {
+                stats[band] = state.spots.filter(s => s.Band === band).length;
+            });
+            return stats;
+        }
+    
+        function getSunspotsColor(sunspots) {
+            const value = parseInt(sunspots);
+            if (isNaN(value)) return 'text-slate-500';
+            if (value >= 100) return 'text-green-400 font-bold';
+            if (value >= 50) return 'text-yellow-400';
+            return 'text-orange-400';
+        }
+
+        function getSFIColor(sfi) {
+            const value = parseInt(sfi);
+            if (isNaN(value)) return 'text-slate-500';
+            if (value >= 150) return 'text-green-400 font-bold';
+            if (value >= 100) return 'text-yellow-400';
+            return 'text-red-400';
+        }
+
+        function getAIndexColor(aIndex) {
+            const value = parseInt(aIndex);
+            if (isNaN(value)) return 'text-slate-500';
+            if (value <= 7) return 'text-green-400 font-bold';
+            if (value <= 15) return 'text-yellow-400';
+            return 'text-red-400';
+        }
+
+        function getKIndexColor(kIndex) {
+            const value = parseInt(kIndex);
+            if (isNaN(value)) return 'text-slate-500';
+            if (value <= 2) return 'text-green-400 font-bold';
+            if (value <= 4) return 'text-yellow-400';
+            return 'text-red-400';
+        }
+
+        function renderBandPropagationChart() {
+            const bandStats = getBandStats();
+            const maxSpots = Math.max(...Object.values(bandStats), 1);
+            
+            return `
+                <div class="p-3 border-t border-slate-700/50 flex-shrink-0">
+                    <h2 class="text-lg font-bold mb-3">Band Propagation</h2>
+                </div>
+                <div class="px-3 pb-3 space-y-2">
+                    ${BANDS.map(band => {
+                        const count = bandStats[band];
+                        const percentage = maxSpots > 0 ? (count / maxSpots) * 100 : 0;
+                        const color = BAND_COLORS[band];
+                        
+                        return `
+                            <div class="band-bar" onclick="toggleSpotFilter('band${band.replace('M', 'M')}')">
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="text-xs font-semibold" style="color: ${color}">${band}</span>
+                                    <span class="text-xs text-slate-400">${count} spots</span>
+                                </div>
+                                <div class="w-full bg-slate-700/30 rounded-full h-2 overflow-hidden">
+                                    <div class="h-full rounded-full transition-all duration-500" 
+                                        style="width: ${percentage}%; background-color: ${color}">
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        }
+
+        async function addToWatchlist() {
+            const input = document.getElementById('watchlist-input');
+            const callsign = input.value.trim().toUpperCase();
+            
+            if (!callsign) {
+                showToast('Please enter a callsign', 'warning');
+                return;
+            }
+            
+            try {
+                const response = await fetchWithRetry(`${API_BASE_URL}/watchlist/add`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ callsign })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    input.value = '';
+                    showToast(`${callsign} added to watchlist`, 'success');
+                } else {
+                    showToast('Failed to add callsign', 'error');
+                }
+            } catch (error) {
+                console.error('Error adding to watchlist:', error);
+                showToast(`Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function removeFromWatchlist(callsign) {
+            try {
+                const response = await fetchWithRetry(`${API_BASE_URL}/watchlist/remove`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ callsign })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    showToast(`${callsign} removed from watchlist`, 'success');
+                } else {
+                    showToast('Failed to remove callsign', 'error');
+                }
+            } catch (error) {
+                console.error('Error removing from watchlist:', error);
+                showToast(`Error: ${error.message}`, 'error');
+            }
+        }
+
+        function countWatchlistSpots() {
+            return state.spots.filter(spot => {
+                return state.watchlist.some(pattern => {
+                    return spot.DX === pattern || spot.DX.startsWith(pattern);
+                });
+            }).length;
+        }
+
+        function getWebSocketStatusHTML() {
+            const statuses = {
+                'connected': '<span class="ws-indicator ws-connected"><span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>WebSocket</span>',
+                'connecting': '<span class="ws-indicator ws-connecting"><span class="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></span>Connecting...</span>',
+                'disconnected': '<span class="ws-indicator ws-disconnected"><span class="w-2 h-2 bg-red-500 rounded-full"></span>Disconnected</span>'
+            };
+            return statuses[state.wsStatus] || statuses['disconnected'];
+        }
+
+        function updateWatchlistCounters() {
+            // Mettre à jour le compteur en haut
+            const counterElement = document.querySelector('.watchlist-counter');
+            if (counterElement) {
+                counterElement.textContent = `${countWatchlistSpots()} matching spots`;
+            }
+            
+            // Mettre à jour les compteurs de chaque callsign
+            state.watchlist.forEach(callsign => {
+                const matchingSpots = state.spots.filter(s => 
+                    s.DX === callsign || s.DX.startsWith(callsign)
+                ).length;
+                
+                const counterEl = document.querySelector(`[data-watchlist="${callsign}"] .spot-counter`);
+                if (counterEl) {
+                    counterEl.textContent = `${matchingSpots} active spot${matchingSpots !== 1 ? 's' : ''}`;
+                }
+            });
+        }
+
+        function render() {
+            countCache = {};
+            
+            const app = document.getElementById('app');
+            
+            if (state.loading) {
+                app.innerHTML = `
+                    <div class="h-full flex items-center justify-center">
+                        <div class="text-center">
+                            <div class="w-12 h-12 border-4 border-blue-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                            <p class="text-slate-400">Connecting to server...</p>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            // Vérifier si on est en train de taper dans l'input watchlist
+            const watchlistInput = document.getElementById('watchlist-input');
+            const isTypingInWatchlist = state.activeTab === 'watchlist' && 
+                                        watchlistInput && 
+                                        document.activeElement === watchlistInput;
+            
+            // Si on tape dans la watchlist, faire seulement un update partiel
+            if (isTypingInWatchlist) {
+                updateWatchlistCounters();
+                updateSpotsTable(); // Mettre à jour seulement le tableau des spots
+                return;
+            }
+
+            const spotsContainer = document.querySelector('.scrollable');
+            const scrollTop = spotsContainer ? spotsContainer.scrollTop : 0;
+
+            // Sauvegarder la position de scroll de la watchlist
+            const watchlistScroll = document.querySelector('#watchlist-items-container')?.parentElement;
+            if (watchlistScroll && state.activeTab === 'watchlist') {
+                state.watchlistScrollTop = watchlistScroll.scrollTop;
+            }
+
+            app.innerHTML = `
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-3">
+                        <svg class="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.348 14.651a3.75 3.75 0 010-5.303m5.304 0a3.75 3.75 0 010 5.303m-7.425 2.122a6.75 6.75 0 010-9.546m9.546 0a6.75 6.75 0 010 9.546M5.106 18.894c-3.808-3.808-3.808-9.98 0-13.789m13.788 0c3.808 3.808 3.808 9.981 0 13.79M12 12h.008v.007H12V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+                        </svg>
+                    <div>
+                        <h1 class="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">FlexDXCluster</h1>
+                        <div class="flex items-center gap-3 text-xs text-slate-400">
+                            <span>F4BPO • ${state.stats.totalContacts} Contacts</span>
+                            <span class="text-slate-600">|</span>
+                            <span class="flex items-center gap-1">
+                                <span class="font-semibold text-amber-400">SFI:</span> 
+                                <span class="${getSFIColor(state.solarData.sfi)}">${state.solarData.sfi}</span>
+                            </span>
+                            <span class="flex items-center gap-1">
+                                <span class="font-semibold text-yellow-400">SSN:</span> 
+                                <span class="${getSunspotsColor(state.solarData.sunspots)}">${state.solarData.sunspots}</span>
+                            </span>
+                            <span class="flex items-center gap-1">
+                                <span class="font-semibold text-red-400">A:</span> 
+                                <span class="${getAIndexColor(state.solarData.aIndex)}">${state.solarData.aIndex}</span>
+                            </span>
+                            <span class="flex items-center gap-1">
+                                <span class="font-semibold text-purple-400">K:</span> 
+                                <span class="${getKIndexColor(state.solarData.kIndex)}">${state.solarData.kIndex}</span>
+                            </span>
+                        </div>
+                    </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        ${getWebSocketStatusHTML()}
+                        <span class="status-indicator ${state.stats.clusterStatus === 'connected' ? 'status-connected' : 'status-disconnected'}">
+                            <span class="w-2 h-2 ${state.stats.clusterStatus === 'connected' ? 'bg-green-500' : 'bg-red-500'} rounded-full ${state.stats.clusterStatus === 'connected' ? 'animate-pulse' : ''}"></span>
+                            Cluster
+                        </span>
+                        <span class="status-indicator ${state.stats.flexStatus === 'connected' ? 'status-connected' : 'status-disconnected'}">
+                            <span class="w-2 h-2 ${state.stats.flexStatus === 'connected' ? 'bg-green-500' : 'bg-red-500'} rounded-full ${state.stats.flexStatus === 'connected' ? 'animate-pulse' : ''}"></span>
+                            Flex
+                        </span>
+                        <button onclick="shutdownApp()" class="px-3 py-1.5 text-xs bg-red-600 hover:bg-red-700 rounded transition-colors flex items-center gap-1">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                            Shutdown
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-7 gap-3 mb-3">
+                    <div class="bg-slate-800/50 backdrop-blur rounded-lg p-3 border border-slate-700/50">
+                        <div class="flex items-center justify-between">
+                            <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                            <div class="text-xl font-bold text-blue-400">${state.stats.totalSpots}</div>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-1">Total Spots</p>
+                    </div>
+                    <div class="bg-slate-800/50 backdrop-blur rounded-lg p-3 border border-slate-700/50">
+                        <div class="flex items-center justify-between">
+                            <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <div class="text-xl font-bold text-green-400">${state.stats.newDXCC}</div>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-1">New DXCC</p>
+                    </div>
+                    <div class="bg-slate-800/50 backdrop-blur rounded-lg p-3 border border-slate-700/50">
+                        <div class="flex items-center justify-between">
+                            <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                            </svg>
+                            <div class="text-xl font-bold text-purple-400">${state.stats.activeSpotters}</div>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-1">Spotters</p>
+                    </div>
+                    <div class="bg-slate-800/50 backdrop-blur rounded-lg p-3 border border-slate-700/50">
+                        <div class="flex items-center justify-between">
+                            <svg class="w-6 h-6 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0" />
+                            </svg>
+                            <div class="text-xl font-bold text-orange-400">${state.stats.connectedClients}</div>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-1">Clients</p>
+                    </div>
+                    <div class="col-span-3 bg-slate-800/50 backdrop-blur rounded-lg p-3 border border-slate-700/50">
+                        <div class="flex items-center justify-center gap-6 h-full">
+                            <input type="checkbox" id="skimmer" class="toggle-checkbox" ${state.stats.filters.skimmer ? 'checked' : ''} 
+                                onchange="updateFilter('skimmer', this.checked)" />
+                            <label for="skimmer" class="toggle-label">
+                                <div class="toggle-switch"></div>
+                                <span class="text-sm font-medium">Skimmer</span>
+                            </label>
+                            
+                            <input type="checkbox" id="ft8" class="toggle-checkbox" ${state.stats.filters.ft8 ? 'checked' : ''} 
+                                onchange="updateFilter('ft8', this.checked)" />
+                            <label for="ft8" class="toggle-label">
+                                <div class="toggle-switch"></div>
+                                <span class="text-sm font-medium">FT8</span>
+                            </label>
+                            
+                            <input type="checkbox" id="ft4" class="toggle-checkbox" ${state.stats.filters.ft4 ? 'checked' : ''} 
+                                onchange="updateFilter('ft4', this.checked)" />
+                            <label for="ft4" class="toggle-label">
+                                <div class="toggle-switch"></div>
+                                <span class="text-sm font-medium">FT4</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+            <div class="bg-slate-800/50 backdrop-blur rounded-lg p-2 border border-slate-700/50 mb-3">
+                <div class="flex items-center gap-1 flex-wrap">
+                    <span class="text-xs font-bold text-slate-400 mr-2">TYPE:</span>
+                    <button onclick="toggleSpotFilter('showAll')" 
+                        class="px-2 py-0.5 text-xs rounded transition-colors ${state.spotFilters.showAll ? 'bg-blue-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
+                        All (${state.spots.length})
+                    </button>
+                    <button onclick="toggleSpotFilter('showWatchlist')" 
+                        class="px-2 py-0.5 text-xs rounded transition-colors ${state.spotFilters.showWatchlist ? 'bg-pink-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
+                        Watch (${countWatchlistSpots()})
+                    </button>
+                    <button onclick="toggleSpotFilter('showNewDXCC')" 
+                        class="px-2 py-0.5 text-xs rounded transition-colors ${state.spotFilters.showNewDXCC ? 'bg-green-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
+                        DXCC (${countSpotsByType('newDXCC')})
+                    </button>
+                    <button onclick="toggleSpotFilter('showNewBandMode')" 
+                        class="px-2 py-0.5 text-xs rounded transition-colors ${state.spotFilters.showNewBandMode ? 'bg-purple-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
+                        B&M (${countSpotsByType('newBandMode')})
+                    </button>
+                    <button onclick="toggleSpotFilter('showNewBand')" 
+                        class="px-2 py-0.5 text-xs rounded transition-colors ${state.spotFilters.showNewBand ? 'bg-yellow-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
+                        Band (${countSpotsByType('newBand')})
+                    </button>
+                    <button onclick="toggleSpotFilter('showNewMode')" 
+                        class="px-2 py-0.5 text-xs rounded transition-colors ${state.spotFilters.showNewMode ? 'bg-orange-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
+                        Mode (${countSpotsByType('newMode')})
+                    </button>
+                    <button onclick="toggleSpotFilter('showNewSlot')" 
+                        class="px-2 py-0.5 text-xs rounded transition-colors ${state.spotFilters.showNewSlot ? 'bg-sky-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
+                        Slot (${countSpotsByType('newSlot')})
+                    </button>
+                    <button onclick="toggleSpotFilter('showWorked')" 
+                        class="px-2 py-0.5 text-xs rounded transition-colors ${state.spotFilters.showWorked ? 'bg-cyan-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
+                        Wkd (${countSpotsByType('worked')})
+                    </button>
+                    
+                    <span class="text-slate-600 mx-1">|</span>
+                    <span class="text-xs font-bold text-slate-400 mr-2">MODE:</span>
+                    <button onclick="toggleSpotFilter('showDigital')" 
+                        class="px-2 py-0.5 text-xs rounded transition-colors ${state.spotFilters.showDigital ? 'bg-teal-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
+                        Digi (${countSpotsByMode('digital')})
+                    </button>
+                    <button onclick="toggleSpotFilter('showSSB')" 
+                        class="px-2 py-0.5 text-xs rounded transition-colors ${state.spotFilters.showSSB ? 'bg-amber-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
+                        SSB (${countSpotsByMode('ssb')})
+                    </button>
+                    <button onclick="toggleSpotFilter('showCW')" 
+                        class="px-2 py-0.5 text-xs rounded transition-colors ${state.spotFilters.showCW ? 'bg-rose-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
+                        CW (${countSpotsByMode('cw')})
+                    </button>
+                    
+                    <span class="text-slate-600 mx-1">|</span>
+                    <span class="text-xs font-bold text-slate-400 mr-2">BAND:</span>
+                    <button onclick="toggleSpotFilter('band160M')" 
+                        class="px-1.5 py-0.5 text-xs rounded transition-colors ${state.spotFilters.band160M ? 'bg-indigo-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
+                        160 (${countSpotsByType('160M')})
+                    </button>
+                    <button onclick="toggleSpotFilter('band80M')" 
+                        class="px-1.5 py-0.5 text-xs rounded transition-colors ${state.spotFilters.band80M ? 'bg-indigo-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
+                        80 (${countSpotsByType('80M')})
+                    </button>
+                    <button onclick="toggleSpotFilter('band60M')" 
+                        class="px-1.5 py-0.5 text-xs rounded transition-colors ${state.spotFilters.band60M ? 'bg-indigo-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
+                        60 (${countSpotsByType('60M')})
+                    </button>
+                    <button onclick="toggleSpotFilter('band40M')" 
+                        class="px-1.5 py-0.5 text-xs rounded transition-colors ${state.spotFilters.band40M ? 'bg-indigo-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
+                        40 (${countSpotsByType('40M')})
+                    </button>
+                    <button onclick="toggleSpotFilter('band30M')" 
+                        class="px-1.5 py-0.5 text-xs rounded transition-colors ${state.spotFilters.band30M ? 'bg-indigo-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
+                        30 (${countSpotsByType('30M')})
+                    </button>
+                    <button onclick="toggleSpotFilter('band20M')" 
+                        class="px-1.5 py-0.5 text-xs rounded transition-colors ${state.spotFilters.band20M ? 'bg-indigo-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
+                        20 (${countSpotsByType('20M')})
+                    </button>
+                    <button onclick="toggleSpotFilter('band17M')" 
+                        class="px-1.5 py-0.5 text-xs rounded transition-colors ${state.spotFilters.band17M ? 'bg-indigo-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
+                        17 (${countSpotsByType('17M')})
+                    </button>
+                    <button onclick="toggleSpotFilter('band15M')" 
+                        class="px-1.5 py-0.5 text-xs rounded transition-colors ${state.spotFilters.band15M ? 'bg-indigo-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
+                        15 (${countSpotsByType('15M')})
+                    </button>
+                    <button onclick="toggleSpotFilter('band12M')" 
+                        class="px-1.5 py-0.5 text-xs rounded transition-colors ${state.spotFilters.band12M ? 'bg-indigo-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
+                        12 (${countSpotsByType('12M')})
+                    </button>
+                    <button onclick="toggleSpotFilter('band10M')" 
+                        class="px-1.5 py-0.5 text-xs rounded transition-colors ${state.spotFilters.band10M ? 'bg-indigo-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
+                        10 (${countSpotsByType('10M')})
+                    </button>
+                    <button onclick="toggleSpotFilter('band6M')" 
+                        class="px-1.5 py-0.5 text-xs rounded transition-colors ${state.spotFilters.band6M ? 'bg-indigo-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
+                        6 (${countSpotsByType('6M')})
+                    </button>
+                </div>
+            </div>    
+            
+                <div class="grid grid-cols-4 gap-3" style="height: calc(100vh - 360px);">
+                    <div class="col-span-3 bg-slate-800/50 backdrop-blur rounded-lg border border-slate-700/50 flex flex-col overflow-hidden">
+                        <div class="p-3 border-b border-slate-700/50 flex items-center justify-between">
+                            <h2 class="text-lg font-bold">Recent Spots (<span id="spots-count">${state.filteredSpots.length}</span>)</h2>
+                        </div>
+                        <div class="scrollable" id="spots-table-container">
+                            <!-- Table will be injected by updateSpotsTable() -->
+                        </div>
+                    </div>
+
+            <div class="bg-slate-800/50 backdrop-blur rounded-lg border border-slate-700/50 flex flex-col overflow-hidden">
+                <!-- Tabs Header -->
+                <div class="flex border-b border-slate-700/50 bg-slate-900/30">
+                    <button class="tab-button ${state.activeTab === 'stats' ? 'active' : ''}" 
+                            onclick="switchTab('stats')">
+                        <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                        Stats
+                    </button>
+                    <button class="tab-button ${state.activeTab === 'watchlist' ? 'active' : ''}" 
+                            onclick="switchTab('watchlist')">
+                        <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                        Watchlist
+                    </button>
+                    <button class="tab-button ${state.activeTab === 'log' ? 'active' : ''}" 
+                            onclick="switchTab('log')">
+                        <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Log
+                    </button>
+                </div>
+                
+                <!-- Tab Content -->
+                <div class="flex-1 overflow-hidden">
+                    <!-- Stats Tab -->
+                    <div class="tab-content ${state.activeTab === 'stats' ? 'active' : ''} h-full overflow-y-auto">
+                        <div class="p-3 border-b border-slate-700/50">
+                            <h2 class="text-lg font-bold">Top 3 Spotters</h2>
+                        </div>
+                        <div class="p-3">
+                            ${state.topSpotters.slice(0, 3).map((spotter, index) => `
+                                <div class="flex items-center justify-between mb-2 p-2 bg-slate-900/30 rounded hover:bg-slate-700/30 transition-colors">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-6 h-6 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-xs font-bold">
+                                            ${index + 1}
+                                        </div>
+                                        <span class="text-sm font-semibold">${spotter.Spotter}</span>
+                                    </div>
+                                    <span class="text-slate-400 font-mono text-xs">${spotter.NumberofSpots}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                        
+                        ${renderBandPropagationChart()}
+                    </div>
+                    
+                    <!-- Watchlist Tab -->
+                    <div class="tab-content ${state.activeTab === 'watchlist' ? 'active' : ''}" style="height: 100%; display: ${state.activeTab === 'watchlist' ? 'flex' : 'none'}; flex-direction: column; overflow: hidden;">
+                        <div class="p-3 border-b border-slate-700/50 flex-shrink-0">
+                            <h2 class="text-lg font-bold mb-2">Watchlist</h2>
+                            <p class="text-xs text-slate-400 mb-3 watchlist-counter">${countWatchlistSpots()} matching spots</p>
+                            
+                            <div class="flex gap-2">
+                                <input 
+                                    type="text" 
+                                    id="watchlist-input"
+                                    placeholder="Enter callsign or prefix (e.g., VK9)"
+                                    class="flex-1 px-3 py-2 bg-slate-700/50 border border-slate-600 rounded text-sm text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
+                                    onkeypress="if(event.key === 'Enter') { event.preventDefault(); addToWatchlist(); }"
+                                />
+                                <button 
+                                    onclick="addToWatchlist()"
+                                    class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded text-sm font-medium transition-colors">
+                                    Add
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="flex-1 overflow-y-auto" style="min-height: 0;">
+                            <div class="p-3" id="watchlist-items-container">
+                                <!-- Watchlist items will be injected by updateWatchlistItems() -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Log Tab -->
+                    <div class="tab-content ${state.activeTab === 'log' ? 'active' : ''} h-full overflow-hidden flex flex-col">
+                        <!-- Stats cards en haut -->
+                        <div class="p-3 border-b border-slate-700/50 flex-shrink-0">
+                            <h2 class="text-lg font-bold mb-3">Station Log</h2>
+                            
+                            <div class="grid grid-cols-4 gap-2 mb-3">
+                                <div class="bg-slate-900/50 rounded p-2">
+                                    <div class="text-xs text-slate-400">Today</div>
+                                    <div class="text-xl font-bold text-blue-400">${state.logStats.today || 0}</div>
+                                </div>
+                                <div class="bg-slate-900/50 rounded p-2">
+                                    <div class="text-xs text-slate-400">This Week</div>
+                                    <div class="text-xl font-bold text-green-400">${state.logStats.thisWeek || 0}</div>
+                                </div>
+                                <div class="bg-slate-900/50 rounded p-2">
+                                    <div class="text-xs text-slate-400">This Month</div>
+                                    <div class="text-xl font-bold text-purple-400">${state.logStats.thisMonth || 0}</div>
+                                </div>
+                                <div class="bg-slate-900/50 rounded p-2">
+                                    <div class="text-xs text-slate-400">Total</div>
+                                    <div class="text-xl font-bold text-orange-400">${state.logStats.total || 0}</div>
+                                </div>
+                            </div>
+                            
+                            <!-- DXCC Progress Bar -->
+                            <div class="bg-slate-900/50 rounded p-3">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-sm font-semibold text-slate-300">DXCC Progress</span>
+                                    <span class="text-sm font-bold text-green-400">${state.dxccProgress.worked || 0} / ${state.dxccProgress.total || 340}</span>
+                                </div>
+                                <div class="w-full bg-slate-700/30 rounded-full h-3 overflow-hidden">
+                                    <div class="h-full rounded-full bg-gradient-to-r from-green-500 to-emerald-500 transition-all duration-500" 
+                                        style="width: ${state.dxccProgress.percentage || 0}%">
+                                    </div>
+                                </div>
+                                <div class="text-xs text-slate-400 text-right mt-1">${(state.dxccProgress.percentage || 0).toFixed(1)}% Complete</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Tableau QSOs en bas scrollable -->
+                        <div class="flex-1 overflow-y-auto" style="min-height: 0;">
+                            <div class="p-3">
+                                <h3 class="text-sm font-bold text-slate-400 mb-2">Recent QSOs</h3>
+                                
+                                ${state.recentQSOs.length === 0 ? `
+                                    <div class="text-center py-8 text-slate-400">
+                                        <svg class="w-12 h-12 mx-auto mb-3 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                        </svg>
+                                        <p class="text-sm">No QSOs in log</p>
+                                    </div>
+                                ` : `
+                                    <table class="w-full text-xs">
+                                        <thead class="bg-slate-900/50 sticky top-0">
+                                            <tr class="text-left text-xs text-slate-400">
+                                                <th class="p-2 font-semibold">Date</th>
+                                                <th class="p-2 font-semibold">Callsign</th>
+                                                <th class="p-2 font-semibold">Band</th>
+                                                <th class="p-2 font-semibold">Mode</th>
+                                                <th class="p-2 font-semibold">RST S/R</th>
+                                                <th class="p-2 font-semibold">Country</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            ${state.recentQSOs.map(qso => `
+                                                <tr class="border-b border-slate-700/30 hover:bg-slate-700/30 transition-colors">
+                                                    <td class="p-2 text-slate-300">${qso.date || 'N/A'}</td>
+                                                    <td class="p-2">
+                                                        <span class="font-bold text-blue-400">${qso.callsign}</span>
+                                                    </td>
+                                                    <td class="p-2">
+                                                        <span class="px-1.5 py-0.5 bg-slate-700/50 rounded text-xs">${qso.band || 'N/A'}</span>
+                                                    </td>
+                                                    <td class="p-2">
+                                                        <span class="px-1.5 py-0.5 bg-purple-500/20 text-purple-400 rounded text-xs">${qso.mode || 'N/A'}</span>
+                                                    </td>
+                                                    <td class="p-2 font-mono text-xs text-slate-400">${qso.rstSent || '---'} / ${qso.rstRcvd || '---'}</td>
+                                                    <td class="p-2 text-slate-400">${qso.country || 'N/A'}</td>
+                                                </tr>
+                                            `).join('')}
+                                        </tbody>
+                                    </table>
+                                `}
+                            </div>
+                        </div>
+                    </div>
+            </div>
+        </div>
+            `;
+
+            // Injecter initialement les tables
+            updateSpotsTable();
+            updateWatchlistItems();
+
+            // Restaurer le scroll de la table des spots
+            const newSpotsContainer = document.querySelector('.scrollable');
+            if (newSpotsContainer && scrollTop > 0) {
+                newSpotsContainer.scrollTop = scrollTop;
+            }
+            
+            // Restaurer le scroll de la watchlist
+            const newWatchlistScroll = document.querySelector('#watchlist-items-container')?.parentElement;
+            if (newWatchlistScroll && state.activeTab === 'watchlist' && state.watchlistScrollTop > 0) {
+                newWatchlistScroll.scrollTop = state.watchlistScrollTop;
+            }
+        }
+
+        function updateSpotsTable() {
+            const container = document.getElementById('spots-table-container');
+            if (!container) return;
+            
+            const countElement = document.getElementById('spots-count');
+            if (countElement) {
+                countElement.textContent = state.filteredSpots.length;
+            }
+            
+            container.innerHTML = `
+                <table class="w-full text-sm">
+                    <thead class="bg-slate-900/50 sticky top-0">
+                        <tr class="text-left text-xs text-slate-400">
+                            <th class="p-2 font-semibold">DX</th>
+                            <th class="p-2 font-semibold">Freq</th>
+                            <th class="p-2 font-semibold">Band</th>
+                            <th class="p-2 font-semibold">Mode</th>
+                            <th class="p-2 font-semibold">Spotter</th>
+                            <th class="p-2 font-semibold">Time</th>
+                            <th class="p-2 font-semibold">Country</th>
+                            <th class="p-2 font-semibold">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${state.filteredSpots.map(spot => `
+                            <tr class="border-b border-slate-700/30 hover:bg-slate-700/30 transition-colors text-sm">
+                                <td class="p-2">
+                                    <span class="font-bold text-blue-400 dx-callsign" 
+                                        onclick="sendCallsignToLog4OM('${spot.DX}', '${spot.FrequencyMhz}', '${spot.Mode}')" 
+                                        title="Click to send to Log4OM and tune radio">
+                                        ${spot.DX}
+                                    </span>
+                                </td>
+                                <td class="p-2 font-mono text-xs">${spot.FrequencyMhz}</td>
+                                <td class="p-2"><span class="px-1.5 py-0.5 bg-slate-700/50 rounded text-xs">${spot.Band}</span></td>
+                                <td class="p-2"><span class="px-1.5 py-0.5 bg-purple-500/20 text-purple-400 rounded text-xs">${spot.Mode}</span></td>
+                                <td class="p-2 text-slate-300 text-xs">${spot.SpotterCallsign}</td>
+                                <td class="p-2 text-slate-400 text-xs">${spot.UTCTime}</td>
+                                <td class="p-2 text-slate-400 text-xs">${spot.CountryName || 'N/A'}</td>
+                                <td class="p-2">
+                                    ${getStatusLabel(spot) ? `<span class="px-1.5 py-0.5 rounded text-xs font-semibold border ${getPriorityColor(spot)}">${getStatusLabel(spot)}</span>` : ''}
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function updateWatchlistItems() {
+            const container = document.getElementById('watchlist-items-container');
+            if (!container) return;
+            
+            if (state.watchlist.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-slate-400">
+                        <svg class="w-12 h-12 mx-auto mb-3 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                        <p class="text-sm">No callsigns in watchlist</p>
+                        <p class="text-xs mt-1">Add callsigns or prefixes to monitor</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = state.watchlist.map(callsign => {
+                const matchingSpots = state.spots.filter(s => 
+                    s.DX === callsign || s.DX.startsWith(callsign)
+                ).length;
+                
+                return `
+                    <div class="mb-2 p-3 bg-slate-900/30 rounded hover:bg-slate-700/30 transition-colors" data-watchlist="${callsign}">
+                        <div class="flex items-center justify-between">
+                            <div class="flex-1">
+                                <div class="font-bold text-pink-400">${callsign}</div>
+                                <div class="text-xs text-slate-400 spot-counter">${matchingSpots} active spot${matchingSpots !== 1 ? 's' : ''}</div>
+                            </div>
+                            <button 
+                                onclick="removeFromWatchlist('${callsign}')"
+                                class="px-2 py-1 text-xs bg-red-600/20 hover:bg-red-600/40 text-red-400 rounded transition-colors">
+                                Remove
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateWatchlistCounters() {
+            // Mettre à jour le compteur en haut
+            const counterElement = document.querySelector('.watchlist-counter');
+            if (counterElement) {
+                counterElement.textContent = `${countWatchlistSpots()} matching spots`;
+            }
+            
+            // Mettre à jour les compteurs de chaque callsign
+            state.watchlist.forEach(callsign => {
+                const matchingSpots = state.spots.filter(s => 
+                    s.DX === callsign || s.DX.startsWith(callsign)
+                ).length;
+                
+                const counterEl = document.querySelector(`[data-watchlist="${callsign}"] .spot-counter`);
+                if (counterEl) {
+                    counterEl.textContent = `${matchingSpots} active spot${matchingSpots !== 1 ? 's' : ''}`;
+                }
+            });
+        }
+
+        async function initPropagation() {
+            state.solarData = await fetchPropagationData();
+            
+            // Mettre à jour toutes les 15 minutes
+            setInterval(async () => {
+                state.solarData = await fetchPropagationData();
+                render();
+            }, 15 * 60 * 1000);
+        }
+
+        // Initialize
+        initPropagation();
+        setInterval(async () => {
+            if (state.activeTab === 'log') {
+                await fetchLogData();
+            }
+        }, 10000);
+        fetchLogData();
+        connectWebSocket();
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (ws) {
+                ws.close();
+            }
+            if (wsReconnectTimer) {
+                clearTimeout(wsReconnectTimer);
+            }
+        });
+    </script>
+</body>
+</html>
