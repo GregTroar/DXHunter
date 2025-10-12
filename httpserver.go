@@ -177,7 +177,7 @@ func (s *HTTPServer) sendInitialData(conn *websocket.Conn) {
 	conn.WriteJSON(WSMessage{Type: "stats", Data: stats})
 
 	// Send initial spots
-	spots := s.FlexRepo.GetAllSpots("1000")
+	spots := s.FlexRepo.GetAllSpots("0")
 	conn.WriteJSON(WSMessage{Type: "spots", Data: spots})
 
 	// Send initial spotters
@@ -224,7 +224,7 @@ func (s *HTTPServer) handleBroadcasts() {
 }
 
 func (s *HTTPServer) broadcastUpdates() {
-	statsTicker := time.NewTicker(500 * time.Millisecond)
+	statsTicker := time.NewTicker(1 * time.Second)
 	logTicker := time.NewTicker(10 * time.Second)
 	defer statsTicker.Stop()
 	defer logTicker.Stop()
@@ -245,7 +245,7 @@ func (s *HTTPServer) broadcastUpdates() {
 			s.broadcast <- WSMessage{Type: "stats", Data: stats}
 
 			// Broadcast spots
-			spots := s.FlexRepo.GetAllSpots("2000")
+			spots := s.FlexRepo.GetAllSpots("0")
 			s.broadcast <- WSMessage{Type: "spots", Data: spots}
 
 			// Broadcast spotters

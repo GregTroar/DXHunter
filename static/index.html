@@ -326,7 +326,7 @@
                     wsReconnectAttempts = 0;
                     hideErrorBanner();
                     showToast('Connected to server', 'success');
-                    render();
+                    render(); 
                 };
 
                 ws.onmessage = (event) => {
@@ -371,30 +371,333 @@
             switch (message.type) {
                 case 'stats':
                     state.stats = message.data;
+                    updateStatsOnly();
                     break;
                 case 'spots':
                     state.spots = message.data || [];
                     applySpotFilters();
+                    updateSpotsTable();
+                    updateSpotCounts();
+                    if (state.activeTab === 'stats') {
+                        updateBandPropagation();
+                    }
                     break;
                 case 'spotters':
                     state.topSpotters = message.data || [];
+                    if (state.activeTab === 'stats') {
+                        updateTopSpotters();
+                    }
                     break;
                 case 'watchlist': 
                     state.watchlist = message.data || [];
-                    // Force la mise à jour de la watchlist même si on est dans l'input
                     if (state.activeTab === 'watchlist') {
                         updateWatchlistItems();
                         updateWatchlistCounters();
-                    }   
+                    }
                     break;
                 case 'log':
                     state.recentQSOs = message.data || [];
+                    if (state.activeTab === 'log') {
+                        updateLogTable();
+                    }
                     break;
                 case 'logStats':
                     state.logStats = message.data || {};
+                    if (state.activeTab === 'log') {
+                        updateLogStats();
+                    }
                     break;
+            }
+        }
+
+        // Mettre à jour uniquement les stats
+        function updateStatsOnly() {
+            // Total Spots
+            const totalSpotsEl = document.querySelector('[data-stat="totalSpots"]');
+            if (totalSpotsEl) totalSpotsEl.textContent = state.stats.totalSpots;
+            
+            // New DXCC
+            const newDxccEl = document.querySelector('[data-stat="newDXCC"]');
+            if (newDxccEl) newDxccEl.textContent = state.stats.newDXCC;
+            
+            // Active Spotters
+            const spottersEl = document.querySelector('[data-stat="activeSpotters"]');
+            if (spottersEl) spottersEl.textContent = state.stats.activeSpotters;
+            
+            // Connected Clients
+            const clientsEl = document.querySelector('[data-stat="connectedClients"]');
+            if (clientsEl) clientsEl.textContent = state.stats.connectedClients;
+            
+            const totalContactsEl = document.querySelector('[data-stat="totalContacts"]');
+            if (totalContactsEl) totalContactsEl.textContent = state.stats.totalContacts;
+
+            // Status indicators
+            updateStatusIndicators();
+            updateFilterToggles();
+        }
+
+        function updateBandPropagation() {
+            const container = document.querySelector('[data-section="band-propagation"]');
+            if (!container) return;
+            
+            const bandStats = getBandStats();
+            const maxSpots = Math.max(...Object.values(bandStats), 1);
+            
+            container.innerHTML = BANDS.map(band => {
+                const count = bandStats[band];
+                const percentage = maxSpots > 0 ? (count / maxSpots) * 100 : 0;
+                const color = BAND_COLORS[band];
+                
+                return `
+                    <div class="band-bar" onclick="toggleSpotFilter('band${band}')">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-xs font-semibold" style="color: ${color}">${band}</span>
+                            <span class="text-xs text-slate-400">${count} spots</span>
+                        </div>
+                        <div class="w-full bg-slate-700/30 rounded-full h-2 overflow-hidden">
+                            <div class="h-full rounded-full transition-all duration-500" 
+                                style="width: ${percentage}%; background-color: ${color}">
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateFilterButtons() {
+            // Mise à jour du bouton "All"
+            const allBtn = document.querySelector('[data-filter="showAll"]');
+            if (allBtn) {
+                if (state.spotFilters.showAll) {
+                    allBtn.className = 'px-2 py-0.5 text-xs rounded transition-colors bg-blue-600 text-white';
+                } else {
+                    allBtn.className = 'px-2 py-0.5 text-xs rounded transition-colors bg-slate-700/50 text-slate-300 hover:bg-slate-700';
                 }
-            render();
+            }
+            
+            // Mise à jour des filtres de type
+            const typeFilters = [
+                { key: 'showWatchlist', color: 'pink' },
+                { key: 'showNewDXCC', color: 'green' },
+                { key: 'showNewBandMode', color: 'purple' },
+                { key: 'showNewBand', color: 'yellow' },
+                { key: 'showNewMode', color: 'orange' },
+                { key: 'showNewSlot', color: 'sky' },
+                { key: 'showWorked', color: 'cyan' }
+            ];
+            
+            typeFilters.forEach(filter => {
+                const btn = document.querySelector(`[data-filter="${filter.key}"]`);
+                if (btn) {
+                    if (state.spotFilters[filter.key]) {
+                        btn.className = `px-2 py-0.5 text-xs rounded transition-colors bg-${filter.color}-600 text-white`;
+                    } else {
+                        btn.className = 'px-2 py-0.5 text-xs rounded transition-colors bg-slate-700/50 text-slate-300 hover:bg-slate-700';
+                    }
+                }
+            });
+            
+            // Mise à jour des filtres de mode
+            const modeFilters = [
+                { key: 'showDigital', color: 'teal' },
+                { key: 'showSSB', color: 'amber' },
+                { key: 'showCW', color: 'rose' }
+            ];
+            
+            modeFilters.forEach(filter => {
+                const btn = document.querySelector(`[data-filter="${filter.key}"]`);
+                if (btn) {
+                    if (state.spotFilters[filter.key]) {
+                        btn.className = `px-2 py-0.5 text-xs rounded transition-colors bg-${filter.color}-600 text-white`;
+                    } else {
+                        btn.className = 'px-2 py-0.5 text-xs rounded transition-colors bg-slate-700/50 text-slate-300 hover:bg-slate-700';
+                    }
+                }
+            });
+            
+            // Mise à jour des filtres de bande
+            const bands = ['160M', '80M', '60M', '40M', '30M', '20M', '17M', '15M', '12M', '10M', '6M'];
+            bands.forEach(band => {
+                const key = `band${band}`;
+                const btn = document.querySelector(`[data-filter="${key}"]`);
+                if (btn) {
+                    if (state.spotFilters[key]) {
+                        btn.className = 'px-1.5 py-0.5 text-xs rounded transition-colors bg-indigo-600 text-white';
+                    } else {
+                        btn.className = 'px-1.5 py-0.5 text-xs rounded transition-colors bg-slate-700/50 text-slate-300 hover:bg-slate-700';
+                    }
+                }
+            });
+        }
+
+        function updateStatusIndicators() {
+            // Cluster status
+            const clusterStatus = document.querySelector('[data-status="cluster"]');
+            if (clusterStatus) {
+                const isConnected = state.stats.clusterStatus === 'connected';
+                clusterStatus.className = `status-indicator ${isConnected ? 'status-connected' : 'status-disconnected'}`;
+                clusterStatus.innerHTML = `
+                    <span class="w-2 h-2 ${isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'} rounded-full"></span>
+                    Cluster
+                `;
+            }
+            
+            // Flex status
+            const flexStatus = document.querySelector('[data-status="flex"]');
+            if (flexStatus) {
+                const isConnected = state.stats.flexStatus === 'connected';
+                flexStatus.className = `status-indicator ${isConnected ? 'status-connected' : 'status-disconnected'}`;
+                flexStatus.innerHTML = `
+                    <span class="w-2 h-2 ${isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'} rounded-full"></span>
+                    Flex
+                `;
+            }
+        }
+
+        function updateSpotCounts() {
+            // Vider le cache
+            countCache = {};
+            
+            // Mise à jour manuelle de chaque bouton par son data-filter
+            const filters = [
+                { selector: '[data-filter="showAll"]', count: state.spots.length },
+                { selector: '[data-filter="showWatchlist"]', count: countWatchlistSpots() },
+                { selector: '[data-filter="showNewDXCC"]', count: countSpotsByType('newDXCC') },
+                { selector: '[data-filter="showNewBandMode"]', count: countSpotsByType('newBandMode') },
+                { selector: '[data-filter="showNewBand"]', count: countSpotsByType('newBand') },
+                { selector: '[data-filter="showNewMode"]', count: countSpotsByType('newMode') },
+                { selector: '[data-filter="showNewSlot"]', count: countSpotsByType('newSlot') },
+                { selector: '[data-filter="showWorked"]', count: countSpotsByType('worked') },
+                { selector: '[data-filter="showDigital"]', count: countSpotsByMode('digital') },
+                { selector: '[data-filter="showSSB"]', count: countSpotsByMode('ssb') },
+                { selector: '[data-filter="showCW"]', count: countSpotsByMode('cw') },
+                { selector: '[data-filter="band160M"]', count: countSpotsByType('160M') },
+                { selector: '[data-filter="band80M"]', count: countSpotsByType('80M') },
+                { selector: '[data-filter="band60M"]', count: countSpotsByType('60M') },
+                { selector: '[data-filter="band40M"]', count: countSpotsByType('40M') },
+                { selector: '[data-filter="band30M"]', count: countSpotsByType('30M') },
+                { selector: '[data-filter="band20M"]', count: countSpotsByType('20M') },
+                { selector: '[data-filter="band17M"]', count: countSpotsByType('17M') },
+                { selector: '[data-filter="band15M"]', count: countSpotsByType('15M') },
+                { selector: '[data-filter="band12M"]', count: countSpotsByType('12M') },
+                { selector: '[data-filter="band10M"]', count: countSpotsByType('10M') },
+                { selector: '[data-filter="band6M"]', count: countSpotsByType('6M') }
+            ];
+            
+            filters.forEach(filter => {
+                const btn = document.querySelector(filter.selector);
+                if (btn) {
+                    // Remplacer le nombre entre parenthèses
+                    btn.textContent = btn.textContent.replace(/\(\d+\)/, `(${filter.count})`);
+                }
+            });
+        }
+
+        function updateTopSpotters() {
+            const container = document.querySelector('[data-section="top-spotters"]');
+            if (!container) return;
+            
+            container.innerHTML = state.topSpotters.slice(0, 3).map((spotter, index) => `
+                <div class="flex items-center justify-between mb-2 p-2 bg-slate-900/30 rounded hover:bg-slate-700/30 transition-colors">
+                    <div class="flex items-center gap-2">
+                        <div class="w-6 h-6 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-xs font-bold">
+                            ${index + 1}
+                        </div>
+                        <span class="text-sm font-semibold">${spotter.Spotter}</span>
+                    </div>
+                    <span class="text-slate-400 font-mono text-xs">${spotter.NumberofSpots}</span>
+                </div>
+            `).join('');
+        }
+
+        function updateLogTable() {
+                    const container = document.querySelector('[data-section="recent-qsos"]');
+                    if (!container) return;
+                    
+                    if (state.recentQSOs.length === 0) {
+                        container.innerHTML = `
+                            <div class="text-center py-8 text-slate-400">
+                                <svg class="w-12 h-12 mx-auto mb-3 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                <p class="text-sm">No QSOs in log</p>
+                            </div>
+                        `;
+                        return;
+                    }
+                    
+                    container.innerHTML = `
+                        <table class="w-full text-xs">
+                            <thead class="bg-slate-900/50 sticky top-0">
+                                <tr class="text-left text-xs text-slate-400">
+                                    <th class="p-2 font-semibold">Date</th>
+                                    <th class="p-2 font-semibold">Time</th>
+                                    <th class="p-2 font-semibold">Callsign</th>
+                                    <th class="p-2 font-semibold">Band</th>
+                                    <th class="p-2 font-semibold">Mode</th>
+                                    <th class="p-2 font-semibold">RST S/R</th>
+                                    <th class="p-2 font-semibold">Country</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${state.recentQSOs.map(qso => {
+                                    let qsoDate = 'N/A';
+                                    let qsoTime = 'N/A';
+                                    if (qso.date) {
+                                        const d = new Date(qso.date.replace(' ', 'T')); // Assure la compatibilité
+                                        qsoDate = d.toISOString().split('T')[0];
+                                        qsoTime = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+                                    }
+                                    return `
+                                        <tr class="border-b border-slate-700/30 hover:bg-slate-700/30 transition-colors">
+                                            <td class="p-2 text-slate-300">${qsoDate}</td>
+                                            <td class="p-2 text-slate-300">${qsoTime}</td>
+                                            <td class="p-2">
+                                                <span class="font-bold text-blue-400">${qso.callsign}</span>
+                                            </td>
+                                            <td class="p-2">
+                                                <span class="px-1.5 py-0.5 bg-slate-700/50 rounded text-xs">${qso.band || 'N/A'}</span>
+                                            </td>
+                                            <td class="p-2">
+                                                <span class="px-1.5 py-0.5 bg-purple-500/20 text-purple-400 rounded text-xs">${qso.mode || 'N/A'}</span>
+                                            </td>
+                                            <td class="p-2 font-mono text-xs text-slate-400">${qso.rstSent || '---'} / ${qso.rstRcvd || '---'}</td>
+                                            <td class="p-2 text-slate-400">${qso.country || 'N/A'}</td>
+                                        </tr>
+                                    `;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                    `;
+                }
+
+        function updateLogStats() {
+            // Mettre à jour les cartes de stats
+            const todayEl = document.querySelector('[data-log-stat="today"]');
+            if (todayEl) todayEl.textContent = state.logStats.today || 0;
+            
+            const weekEl = document.querySelector('[data-log-stat="thisWeek"]');
+            if (weekEl) weekEl.textContent = state.logStats.thisWeek || 0;
+            
+            const monthEl = document.querySelector('[data-log-stat="thisMonth"]');
+            if (monthEl) monthEl.textContent = state.logStats.thisMonth || 0;
+            
+            const totalEl = document.querySelector('[data-log-stat="total"]');
+            if (totalEl) totalEl.textContent = state.logStats.total || 0;
+            
+            // Mettre à jour la barre DXCC
+            const dxccWorkedEl = document.querySelector('[data-dxcc="worked"]');
+            if (dxccWorkedEl) dxccWorkedEl.textContent = state.dxccProgress.worked || 0;
+            
+            const dxccBarEl = document.querySelector('[data-dxcc="bar"]');
+            if (dxccBarEl) {
+                dxccBarEl.style.width = `${state.dxccProgress.percentage || 0}%`;
+            }
+            
+            const dxccPercentEl = document.querySelector('[data-dxcc="percentage"]');
+            if (dxccPercentEl) {
+                dxccPercentEl.textContent = `${(state.dxccProgress.percentage || 0).toFixed(1)}% Complete`;
+            }
         }
 
         // Toast notifications
@@ -531,9 +834,38 @@
                     state.dxccProgress = dxccJson.data || { worked: 0, total: 340, percentage: 0 };
                 }
                 
-                render();
+                if (state.activeTab === 'log') {
+                    updateLogTable();
+                    updateLogStats();
+                }
             } catch (error) {
                 console.error('Error fetching log data:', error);
+            }
+        }
+
+        function updateSolarData() {
+            const sfiEl = document.querySelector('[data-solar="sfi"]');
+            if (sfiEl) {
+                sfiEl.className = getSFIColor(state.solarData.sfi);
+                sfiEl.textContent = state.solarData.sfi;
+            }
+            
+            const ssnEl = document.querySelector('[data-solar="ssn"]');
+            if (ssnEl) {
+                ssnEl.className = getSunspotsColor(state.solarData.sunspots);
+                ssnEl.textContent = state.solarData.sunspots;
+            }
+            
+            const aIndexEl = document.querySelector('[data-solar="aIndex"]');
+            if (aIndexEl) {
+                aIndexEl.className = getAIndexColor(state.solarData.aIndex);
+                aIndexEl.textContent = state.solarData.aIndex;
+            }
+            
+            const kIndexEl = document.querySelector('[data-solar="kIndex"]');
+            if (kIndexEl) {
+                kIndexEl.className = getKIndexColor(state.solarData.kIndex);
+                kIndexEl.textContent = state.solarData.kIndex;
             }
         }
         
@@ -682,7 +1014,9 @@
             }
             
             applySpotFilters();
-            render();
+            updateSpotsTable();
+            updateSpotCounts();
+            updateFilterButtons();
         }
 
         async function updateFilter(filterName, value) {
@@ -869,38 +1203,6 @@
             return 'text-red-400';
         }
 
-        function renderBandPropagationChart() {
-            const bandStats = getBandStats();
-            const maxSpots = Math.max(...Object.values(bandStats), 1);
-            
-            return `
-                <div class="p-3 border-t border-slate-700/50 flex-shrink-0">
-                    <h2 class="text-lg font-bold mb-3">Band Propagation</h2>
-                </div>
-                <div class="px-3 pb-3 space-y-2">
-                    ${BANDS.map(band => {
-                        const count = bandStats[band];
-                        const percentage = maxSpots > 0 ? (count / maxSpots) * 100 : 0;
-                        const color = BAND_COLORS[band];
-                        
-                        return `
-                            <div class="band-bar" onclick="toggleSpotFilter('band${band.replace('M', 'M')}')">
-                                <div class="flex items-center justify-between mb-1">
-                                    <span class="text-xs font-semibold" style="color: ${color}">${band}</span>
-                                    <span class="text-xs text-slate-400">${count} spots</span>
-                                </div>
-                                <div class="w-full bg-slate-700/30 rounded-full h-2 overflow-hidden">
-                                    <div class="h-full rounded-full transition-all duration-500" 
-                                        style="width: ${percentage}%; background-color: ${color}">
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                    }).join('')}
-                </div>
-            `;
-        }
-
         async function addToWatchlist() {
             const input = document.getElementById('watchlist-input');
             const callsign = input.value.trim().toUpperCase();
@@ -1035,34 +1337,34 @@
                     <div>
                         <h1 class="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">FlexDXCluster</h1>
                         <div class="flex items-center gap-3 text-xs text-slate-400">
-                            <span>F4BPO • ${state.stats.totalContacts} Contacts</span>
+                            <span>F4BPO • <span data-stat="totalContacts">${state.stats.totalContacts}</span> Contacts</span>
                             <span class="text-slate-600">|</span>
                             <span class="flex items-center gap-1">
                                 <span class="font-semibold text-amber-400">SFI:</span> 
-                                <span class="${getSFIColor(state.solarData.sfi)}">${state.solarData.sfi}</span>
+                                <span data-solar="sfi" class="${getSFIColor(state.solarData.sfi)}">${state.solarData.sfi}</span>
                             </span>
                             <span class="flex items-center gap-1">
                                 <span class="font-semibold text-yellow-400">SSN:</span> 
-                                <span class="${getSunspotsColor(state.solarData.sunspots)}">${state.solarData.sunspots}</span>
+                                <span data-solar="ssn" class="${getSunspotsColor(state.solarData.sunspots)}">${state.solarData.sunspots}</span>
                             </span>
                             <span class="flex items-center gap-1">
                                 <span class="font-semibold text-red-400">A:</span> 
-                                <span class="${getAIndexColor(state.solarData.aIndex)}">${state.solarData.aIndex}</span>
+                                <span data-solar="aIndex" class="${getAIndexColor(state.solarData.aIndex)}">${state.solarData.aIndex}</span>
                             </span>
                             <span class="flex items-center gap-1">
                                 <span class="font-semibold text-purple-400">K:</span> 
-                                <span class="${getKIndexColor(state.solarData.kIndex)}">${state.solarData.kIndex}</span>
+                                <span data-solar="kIndex" class="${getKIndexColor(state.solarData.kIndex)}">${state.solarData.kIndex}</span>
                             </span>
                         </div>
                     </div>
                     </div>
                     <div class="flex items-center gap-3">
                         ${getWebSocketStatusHTML()}
-                        <span class="status-indicator ${state.stats.clusterStatus === 'connected' ? 'status-connected' : 'status-disconnected'}">
+                        <span class="status-indicator ${state.stats.clusterStatus === 'connected' ? 'status-connected' : 'status-disconnected'}" data-status="cluster">
                             <span class="w-2 h-2 ${state.stats.clusterStatus === 'connected' ? 'bg-green-500' : 'bg-red-500'} rounded-full ${state.stats.clusterStatus === 'connected' ? 'animate-pulse' : ''}"></span>
                             Cluster
                         </span>
-                        <span class="status-indicator ${state.stats.flexStatus === 'connected' ? 'status-connected' : 'status-disconnected'}">
+                        <span class="status-indicator ${state.stats.flexStatus === 'connected' ? 'status-connected' : 'status-disconnected'}" data-status="flex">
                             <span class="w-2 h-2 ${state.stats.flexStatus === 'connected' ? 'bg-green-500' : 'bg-red-500'} rounded-full ${state.stats.flexStatus === 'connected' ? 'animate-pulse' : ''}"></span>
                             Flex
                         </span>
@@ -1081,7 +1383,7 @@
                             <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                             </svg>
-                            <div class="text-xl font-bold text-blue-400">${state.stats.totalSpots}</div>
+                            <div class="text-xl font-bold text-blue-400" data-stat="totalSpots">${state.stats.totalSpots}</div>
                         </div>
                         <p class="text-xs text-slate-400 mt-1">Total Spots</p>
                     </div>
@@ -1090,7 +1392,7 @@
                             <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
-                            <div class="text-xl font-bold text-green-400">${state.stats.newDXCC}</div>
+                            <div class="text-xl font-bold text-green-400" data-stat="newDXCC">${state.stats.newDXCC}</div>
                         </div>
                         <p class="text-xs text-slate-400 mt-1">New DXCC</p>
                     </div>
@@ -1099,7 +1401,7 @@
                             <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                             </svg>
-                            <div class="text-xl font-bold text-purple-400">${state.stats.activeSpotters}</div>
+                            <div class="text-xl font-bold text-purple-400" data-stat="activeSpotters">${state.stats.activeSpotters}</div>
                         </div>
                         <p class="text-xs text-slate-400 mt-1">Spotters</p>
                     </div>
@@ -1108,7 +1410,7 @@
                             <svg class="w-6 h-6 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0" />
                             </svg>
-                            <div class="text-xl font-bold text-orange-400">${state.stats.connectedClients}</div>
+                            <div class="text-xl font-bold text-orange-400" data-stat="connectedClients">${state.stats.connectedClients}</div>
                         </div>
                         <p class="text-xs text-slate-400 mt-1">Clients</p>
                     </div>
@@ -1118,7 +1420,7 @@
                                 onchange="updateFilter('skimmer', this.checked)" />
                             <label for="skimmer" class="toggle-label">
                                 <div class="toggle-switch"></div>
-                                <span class="text-sm font-medium">Skimmer</span>
+                                <span class="text-sm font-medium">CW</span>
                             </label>
                             
                             <input type="checkbox" id="ft8" class="toggle-checkbox" ${state.stats.filters.ft8 ? 'checked' : ''} 
@@ -1138,105 +1440,105 @@
                     </div>
                 </div>
 
-            <div class="bg-slate-800/50 backdrop-blur rounded-lg p-2 border border-slate-700/50 mb-3">
-                <div class="flex items-center gap-1 flex-wrap">
-                    <span class="text-xs font-bold text-slate-400 mr-2">TYPE:</span>
-                    <button onclick="toggleSpotFilter('showAll')" 
-                        class="px-2 py-0.5 text-xs rounded transition-colors ${state.spotFilters.showAll ? 'bg-blue-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
-                        All (${state.spots.length})
-                    </button>
-                    <button onclick="toggleSpotFilter('showWatchlist')" 
-                        class="px-2 py-0.5 text-xs rounded transition-colors ${state.spotFilters.showWatchlist ? 'bg-pink-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
-                        Watch (${countWatchlistSpots()})
-                    </button>
-                    <button onclick="toggleSpotFilter('showNewDXCC')" 
-                        class="px-2 py-0.5 text-xs rounded transition-colors ${state.spotFilters.showNewDXCC ? 'bg-green-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
-                        DXCC (${countSpotsByType('newDXCC')})
-                    </button>
-                    <button onclick="toggleSpotFilter('showNewBandMode')" 
-                        class="px-2 py-0.5 text-xs rounded transition-colors ${state.spotFilters.showNewBandMode ? 'bg-purple-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
-                        B&M (${countSpotsByType('newBandMode')})
-                    </button>
-                    <button onclick="toggleSpotFilter('showNewBand')" 
-                        class="px-2 py-0.5 text-xs rounded transition-colors ${state.spotFilters.showNewBand ? 'bg-yellow-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
-                        Band (${countSpotsByType('newBand')})
-                    </button>
-                    <button onclick="toggleSpotFilter('showNewMode')" 
-                        class="px-2 py-0.5 text-xs rounded transition-colors ${state.spotFilters.showNewMode ? 'bg-orange-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
-                        Mode (${countSpotsByType('newMode')})
-                    </button>
-                    <button onclick="toggleSpotFilter('showNewSlot')" 
-                        class="px-2 py-0.5 text-xs rounded transition-colors ${state.spotFilters.showNewSlot ? 'bg-sky-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
-                        Slot (${countSpotsByType('newSlot')})
-                    </button>
-                    <button onclick="toggleSpotFilter('showWorked')" 
-                        class="px-2 py-0.5 text-xs rounded transition-colors ${state.spotFilters.showWorked ? 'bg-cyan-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
-                        Wkd (${countSpotsByType('worked')})
-                    </button>
-                    
-                    <span class="text-slate-600 mx-1">|</span>
-                    <span class="text-xs font-bold text-slate-400 mr-2">MODE:</span>
-                    <button onclick="toggleSpotFilter('showDigital')" 
-                        class="px-2 py-0.5 text-xs rounded transition-colors ${state.spotFilters.showDigital ? 'bg-teal-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
-                        Digi (${countSpotsByMode('digital')})
-                    </button>
-                    <button onclick="toggleSpotFilter('showSSB')" 
-                        class="px-2 py-0.5 text-xs rounded transition-colors ${state.spotFilters.showSSB ? 'bg-amber-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
-                        SSB (${countSpotsByMode('ssb')})
-                    </button>
-                    <button onclick="toggleSpotFilter('showCW')" 
-                        class="px-2 py-0.5 text-xs rounded transition-colors ${state.spotFilters.showCW ? 'bg-rose-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
-                        CW (${countSpotsByMode('cw')})
-                    </button>
-                    
-                    <span class="text-slate-600 mx-1">|</span>
-                    <span class="text-xs font-bold text-slate-400 mr-2">BAND:</span>
-                    <button onclick="toggleSpotFilter('band160M')" 
-                        class="px-1.5 py-0.5 text-xs rounded transition-colors ${state.spotFilters.band160M ? 'bg-indigo-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
-                        160 (${countSpotsByType('160M')})
-                    </button>
-                    <button onclick="toggleSpotFilter('band80M')" 
-                        class="px-1.5 py-0.5 text-xs rounded transition-colors ${state.spotFilters.band80M ? 'bg-indigo-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
-                        80 (${countSpotsByType('80M')})
-                    </button>
-                    <button onclick="toggleSpotFilter('band60M')" 
-                        class="px-1.5 py-0.5 text-xs rounded transition-colors ${state.spotFilters.band60M ? 'bg-indigo-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
-                        60 (${countSpotsByType('60M')})
-                    </button>
-                    <button onclick="toggleSpotFilter('band40M')" 
-                        class="px-1.5 py-0.5 text-xs rounded transition-colors ${state.spotFilters.band40M ? 'bg-indigo-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
-                        40 (${countSpotsByType('40M')})
-                    </button>
-                    <button onclick="toggleSpotFilter('band30M')" 
-                        class="px-1.5 py-0.5 text-xs rounded transition-colors ${state.spotFilters.band30M ? 'bg-indigo-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
-                        30 (${countSpotsByType('30M')})
-                    </button>
-                    <button onclick="toggleSpotFilter('band20M')" 
-                        class="px-1.5 py-0.5 text-xs rounded transition-colors ${state.spotFilters.band20M ? 'bg-indigo-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
-                        20 (${countSpotsByType('20M')})
-                    </button>
-                    <button onclick="toggleSpotFilter('band17M')" 
-                        class="px-1.5 py-0.5 text-xs rounded transition-colors ${state.spotFilters.band17M ? 'bg-indigo-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
-                        17 (${countSpotsByType('17M')})
-                    </button>
-                    <button onclick="toggleSpotFilter('band15M')" 
-                        class="px-1.5 py-0.5 text-xs rounded transition-colors ${state.spotFilters.band15M ? 'bg-indigo-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
-                        15 (${countSpotsByType('15M')})
-                    </button>
-                    <button onclick="toggleSpotFilter('band12M')" 
-                        class="px-1.5 py-0.5 text-xs rounded transition-colors ${state.spotFilters.band12M ? 'bg-indigo-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
-                        12 (${countSpotsByType('12M')})
-                    </button>
-                    <button onclick="toggleSpotFilter('band10M')" 
-                        class="px-1.5 py-0.5 text-xs rounded transition-colors ${state.spotFilters.band10M ? 'bg-indigo-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
-                        10 (${countSpotsByType('10M')})
-                    </button>
-                    <button onclick="toggleSpotFilter('band6M')" 
-                        class="px-1.5 py-0.5 text-xs rounded transition-colors ${state.spotFilters.band6M ? 'bg-indigo-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
-                        6 (${countSpotsByType('6M')})
-                    </button>
+                <div class="bg-slate-800/50 backdrop-blur rounded-lg p-2 border border-slate-700/50 mb-3">
+                    <div class="flex items-center gap-1 flex-wrap">
+                        <span class="text-xs font-bold text-slate-400 mr-2">TYPE:</span>
+                        <button onclick="toggleSpotFilter('showAll')" data-filter="showAll"
+                            class="px-2 py-0.5 text-xs rounded transition-colors ${state.spotFilters.showAll ? 'bg-blue-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
+                            All (${state.spots.length})
+                        </button>
+                        <button onclick="toggleSpotFilter('showWatchlist')" data-filter="showWatchlist"
+                            class="px-2 py-0.5 text-xs rounded transition-colors ${state.spotFilters.showWatchlist ? 'bg-pink-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
+                            Watch (${countWatchlistSpots()})
+                        </button>
+                        <button onclick="toggleSpotFilter('showNewDXCC')" data-filter="showNewDXCC"
+                            class="px-2 py-0.5 text-xs rounded transition-colors ${state.spotFilters.showNewDXCC ? 'bg-green-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
+                            DXCC (${countSpotsByType('newDXCC')})
+                        </button>
+                        <button onclick="toggleSpotFilter('showNewBandMode')" data-filter="showNewBandMode"
+                            class="px-2 py-0.5 text-xs rounded transition-colors ${state.spotFilters.showNewBandMode ? 'bg-purple-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
+                            B&M (${countSpotsByType('newBandMode')})
+                        </button>
+                        <button onclick="toggleSpotFilter('showNewBand')" data-filter="showNewBand"
+                            class="px-2 py-0.5 text-xs rounded transition-colors ${state.spotFilters.showNewBand ? 'bg-yellow-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
+                            Band (${countSpotsByType('newBand')})
+                        </button>
+                        <button onclick="toggleSpotFilter('showNewMode')" data-filter="showNewMode"
+                            class="px-2 py-0.5 text-xs rounded transition-colors ${state.spotFilters.showNewMode ? 'bg-orange-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
+                            Mode (${countSpotsByType('newMode')})
+                        </button>
+                        <button onclick="toggleSpotFilter('showNewSlot')" data-filter="showNewSlot"
+                            class="px-2 py-0.5 text-xs rounded transition-colors ${state.spotFilters.showNewSlot ? 'bg-sky-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
+                            Slot (${countSpotsByType('newSlot')})
+                        </button>
+                        <button onclick="toggleSpotFilter('showWorked')" data-filter="showWorked"
+                            class="px-2 py-0.5 text-xs rounded transition-colors ${state.spotFilters.showWorked ? 'bg-cyan-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
+                            Wkd (${countSpotsByType('worked')})
+                        </button>
+                        
+                        <span class="text-slate-600 mx-1">|</span>
+                        <span class="text-xs font-bold text-slate-400 mr-2">MODE:</span>
+                        <button onclick="toggleSpotFilter('showDigital')" data-filter="showDigital"
+                            class="px-2 py-0.5 text-xs rounded transition-colors ${state.spotFilters.showDigital ? 'bg-teal-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
+                            Digi (${countSpotsByMode('digital')})
+                        </button>
+                        <button onclick="toggleSpotFilter('showSSB')" data-filter="showSSB"
+                            class="px-2 py-0.5 text-xs rounded transition-colors ${state.spotFilters.showSSB ? 'bg-amber-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
+                            SSB (${countSpotsByMode('ssb')})
+                        </button>
+                        <button onclick="toggleSpotFilter('showCW')" data-filter="showCW"
+                            class="px-2 py-0.5 text-xs rounded transition-colors ${state.spotFilters.showCW ? 'bg-rose-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
+                            CW (${countSpotsByMode('cw')})
+                        </button>
+                        
+                        <span class="text-slate-600 mx-1">|</span>
+                        <span class="text-xs font-bold text-slate-400 mr-2">BAND:</span>
+                        <button onclick="toggleSpotFilter('band160M')" data-filter="band160M"
+                            class="px-2 py-0.5 text-xs rounded transition-colors ${state.spotFilters.band160M ? 'bg-indigo-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
+                            160 (${countSpotsByType('160M')})
+                        </button>
+                        <button onclick="toggleSpotFilter('band80M')" data-filter="band80M"
+                            class="px-2 py-0.5 text-xs rounded transition-colors ${state.spotFilters.band80M ? 'bg-indigo-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
+                            80 (${countSpotsByType('80M')})
+                        </button>
+                        <button onclick="toggleSpotFilter('band60M')" data-filter="band60M"
+                            class="px-2 py-0.5 text-xs rounded transition-colors ${state.spotFilters.band60M ? 'bg-indigo-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
+                            60 (${countSpotsByType('60M')})
+                        </button>
+                        <button onclick="toggleSpotFilter('band40M')" data-filter="band40M"
+                            class="px-2 py-0.5 text-xs rounded transition-colors ${state.spotFilters.band40M ? 'bg-indigo-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
+                            40 (${countSpotsByType('40M')})
+                        </button>
+                        <button onclick="toggleSpotFilter('band30M')" data-filter="band30M"
+                            class="px-2 py-0.5 text-xs rounded transition-colors ${state.spotFilters.band30M ? 'bg-indigo-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
+                            30 (${countSpotsByType('30M')})
+                        </button>
+                        <button onclick="toggleSpotFilter('band20M')" data-filter="band20M"
+                            class="px-2 py-0.5 text-xs rounded transition-colors ${state.spotFilters.band20M ? 'bg-indigo-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
+                            20 (${countSpotsByType('20M')})
+                        </button>
+                        <button onclick="toggleSpotFilter('band17M')" data-filter="band17M"
+                            class="px-2 py-0.5 text-xs rounded transition-colors ${state.spotFilters.band17M ? 'bg-indigo-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
+                            17 (${countSpotsByType('17M')})
+                        </button>
+                        <button onclick="toggleSpotFilter('band15M')" data-filter="band15M"
+                            class="px-2 py-0.5 text-xs rounded transition-colors ${state.spotFilters.band15M ? 'bg-indigo-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
+                            15 (${countSpotsByType('15M')})
+                        </button>
+                        <button onclick="toggleSpotFilter('band12M')" data-filter="band12M"
+                            class="px-2 py-0.5 text-xs rounded transition-colors ${state.spotFilters.band12M ? 'bg-indigo-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
+                            12 (${countSpotsByType('12M')})
+                        </button>
+                        <button onclick="toggleSpotFilter('band10M')" data-filter="band10M"
+                            class="px-2 py-0.5 text-xs rounded transition-colors ${state.spotFilters.band10M ? 'bg-indigo-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
+                            10 (${countSpotsByType('10M')})
+                        </button>
+                        <button onclick="toggleSpotFilter('band6M')" data-filter="band6M"
+                            class="px-2 py-0.5 text-xs rounded transition-colors ${state.spotFilters.band6M ? 'bg-indigo-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
+                            6 (${countSpotsByType('6M')})
+                        </button>
+                    </div>
                 </div>
-            </div>    
             
                 <div class="grid grid-cols-4 gap-3" style="height: calc(100vh - 360px);">
                     <div class="col-span-3 bg-slate-800/50 backdrop-blur rounded-lg border border-slate-700/50 flex flex-col overflow-hidden">
@@ -1282,7 +1584,7 @@
                         <div class="p-3 border-b border-slate-700/50">
                             <h2 class="text-lg font-bold">Top 3 Spotters</h2>
                         </div>
-                        <div class="p-3">
+                        <div class="p-3" data-section="top-spotters">
                             ${state.topSpotters.slice(0, 3).map((spotter, index) => `
                                 <div class="flex items-center justify-between mb-2 p-2 bg-slate-900/30 rounded hover:bg-slate-700/30 transition-colors">
                                     <div class="flex items-center gap-2">
@@ -1296,7 +1598,12 @@
                             `).join('')}
                         </div>
                         
-                        ${renderBandPropagationChart()}
+                        <div class="p-3 border-t border-slate-700/50 flex-shrink-0">
+                            <h2 class="text-lg font-bold mb-3">Band Propagation</h2>
+                        </div>
+                        <div class="px-3 pb-3 space-y-2" data-section="band-propagation">
+                            <!-- Le contenu sera injecté par updateBandPropagation() -->
+                        </div>
                     </div>
                     
                     <!-- Watchlist Tab -->
@@ -1337,7 +1644,7 @@
                             <div class="grid grid-cols-4 gap-2 mb-3">
                                 <div class="bg-slate-900/50 rounded p-2">
                                     <div class="text-xs text-slate-400">Today</div>
-                                    <div class="text-xl font-bold text-blue-400">${state.logStats.today || 0}</div>
+                                    <div class="text-xl font-bold text-blue-400" data-log-stat="today">${state.logStats.today || 0}</div>
                                 </div>
                                 <div class="bg-slate-900/50 rounded p-2">
                                     <div class="text-xs text-slate-400">This Week</div>
@@ -1361,7 +1668,7 @@
                                 </div>
                                 <div class="w-full bg-slate-700/30 rounded-full h-3 overflow-hidden">
                                     <div class="h-full rounded-full bg-gradient-to-r from-green-500 to-emerald-500 transition-all duration-500" 
-                                        style="width: ${state.dxccProgress.percentage || 0}%">
+                                    data-dxcc="bar" style="width: ${state.dxccProgress.percentage || 0}%">
                                     </div>
                                 </div>
                                 <div class="text-xs text-slate-400 text-right mt-1">${(state.dxccProgress.percentage || 0).toFixed(1)}% Complete</div>
@@ -1385,6 +1692,7 @@
                                         <thead class="bg-slate-900/50 sticky top-0">
                                             <tr class="text-left text-xs text-slate-400">
                                                 <th class="p-2 font-semibold">Date</th>
+                                                <th class="p-2 font-semibold">Time</th>
                                                 <th class="p-2 font-semibold">Callsign</th>
                                                 <th class="p-2 font-semibold">Band</th>
                                                 <th class="p-2 font-semibold">Mode</th>
@@ -1393,22 +1701,32 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            ${state.recentQSOs.map(qso => `
-                                                <tr class="border-b border-slate-700/30 hover:bg-slate-700/30 transition-colors">
-                                                    <td class="p-2 text-slate-300">${qso.date || 'N/A'}</td>
-                                                    <td class="p-2">
-                                                        <span class="font-bold text-blue-400">${qso.callsign}</span>
-                                                    </td>
-                                                    <td class="p-2">
-                                                        <span class="px-1.5 py-0.5 bg-slate-700/50 rounded text-xs">${qso.band || 'N/A'}</span>
-                                                    </td>
-                                                    <td class="p-2">
-                                                        <span class="px-1.5 py-0.5 bg-purple-500/20 text-purple-400 rounded text-xs">${qso.mode || 'N/A'}</span>
-                                                    </td>
-                                                    <td class="p-2 font-mono text-xs text-slate-400">${qso.rstSent || '---'} / ${qso.rstRcvd || '---'}</td>
-                                                    <td class="p-2 text-slate-400">${qso.country || 'N/A'}</td>
-                                                </tr>
-                                            `).join('')}
+                                            ${state.recentQSOs.map(qso => {
+                                                let qsoDate = 'N/A';
+                                                let qsoTime = 'N/A';
+                                                if (qso.date) {
+                                                    const d = new Date(qso.date.replace(' ', 'T')); // Assure la compatibilité
+                                                    qsoDate = d.toISOString().split('T')[0];
+                                                    qsoTime = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+                                                }
+                                                return `
+                                                    <tr class="border-b border-slate-700/30 hover:bg-slate-700/30 transition-colors">
+                                                        <td class="p-2 text-slate-300">${qsoDate}</td>
+                                                        <td class="p-2 text-slate-300">${qsoTime}</td>
+                                                        <td class="p-2">
+                                                            <span class="font-bold text-blue-400">${qso.callsign}</span>
+                                                        </td>
+                                                        <td class="p-2">
+                                                            <span class="px-1.5 py-0.5 bg-slate-700/50 rounded text-xs">${qso.band || 'N/A'}</span>
+                                                        </td>
+                                                        <td class="p-2">
+                                                            <span class="px-1.5 py-0.5 bg-purple-500/20 text-purple-400 rounded text-xs">${qso.mode || 'N/A'}</span>
+                                                        </td>
+                                                        <td class="p-2 font-mono text-xs text-slate-400">${qso.rstSent || '---'} / ${qso.rstRcvd || '---'}</td>
+                                                        <td class="p-2 text-slate-400">${qso.country || 'N/A'}</td>
+                                                    </tr>
+                                                `;
+                                            }).join('')}
                                         </tbody>
                                     </table>
                                 `}
@@ -1423,6 +1741,10 @@
             updateSpotsTable();
             updateWatchlistItems();
 
+            if (state.activeTab === 'stats') {
+                updateBandPropagation();
+                updateTopSpotters(); // Au cas où
+            }
             // Restaurer le scroll de la table des spots
             const newSpotsContainer = document.querySelector('.scrollable');
             if (newSpotsContainer && scrollTop > 0) {
@@ -1433,6 +1755,23 @@
             const newWatchlistScroll = document.querySelector('#watchlist-items-container')?.parentElement;
             if (newWatchlistScroll && state.activeTab === 'watchlist' && state.watchlistScrollTop > 0) {
                 newWatchlistScroll.scrollTop = state.watchlistScrollTop;
+            }
+        }
+
+        function updateFilterToggles() {
+            const skimmerCheckbox = document.getElementById('skimmer');
+            if (skimmerCheckbox) {
+                skimmerCheckbox.checked = state.stats.filters.skimmer;
+            }
+            
+            const ft8Checkbox = document.getElementById('ft8');
+            if (ft8Checkbox) {
+                ft8Checkbox.checked = state.stats.filters.ft8;
+            }
+            
+            const ft4Checkbox = document.getElementById('ft4');
+            if (ft4Checkbox) {
+                ft4Checkbox.checked = state.stats.filters.ft4;
             }
         }
 
@@ -1504,16 +1843,11 @@
             }
             
             container.innerHTML = state.watchlist.map(callsign => {
-                const matchingSpots = state.spots.filter(s => 
-                    s.DX === callsign || s.DX.startsWith(callsign)
-                ).length;
-                
                 return `
                     <div class="mb-2 p-3 bg-slate-900/30 rounded hover:bg-slate-700/30 transition-colors" data-watchlist="${callsign}">
                         <div class="flex items-center justify-between">
                             <div class="flex-1">
                                 <div class="font-bold text-pink-400">${callsign}</div>
-                                <div class="text-xs text-slate-400 spot-counter">${matchingSpots} active spot${matchingSpots !== 1 ? 's' : ''}</div>
                             </div>
                             <button 
                                 onclick="removeFromWatchlist('${callsign}')"
@@ -1532,18 +1866,6 @@
             if (counterElement) {
                 counterElement.textContent = `${countWatchlistSpots()} matching spots`;
             }
-            
-            // Mettre à jour les compteurs de chaque callsign
-            state.watchlist.forEach(callsign => {
-                const matchingSpots = state.spots.filter(s => 
-                    s.DX === callsign || s.DX.startsWith(callsign)
-                ).length;
-                
-                const counterEl = document.querySelector(`[data-watchlist="${callsign}"] .spot-counter`);
-                if (counterEl) {
-                    counterEl.textContent = `${matchingSpots} active spot${matchingSpots !== 1 ? 's' : ''}`;
-                }
-            });
         }
 
         async function initPropagation() {
@@ -1552,19 +1874,25 @@
             // Mettre à jour toutes les 15 minutes
             setInterval(async () => {
                 state.solarData = await fetchPropagationData();
-                render();
+                updateSolarData();
             }, 15 * 60 * 1000);
         }
 
         // Initialize
-        initPropagation();
+
+        async function init() {
+            await initPropagation();
+            await fetchLogData(); 
+            connectWebSocket(); 
+        }
+
+        init();
+
         setInterval(async () => {
             if (state.activeTab === 'log') {
                 await fetchLogData();
             }
-        }, 10000);
-        fetchLogData();
-        connectWebSocket();
+        }, 5000);
 
         // Cleanup on page unload
         window.addEventListener('beforeunload', () => {

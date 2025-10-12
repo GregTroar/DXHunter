@@ -205,7 +205,6 @@ func (fc *FlexClient) StartFlexClient() {
 				case <-fc.ctx.Done():
 					return
 				case <-fc.SpotChanToFlex:
-					// Ignorer les spots
 				}
 			}
 		}()
@@ -420,7 +419,7 @@ func (fc *FlexClient) SendSpottoFlex(spot TelnetSpot) {
 		if fc.HTTPServer != nil {
 			fc.HTTPServer.broadcast <- WSMessage{
 				Type: "spots",
-				Data: fc.Repo.GetAllSpots("1000"),
+				Data: fc.Repo.GetAllSpots("0"),
 			}
 		}
 

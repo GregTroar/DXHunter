@@ -366,6 +366,7 @@ func (r *Log4OMContactsRepository) GetDXCCCount() int {
 //
 
 func (r *FlexDXClusterRepository) GetAllSpots(limit string) []FlexSpot {
+	r.Log.Infof("GetAllSpots a été appelée avec une limite de: '%s'", limit)
 
 	Spots := []FlexSpot{}
 
@@ -376,6 +377,8 @@ func (r *FlexDXClusterRepository) GetAllSpots(limit string) []FlexSpot {
 	} else {
 		query = fmt.Sprintf("SELECT * from spots ORDER BY id DESC LIMIT %s", limit)
 	}
+
+	r.Log.Infof("Exécution de la requête SQL: %s", query)
 
 	rows, err := r.db.Query(query)
 
@@ -390,8 +393,10 @@ func (r *FlexDXClusterRepository) GetAllSpots(limit string) []FlexSpot {
 	for rows.Next() {
 		if err := rows.Scan(&s.ID, &s.CommandNumber, &s.FlexSpotNumber, &s.DX, &s.FrequencyMhz, &s.FrequencyHz, &s.Band, &s.Mode, &s.SpotterCallsign, &s.FlexMode, &s.Source, &s.UTCTime, &s.TimeStamp, &s.LifeTime, &s.Priority,
 			&s.Comment, &s.Color, &s.BackgroundColor, &s.CountryName, &s.DXCC, &s.NewDXCC, &s.NewBand, &s.NewMode, &s.NewSlot, &s.Worked); err != nil {
-			fmt.Println(err)
-			return nil
+
+			r.Log.Errorf("Erreur lors du scan d'une ligne de la base de données: %v", err)
+
+			return nil // Arrête le traitement s'il y a une erreur sur une ligne
 		}
 
 		Spots = append(Spots, s)

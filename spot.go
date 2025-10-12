@@ -290,9 +290,6 @@ func (spot *TelnetSpot) GuessMode() {
 			if freqInt >= 14074 && freqInt < 14078 {
 				spot.Mode = "FT8"
 			}
-			if freqInt >= 14074 && freqInt < 14078 {
-				spot.Mode = "FT8"
-			}
 			if freqInt >= 14078 && freqInt < 14083 {
 				spot.Mode = "FT4"
 			}
