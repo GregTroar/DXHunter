@@ -251,6 +251,7 @@
         let wsReconnectTimer = null;
         let wsReconnectAttempts = 0;
         let maxReconnectAttempts = 10;
+        let watchlistUpdateTimeout = null;
 
         let state = {
             spots: [],
@@ -281,6 +282,7 @@
             wsStatus: 'disconnected',
             activeTab: 'stats',
             watchlist: [],
+            watchlistShowOnlyActive: false,
             spotFilters: {
                 showAll: true,
                 showNewDXCC: false,
@@ -372,6 +374,7 @@
                 case 'stats':
                     state.stats = message.data;
                     updateStatsOnly();
+                    updateStatusIndicators();
                     break;
                 case 'spots':
                     state.spots = message.data || [];
@@ -380,6 +383,16 @@
                     updateSpotCounts();
                     if (state.activeTab === 'stats') {
                         updateBandPropagation();
+                    }
+                    if (state.activeTab === 'watchlist') {
+                        if (watchlistUpdateTimeout) {
+                            clearTimeout(watchlistUpdateTimeout);
+                        }
+                        watchlistUpdateTimeout = setTimeout(() => {
+                            updateWatchlistItems();
+                            updateWatchlistCounters();
+                            watchlistUpdateTimeout = null;
+                        }, 2000);
                     }
                     break;
                 case 'spotters':
@@ -553,6 +566,7 @@
                 `;
             }
         }
+
 
         function updateSpotCounts() {
             // Vider le cache
@@ -1624,7 +1638,17 @@
                     <!-- Watchlist Tab -->
                     <div class="tab-content ${state.activeTab === 'watchlist' ? 'active' : ''}" style="height: 100%; display: ${state.activeTab === 'watchlist' ? 'flex' : 'none'}; flex-direction: column; overflow: hidden;">
                         <div class="p-3 border-b border-slate-700/50 flex-shrink-0">
-                            <h2 class="text-lg font-bold mb-2">Watchlist</h2>
+                            <div class="flex items-center justify-between mb-2">
+                                <h2 class="text-lg font-bold">Watchlist</h2>
+                                <button 
+                                    onclick="toggleWatchlistActiveOnly()"
+                                    class="px-3 py-1.5 text-xs rounded transition-colors flex items-center gap-2 ${state.watchlistShowOnlyActive ? 'bg-blue-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+                                    </svg>
+                                    ${state.watchlistShowOnlyActive ? 'Show All' : 'Active Only'}
+                                </button>
+                            </div>
                             <p class="text-xs text-slate-400 mb-3 watchlist-counter">${countWatchlistSpots()} matching spots</p>
                             
                             <div class="flex gap-2">
@@ -1760,6 +1784,9 @@
                 updateBandPropagation();
                 updateTopSpotters(); // Au cas où
             }
+
+            updateStatusIndicators();
+
             // Restaurer le scroll de la table des spots
             const newSpotsContainer = document.querySelector('.scrollable');
             if (newSpotsContainer && scrollTop > 0) {
@@ -1863,7 +1890,6 @@
             // Grouper les spots par callsign/prefix
             const spotsByCallsign = {};
             watchlistSpots.forEach(spot => {
-                // Trouver le pattern correspondant
                 let matchedPattern = '';
                 for (const pattern of state.watchlist) {
                     if (spot.dx === pattern || spot.dx.startsWith(pattern)) {
@@ -1878,7 +1904,26 @@
                 spotsByCallsign[matchedPattern].push(spot);
             });
             
-            container.innerHTML = state.watchlist.map(callsign => {
+            // ✅ Filtrer la liste selon le toggle "Active Only"
+            const displayList = state.watchlistShowOnlyActive
+                ? state.watchlist.filter(callsign => (spotsByCallsign[callsign] || []).length > 0)
+                : state.watchlist;
+            
+            // ✅ Afficher un message si aucun callsign avec spots actifs
+            if (displayList.length === 0 && state.watchlistShowOnlyActive) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-slate-400">
+                        <svg class="w-12 h-12 mx-auto mb-3 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                        </svg>
+                        <p class="text-sm">No active spots for watchlist callsigns</p>
+                        <p class="text-xs mt-1 text-slate-500">Click "Active Only" to see all watchlist entries</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = displayList.map(callsign => {
                 const spots = spotsByCallsign[callsign] || [];
                 const matchingCount = spots.length;
                 
@@ -1922,21 +1967,28 @@
                     </div>
                 ` : '<div class="mt-2 text-xs text-slate-500 text-center py-2 bg-slate-800/30 rounded">No active spots</div>';
                 
-                        const neededCount = spots.filter(s => !s.workedBandMode).length;
-                        let neededBadge = '';
-                        if (matchingCount > 0) {
-                            neededBadge = neededCount > 0 
-                                ? `<span class="px-1.5 py-0.5 bg-orange-500/20 text-orange-400 rounded text-xs font-semibold">${neededCount} needed</span>`
-                                : '<span class="px-1.5 py-0.5 bg-green-500/20 text-green-400 rounded text-xs font-semibold">All worked</span>';
-                        }
+                // ✅ Ne calculer le badge que s'il y a des spots
+                let neededBadge = '';
+                if (matchingCount > 0) {
+                    const neededCount = spots.filter(s => !s.workedBandMode).length;
+                    neededBadge = neededCount > 0 
+                        ? `<span class="px-1.5 py-0.5 bg-orange-500/20 text-orange-400 rounded text-xs font-semibold">${neededCount} needed</span>`
+                        : '<span class="px-1.5 py-0.5 bg-green-500/20 text-green-400 rounded text-xs font-semibold">All worked</span>';
+                }
+                
+                const neededCount = spots.filter(s => !s.workedBandMode).length;
+                const borderClass = neededCount > 0 ? 'border-orange-500/30' : 'border-slate-700/50';
                 
                 return `
-                    <div class="mb-3 p-3 bg-slate-900/30 rounded hover:bg-slate-700/30 transition-colors border ${neededCount > 0 ? 'border-orange-500/30' : 'border-slate-700/50'}" data-watchlist="${callsign}">
+                    <div class="mb-3 p-3 bg-slate-900/30 rounded hover:bg-slate-700/30 transition-colors border ${borderClass}" data-watchlist="${callsign}">
                         <div class="flex items-center justify-between mb-2">
                             <div class="flex-1">
                                 <div class="flex items-center gap-2 flex-wrap">
                                     <div class="font-bold text-pink-400 text-lg">${callsign}</div>
-                                    <span class="text-xs text-slate-400">${matchingCount} active spot${matchingCount !== 1 ? 's' : ''}</span>
+                                    ${matchingCount > 0 
+                                        ? `<span class="text-xs text-slate-400">${matchingCount} active spot${matchingCount !== 1 ? 's' : ''}</span>` 
+                                        : '<span class="text-xs text-slate-500">No active spots</span>'
+                                    }
                                     ${neededBadge}
                                 </div>
                             </div>
@@ -1960,6 +2012,38 @@
             }
         }
 
+        function toggleWatchlistActiveOnly() {
+            state.watchlistShowOnlyActive = !state.watchlistShowOnlyActive;
+            
+            // Sauvegarder la préférence
+            localStorage.setItem('watchlistShowOnlyActive', state.watchlistShowOnlyActive);
+            
+            // Mettre à jour visuellement le bouton
+            const button = document.querySelector('button[onclick="toggleWatchlistActiveOnly()"]');
+            if (button) {
+                if (state.watchlistShowOnlyActive) {
+                    button.className = 'px-3 py-1.5 text-xs rounded transition-colors flex items-center gap-2 bg-blue-600 text-white';
+                    button.innerHTML = `
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+                        </svg>
+                        Show All
+                    `;
+                } else {
+                    button.className = 'px-3 py-1.5 text-xs rounded transition-colors flex items-center gap-2 bg-slate-700/50 text-slate-300 hover:bg-slate-700';
+                    button.innerHTML = `
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+                        </svg>
+                        Active Only
+                    `;
+                }
+            }
+            
+            // Mettre à jour la liste
+            updateWatchlistItems();
+        }
+
         async function initPropagation() {
             state.solarData = await fetchPropagationData();
             
@@ -1973,6 +2057,10 @@
         // Initialize
 
         async function init() {
+            const savedPref = localStorage.getItem('watchlistShowOnlyActive');
+            if (savedPref !== null) {
+                state.watchlistShowOnlyActive = savedPref === 'true';
+            }
             await initPropagation();
             await fetchLogData(); 
             connectWebSocket(); 
