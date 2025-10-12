@@ -773,7 +773,7 @@
                 
                 const data = await response.json();
                 if (data.success) {
-                    showToast(`${callsign} envoyé - Radio tunée sur ${frequency} en ${mode}`, 'success');
+                    showToast(`${callsign} Sent - Radio tuned on ${frequency} in ${mode}`, 'success');
                 } else {
                     showToast('Échec de l\'envoi', 'error');
                 }
@@ -814,7 +814,7 @@
         async function fetchLogData() {
             try {
                 // Fetch recent QSOs
-                const qsosResponse = await fetch(`${API_BASE_URL}/log/recent?limit=5`);
+                const qsosResponse = await fetch(`${API_BASE_URL}/log/recent?limit=10`);
                 const qsosJson = await qsosResponse.json();
                 if (qsosJson.success) {
                     state.recentQSOs = qsosJson.data || [];
@@ -840,6 +840,21 @@
                 }
             } catch (error) {
                 console.error('Error fetching log data:', error);
+            }
+        }
+
+        async function fetchWatchlistSpotsWithStatus() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/watchlist/spots`);
+                const json = await response.json();
+                
+                if (json.success) {
+                    return json.data || [];
+                }
+                return [];
+            } catch (error) {
+                console.error('Error fetching watchlist spots:', error);
+                return [];
             }
         }
 
@@ -1824,7 +1839,7 @@
             `;
         }
 
-        function updateWatchlistItems() {
+        async function updateWatchlistItems() {
             const container = document.getElementById('watchlist-items-container');
             if (!container) return;
             
@@ -1842,19 +1857,96 @@
                 return;
             }
             
+            // Récupérer les spots enrichis avec le statut "worked"
+            const watchlistSpots = await fetchWatchlistSpotsWithStatus();
+            
+            // Grouper les spots par callsign/prefix
+            const spotsByCallsign = {};
+            watchlistSpots.forEach(spot => {
+                // Trouver le pattern correspondant
+                let matchedPattern = '';
+                for (const pattern of state.watchlist) {
+                    if (spot.dx === pattern || spot.dx.startsWith(pattern)) {
+                        matchedPattern = pattern;
+                        break;
+                    }
+                }
+                
+                if (!spotsByCallsign[matchedPattern]) {
+                    spotsByCallsign[matchedPattern] = [];
+                }
+                spotsByCallsign[matchedPattern].push(spot);
+            });
+            
             container.innerHTML = state.watchlist.map(callsign => {
+                const spots = spotsByCallsign[callsign] || [];
+                const matchingCount = spots.length;
+                
+                // Trier les spots : Needed en premier, puis Worked
+                spots.sort((a, b) => {
+                    if (!a.workedBandMode && b.workedBandMode) return -1;
+                    if (a.workedBandMode && !b.workedBandMode) return 1;
+                    return 0;
+                });
+                
+                // Afficher les spots actifs pour ce callsign
+                const spotsHtml = spots.length > 0 ? `
+                    <div class="mt-2 space-y-1 max-h-48 overflow-y-auto">
+                        ${spots.map(spot => {
+                            const workedIcon = spot.workedBandMode 
+                                ? '<svg class="w-4 h-4 text-green-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>'
+                                : '<svg class="w-4 h-4 text-orange-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>';
+                            
+                            const statusBadge = spot.workedBandMode 
+                                ? '<span class="px-1.5 py-0.5 bg-green-500/20 text-green-400 rounded text-xs font-semibold">Worked</span>'
+                                : '<span class="px-1.5 py-0.5 bg-orange-500/20 text-orange-400 rounded text-xs font-semibold">Needed!</span>';
+                            
+                            return `
+                                <div class="flex items-center justify-between p-2 bg-slate-800/50 rounded text-xs cursor-pointer hover:bg-slate-700/50 transition-colors ${!spot.workedBandMode ? 'border-l-2 border-orange-500' : ''}"
+                                    onclick="sendCallsignToLog4OM('${spot.dx}', '${spot.frequencyMhz}', '${spot.mode}')"
+                                    title="Click to send to Log4OM and tune radio">
+                                    <div class="flex items-center gap-2 flex-1 min-w-0">
+                                        ${workedIcon}
+                                        <span class="font-bold text-blue-400">${spot.dx}</span>
+                                        <span class="px-1.5 py-0.5 bg-slate-700/50 rounded flex-shrink-0">${spot.band}</span>
+                                        <span class="px-1.5 py-0.5 bg-purple-500/20 text-purple-400 rounded flex-shrink-0">${spot.mode}</span>
+                                        <span class="text-slate-400 font-mono truncate">${spot.frequencyMhz}</span>
+                                    </div>
+                                    <div class="flex items-center gap-2 flex-shrink-0 ml-2">
+                                        ${statusBadge}
+                                        <span class="text-slate-500">${spot.utcTime}</span>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                ` : '<div class="mt-2 text-xs text-slate-500 text-center py-2 bg-slate-800/30 rounded">No active spots</div>';
+                
+                        const neededCount = spots.filter(s => !s.workedBandMode).length;
+                        let neededBadge = '';
+                        if (matchingCount > 0) {
+                            neededBadge = neededCount > 0 
+                                ? `<span class="px-1.5 py-0.5 bg-orange-500/20 text-orange-400 rounded text-xs font-semibold">${neededCount} needed</span>`
+                                : '<span class="px-1.5 py-0.5 bg-green-500/20 text-green-400 rounded text-xs font-semibold">All worked</span>';
+                        }
+                
                 return `
-                    <div class="mb-2 p-3 bg-slate-900/30 rounded hover:bg-slate-700/30 transition-colors" data-watchlist="${callsign}">
-                        <div class="flex items-center justify-between">
+                    <div class="mb-3 p-3 bg-slate-900/30 rounded hover:bg-slate-700/30 transition-colors border ${neededCount > 0 ? 'border-orange-500/30' : 'border-slate-700/50'}" data-watchlist="${callsign}">
+                        <div class="flex items-center justify-between mb-2">
                             <div class="flex-1">
-                                <div class="font-bold text-pink-400">${callsign}</div>
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <div class="font-bold text-pink-400 text-lg">${callsign}</div>
+                                    <span class="text-xs text-slate-400">${matchingCount} active spot${matchingCount !== 1 ? 's' : ''}</span>
+                                    ${neededBadge}
+                                </div>
                             </div>
                             <button 
-                                onclick="removeFromWatchlist('${callsign}')"
+                                onclick="event.stopPropagation(); removeFromWatchlist('${callsign}')"
                                 class="px-2 py-1 text-xs bg-red-600/20 hover:bg-red-600/40 text-red-400 rounded transition-colors">
                                 Remove
                             </button>
                         </div>
+                        ${spotsHtml}
                     </div>
                 `;
             }).join('');

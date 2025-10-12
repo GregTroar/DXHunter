@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -361,12 +362,71 @@ func (r *Log4OMContactsRepository) GetDXCCCount() int {
 	return count
 }
 
+// Nouvelle méthode optimisée - remplacer HasWorkedCallsignBandMode par celle-ci
+func (r *Log4OMContactsRepository) GetWorkedCallsignsBandMode(callsigns []string, band string, mode string) map[string]bool {
+	if len(callsigns) == 0 {
+		return make(map[string]bool)
+	}
+
+	result := make(map[string]bool)
+
+	// Construire les placeholders pour la requête IN
+	placeholders := make([]string, len(callsigns))
+	args := make([]interface{}, 0, len(callsigns)+2)
+
+	for i, callsign := range callsigns {
+		placeholders[i] = "?"
+		args = append(args, callsign)
+	}
+
+	args = append(args, band)
+
+	var query string
+
+	// Gérer les cas SSB/USB/LSB
+	if mode == "USB" || mode == "LSB" || mode == "SSB" {
+		query = fmt.Sprintf(
+			"SELECT DISTINCT callsign FROM log WHERE callsign IN (%s) AND band = ? AND (mode = 'USB' OR mode = 'LSB' OR mode = 'SSB')",
+			strings.Join(placeholders, ","),
+		)
+	} else {
+		query = fmt.Sprintf(
+			"SELECT DISTINCT callsign FROM log WHERE callsign IN (%s) AND band = ? AND mode = ?",
+			strings.Join(placeholders, ","),
+		)
+		args = append(args, mode)
+	}
+
+	rows, err := r.db.Query(query, args...)
+	if err != nil {
+		log.Error("could not check worked band/mode status:", err)
+		return result
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var callsign string
+		if err := rows.Scan(&callsign); err != nil {
+			log.Error("error scanning callsign:", err)
+			continue
+		}
+		result[callsign] = true
+	}
+
+	return result
+}
+
+// Garder aussi l'ancienne méthode pour compatibilité (optionnel)
+func (r *Log4OMContactsRepository) HasWorkedCallsignBandMode(callsign, band, mode string) bool {
+	result := r.GetWorkedCallsignsBandMode([]string{callsign}, band, mode)
+	return result[callsign]
+}
+
 //
 // Flex from now on
 //
 
 func (r *FlexDXClusterRepository) GetAllSpots(limit string) []FlexSpot {
-	r.Log.Infof("GetAllSpots a été appelée avec une limite de: '%s'", limit)
 
 	Spots := []FlexSpot{}
 
@@ -377,8 +437,6 @@ func (r *FlexDXClusterRepository) GetAllSpots(limit string) []FlexSpot {
 	} else {
 		query = fmt.Sprintf("SELECT * from spots ORDER BY id DESC LIMIT %s", limit)
 	}
-
-	r.Log.Infof("Exécution de la requête SQL: %s", query)
 
 	rows, err := r.db.Query(query)
 
@@ -393,8 +451,6 @@ func (r *FlexDXClusterRepository) GetAllSpots(limit string) []FlexSpot {
 	for rows.Next() {
 		if err := rows.Scan(&s.ID, &s.CommandNumber, &s.FlexSpotNumber, &s.DX, &s.FrequencyMhz, &s.FrequencyHz, &s.Band, &s.Mode, &s.SpotterCallsign, &s.FlexMode, &s.Source, &s.UTCTime, &s.TimeStamp, &s.LifeTime, &s.Priority,
 			&s.Comment, &s.Color, &s.BackgroundColor, &s.CountryName, &s.DXCC, &s.NewDXCC, &s.NewBand, &s.NewMode, &s.NewSlot, &s.Worked); err != nil {
-
-			r.Log.Errorf("Erreur lors du scan d'une ligne de la base de données: %v", err)
 
 			return nil // Arrête le traitement s'il y a une erreur sur une ligne
 		}

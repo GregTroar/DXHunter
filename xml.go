@@ -1,13 +1,15 @@
 package main
 
 import (
+	_ "embed"
 	"encoding/xml"
-	"io"
-	"os"
 	"regexp"
 	"strings"
 	"unicode/utf8"
 )
+
+//go:embed country.xml
+var countryXMLData []byte
 
 type Countries struct {
 	XMLName   xml.Name  `xml:"Countries"`
@@ -56,22 +58,14 @@ type DXCC struct {
 }
 
 func LoadCountryFile() Countries {
-	// Open our xmlFile
-	xmlFile, err := os.Open("country.xml")
-	// if we os.Open returns an error then handle it
-	if err != nil {
-		os.Exit(1)
-	}
-
-	// defer the closing of our xmlFile so that we can parse it later on
-	defer xmlFile.Close()
-
-	// read our opened xmlFile as a byte array.
-	byteValue, _ := io.ReadAll(xmlFile)
-
 	var countries Countries
 
-	xml.Unmarshal(byteValue, &countries)
+	// Utiliser les données embarquées
+	err := xml.Unmarshal(countryXMLData, &countries)
+	if err != nil {
+		Log.Fatalf("Failed to parse embedded country.xml: %v", err)
+	}
+
 	return countries
 }
 
@@ -81,19 +75,23 @@ func GetDXCC(dxCall string, Countries Countries) DXCC {
 
 	// Get all the matching DXCC for current callsign
 	for i := 0; i < len(Countries.Countries); i++ {
-		regExp := regexp.MustCompile(Countries.Countries[i].CountryPrefixList.CountryPrefixList[len(Countries.Countries[i].CountryPrefixList.CountryPrefixList)-1].PrefixList)
+		if len(Countries.Countries[i].CountryPrefixList.CountryPrefixList) == 0 {
+			continue
+		}
+
+		lastPrefix := Countries.Countries[i].CountryPrefixList.CountryPrefixList[len(Countries.Countries[i].CountryPrefixList.CountryPrefixList)-1]
+		regExp := regexp.MustCompile(lastPrefix.PrefixList)
 
 		match := regExp.FindStringSubmatch(dxCall)
 		if len(match) != 0 {
-
 			d = DXCC{
 				Callsign:    dxCall,
 				CountryName: Countries.Countries[i].CountryName,
 				DXCC:        Countries.Countries[i].Dxcc,
-				RegEx:       Countries.Countries[i].CountryPrefixList.CountryPrefixList[len(Countries.Countries[i].CountryPrefixList.CountryPrefixList)-1].PrefixList,
+				RegEx:       lastPrefix.PrefixList,
 			}
 
-			if Countries.Countries[i].CountryPrefixList.CountryPrefixList[len(Countries.Countries[i].CountryPrefixList.CountryPrefixList)-1].EndDate == "" {
+			if lastPrefix.EndDate == "" {
 				d.Ended = false
 			} else {
 				d.Ended = true
@@ -132,7 +130,7 @@ func GetDXCC(dxCall string, Countries Countries) DXCC {
 
 		return DXCCMatch
 	} else {
-		Log.Errorf("Could not find %s in country list", dxCall)
+		Log.Warnf("Could not find %s in country list", dxCall)
 	}
 
 	return DXCC{}

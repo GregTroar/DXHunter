@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -68,6 +69,21 @@ type SendCallsignRequest struct {
 	Callsign string `json:"callsign"`
 }
 
+type WatchlistSpot struct {
+	DX              string `json:"dx"`
+	FrequencyMhz    string `json:"frequencyMhz"`
+	Band            string `json:"band"`
+	Mode            string `json:"mode"`
+	SpotterCallsign string `json:"spotterCallsign"`
+	UTCTime         string `json:"utcTime"`
+	CountryName     string `json:"countryName"`
+	NewDXCC         bool   `json:"newDXCC"`
+	NewBand         bool   `json:"newBand"`
+	NewMode         bool   `json:"newMode"`
+	Worked          bool   `json:"worked"`
+	WorkedBandMode  bool   `json:"workedBandMode"`
+}
+
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
 		return true // Allow all origins in development
@@ -120,11 +136,20 @@ func (s *HTTPServer) setupRoutes() {
 	api.HandleFunc("/log/recent", s.getRecentQSOs).Methods("GET", "OPTIONS")
 	api.HandleFunc("/log/stats", s.getLogStats).Methods("GET", "OPTIONS")
 	api.HandleFunc("/log/dxcc-progress", s.getDXCCProgress).Methods("GET", "OPTIONS")
+	api.HandleFunc("/watchlist/spots", s.getWatchlistSpotsWithStatus).Methods("GET", "OPTIONS")
+
 	// WebSocket endpoint
 	api.HandleFunc("/ws", s.handleWebSocket).Methods("GET")
 
 	// Serve static files (dashboard)
-	s.Router.PathPrefix("/").Handler(http.FileServer(http.Dir("./static")))
+	// s.Router.PathPrefix("/").Handler(http.FileServer(http.Dir("./static")))
+	s.Router.HandleFunc("/", s.serveIndex).Methods("GET")
+
+}
+
+func (s *HTTPServer) serveIndex(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Write(indexHTML)
 }
 
 func (s *HTTPServer) handleWebSocket(w http.ResponseWriter, r *http.Request) {
@@ -189,7 +214,7 @@ func (s *HTTPServer) sendInitialData(conn *websocket.Conn) {
 	conn.WriteJSON(WSMessage{Type: "watchlist", Data: watchlist})
 
 	// Send initial log data
-	qsos := s.ContactRepo.GetRecentQSOs("5")
+	qsos := s.ContactRepo.GetRecentQSOs("10")
 	conn.WriteJSON(WSMessage{Type: "log", Data: qsos})
 
 	logStats := s.ContactRepo.GetQSOStats()
@@ -262,7 +287,7 @@ func (s *HTTPServer) broadcastUpdates() {
 			}
 
 			// Broadcast log data every 10 seconds
-			qsos := s.ContactRepo.GetRecentQSOs("5")
+			qsos := s.ContactRepo.GetRecentQSOs("10")
 			s.broadcast <- WSMessage{Type: "log", Data: qsos}
 
 			stats := s.ContactRepo.GetQSOStats()
@@ -510,6 +535,81 @@ func (s *HTTPServer) removeFromWatchlist(w http.ResponseWriter, r *http.Request)
 	s.broadcast <- WSMessage{Type: "watchlist", Data: s.Watchlist.GetAll()}
 
 	s.sendJSON(w, APIResponse{Success: true, Message: "Callsign removed from watchlist"})
+}
+
+func (s *HTTPServer) getWatchlistSpotsWithStatus(w http.ResponseWriter, r *http.Request) {
+	// Récupérer tous les spots
+	allSpots := s.FlexRepo.GetAllSpots("0")
+
+	// Récupérer la watchlist
+	watchlistCallsigns := s.Watchlist.GetAll()
+
+	// Filtrer les spots de la watchlist
+	var relevantSpots []FlexSpot
+
+	for _, spot := range allSpots {
+		isInWatchlist := false
+
+		for _, pattern := range watchlistCallsigns {
+			if spot.DX == pattern || strings.HasPrefix(spot.DX, pattern) {
+				isInWatchlist = true
+				break
+			}
+		}
+
+		if isInWatchlist {
+			relevantSpots = append(relevantSpots, spot)
+		}
+	}
+
+	type BandModeKey struct {
+		Band string
+		Mode string
+	}
+
+	spotsByBandMode := make(map[BandModeKey][]FlexSpot)
+
+	for _, spot := range relevantSpots {
+		key := BandModeKey{Band: spot.Band, Mode: spot.Mode}
+		spotsByBandMode[key] = append(spotsByBandMode[key], spot)
+	}
+
+	var watchlistSpots []WatchlistSpot
+
+	for key, spots := range spotsByBandMode {
+		// Extraire les callsigns uniques
+		callsignSet := make(map[string]bool)
+		for _, spot := range spots {
+			callsignSet[spot.DX] = true
+		}
+
+		callsigns := make([]string, 0, len(callsignSet))
+		for callsign := range callsignSet {
+			callsigns = append(callsigns, callsign)
+		}
+
+		workedMap := s.ContactRepo.GetWorkedCallsignsBandMode(callsigns, key.Band, key.Mode)
+
+		// Construire les résultats
+		for _, spot := range spots {
+			watchlistSpots = append(watchlistSpots, WatchlistSpot{
+				DX:              spot.DX,
+				FrequencyMhz:    spot.FrequencyMhz,
+				Band:            spot.Band,
+				Mode:            spot.Mode,
+				SpotterCallsign: spot.SpotterCallsign,
+				UTCTime:         spot.UTCTime,
+				CountryName:     spot.CountryName,
+				NewDXCC:         spot.NewDXCC,
+				NewBand:         spot.NewBand,
+				NewMode:         spot.NewMode,
+				Worked:          spot.Worked,
+				WorkedBandMode:  workedMap[spot.DX],
+			})
+		}
+	}
+
+	s.sendJSON(w, APIResponse{Success: true, Data: watchlistSpots})
 }
 
 func (s *HTTPServer) HandleSolarData(w http.ResponseWriter, r *http.Request) {
