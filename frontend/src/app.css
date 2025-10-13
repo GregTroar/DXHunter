@@ -1,0 +1,38 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body, html { 
+  margin: 0;
+  padding: 0; 
+  overflow: hidden; 
+  height: 100vh; 
+  width: 100vw; 
+}
+
+::-webkit-scrollbar { 
+  width: 8px; 
+}
+
+::-webkit-scrollbar-track { 
+  background: rgb(15 23 42); 
+}
+
+::-webkit-scrollbar-thumb { 
+  background: rgb(51 65 85); 
+  border-radius: 4px; 
+}
+
+::-webkit-scrollbar-thumb:hover { 
+  background: rgb(71 85 105); 
+}
+
+.dx-callsign {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.dx-callsign:hover {
+  text-shadow: 0 0 8px rgba(59, 130, 246, 0.8);
+  transform: scale(1.05);
+}

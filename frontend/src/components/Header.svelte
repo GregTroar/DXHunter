@@ -1,0 +1,112 @@
+<script>
+  import { createEventDispatcher } from 'svelte';
+  
+  export let stats;
+  export let solarData;
+  export let wsStatus;
+  
+  const dispatch = createEventDispatcher();
+  
+  function getSFIColor(sfi) {
+    const value = parseInt(sfi);
+    if (isNaN(value)) return 'text-slate-500';
+    if (value >= 150) return 'text-green-400 font-bold';
+    if (value >= 100) return 'text-yellow-400';
+    return 'text-red-400';
+  }
+  
+  function getSunspotsColor(sunspots) {
+    const value = parseInt(sunspots);
+    if (isNaN(value)) return 'text-slate-500';
+    if (value >= 100) return 'text-green-400 font-bold';
+    if (value >= 50) return 'text-yellow-400';
+    return 'text-orange-400';
+  }
+  
+  function getAIndexColor(aIndex) {
+    const value = parseInt(aIndex);
+    if (isNaN(value)) return 'text-slate-500';
+    if (value <= 7) return 'text-green-400 font-bold';
+    if (value <= 15) return 'text-yellow-400';
+    return 'text-red-400';
+  }
+  
+  function getKIndexColor(kIndex) {
+    const value = parseInt(kIndex);
+    if (isNaN(value)) return 'text-slate-500';
+    if (value <= 2) return 'text-green-400 font-bold';
+    if (value <= 4) return 'text-yellow-400';
+    return 'text-red-400';
+  }
+</script>
+
+<div class="flex items-center justify-between mb-3">
+  <div class="flex items-center gap-3">
+    <svg class="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.348 14.651a3.75 3.75 0 010-5.303m5.304 0a3.75 3.75 0 010 5.303m-7.425 2.122a6.75 6.75 0 010-9.546m9.546 0a6.75 6.75 0 010 9.546M5.106 18.894c-3.808-3.808-3.808-9.98 0-13.789m13.788 0c3.808 3.808 3.808 9.981 0 13.79M12 12h.008v.007H12V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+    </svg>
+    <div>
+      <h1 class="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+        FlexDXCluster
+      </h1>
+      <div class="flex items-center gap-3 text-xs text-slate-400">
+        <span>F4BPO • <span>{stats.totalContacts}</span> Contacts</span>
+        <span class="text-slate-600">|</span>
+        <span class="flex items-center gap-1">
+          <span class="font-semibold text-amber-400">SFI:</span> 
+          <span class={getSFIColor(solarData.sfi)}>{solarData.sfi}</span>
+        </span>
+        <span class="flex items-center gap-1">
+          <span class="font-semibold text-yellow-400">SSN:</span> 
+          <span class={getSunspotsColor(solarData.sunspots)}>{solarData.sunspots}</span>
+        </span>
+        <span class="flex items-center gap-1">
+          <span class="font-semibold text-red-400">A:</span> 
+          <span class={getAIndexColor(solarData.aIndex)}>{solarData.aIndex}</span>
+        </span>
+        <span class="flex items-center gap-1">
+          <span class="font-semibold text-purple-400">K:</span> 
+          <span class={getKIndexColor(solarData.kIndex)}>{solarData.kIndex}</span>
+        </span>
+      </div>
+    </div>
+  </div>
+  
+  <div class="flex items-center gap-3">
+    {#if wsStatus === 'connected'}
+      <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-green-500/20 text-green-400">
+        <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+        WebSocket
+      </span>
+    {:else if wsStatus === 'connecting'}
+      <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-orange-500/20 text-orange-400">
+        <span class="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></span>
+        Connecting...
+      </span>
+    {:else}
+      <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-red-500/20 text-red-400">
+        <span class="w-2 h-2 bg-red-500 rounded-full"></span>
+        Disconnected
+      </span>
+    {/if}
+    
+    <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold {stats.clusterStatus === 'connected' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}">
+      <span class="w-2 h-2 {stats.clusterStatus === 'connected' ? 'bg-green-500 animate-pulse' : 'bg-red-500'} rounded-full"></span>
+      Cluster
+    </span>
+    
+    <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold {stats.flexStatus === 'connected' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}">
+      <span class="w-2 h-2 {stats.flexStatus === 'connected' ? 'bg-green-500 animate-pulse' : 'bg-red-500'} rounded-full"></span>
+      Flex
+    </span>
+    
+    <button 
+      on:click={() => dispatch('shutdown')}
+      class="px-3 py-1.5 text-xs bg-red-600 hover:bg-red-700 rounded transition-colors flex items-center gap-1">
+      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+      Shutdown
+    </button>
+  </div>
+</div>

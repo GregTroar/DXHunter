@@ -1,0 +1,236 @@
+<script>
+  import { createEventDispatcher } from 'svelte';
+  
+  export let watchlist;
+  export let spots;
+  
+  const dispatch = createEventDispatcher();
+  
+  let newCallsign = '';
+  let showOnlyActive = false;
+  let watchlistSpots = [];
+  
+  $: matchingSpots = countWatchlistSpots(spots, watchlist);
+  $: displayList = showOnlyActive 
+    ? watchlist.filter(cs => getMatchingSpotsForCallsign(cs).length > 0)
+    : watchlist;
+  
+  // Fetch watchlist spots with worked status from API
+  $: if (watchlist.length > 0) {
+    fetchWatchlistSpots();
+  }
+  
+  async function fetchWatchlistSpots() {
+    try {
+      const response = await fetch('/api/watchlist/spots');
+      const json = await response.json();
+      
+      if (json.success) {
+        watchlistSpots = json.data || [];
+      }
+    } catch (error) {
+      console.error('Error fetching watchlist spots:', error);
+    }
+  }
+  
+  function countWatchlistSpots(allSpots, wl) {
+    return allSpots.filter(spot => 
+      wl.some(pattern => spot.DX === pattern || spot.DX.startsWith(pattern))
+    ).length;
+  }
+  
+  function getMatchingSpotsForCallsign(callsign) {
+    return watchlistSpots.filter(s => s.dx === callsign || s.dx.startsWith(callsign));
+  }
+  
+  async function addToWatchlist() {
+    const callsign = newCallsign.trim().toUpperCase();
+    
+    if (!callsign) {
+      dispatch('toast', { message: 'Please enter a callsign', type: 'warning' });
+      return;
+    }
+    
+    try {
+      const response = await fetch('/api/watchlist/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ callsign })
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        newCallsign = '';
+        dispatch('toast', { message: `${callsign} added to watchlist`, type: 'success' });
+        await fetchWatchlistSpots();
+      } else {
+        dispatch('toast', { message: 'Failed to add callsign', type: 'error' });
+      }
+    } catch (error) {
+      console.error('Error adding to watchlist:', error);
+      dispatch('toast', { message: `Error: ${error.message}`, type: 'error' });
+    }
+  }
+  
+  async function removeFromWatchlist(callsign) {
+    try {
+      const response = await fetch('/api/watchlist/remove', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ callsign })
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        dispatch('toast', { message: `${callsign} removed from watchlist`, type: 'success' });
+        await fetchWatchlistSpots();
+      } else {
+        dispatch('toast', { message: 'Failed to remove callsign', type: 'error' });
+      }
+    } catch (error) {
+      console.error('Error removing from watchlist:', error);
+      dispatch('toast', { message: `Error: ${error.message}`, type: 'error' });
+    }
+  }
+  
+  function handleKeyPress(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addToWatchlist();
+    }
+  }
+  
+  function sendSpot(spot) {
+    const event = new CustomEvent('sendSpot', {
+      detail: {
+        callsign: spot.dx,
+        frequency: spot.frequencyMhz,
+        mode: spot.mode
+      }
+    });
+    window.dispatchEvent(event);
+  }
+</script>
+
+<div class="h-full flex flex-col overflow-hidden">
+  <div class="p-3 border-b border-slate-700/50 flex-shrink-0">
+    <div class="flex items-center justify-between mb-2">
+      <h2 class="text-lg font-bold">Watchlist</h2>
+      <button 
+        on:click={() => showOnlyActive = !showOnlyActive}
+        class="px-3 py-1.5 text-xs rounded transition-colors flex items-center gap-2 {showOnlyActive ? 'bg-blue-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+        </svg>
+        {showOnlyActive ? 'Show All' : 'Active Only'}
+      </button>
+    </div>
+    <p class="text-xs text-slate-400 mb-3">{matchingSpots} matching spots</p>
+    
+    <div class="flex gap-2">
+      <input 
+        type="text" 
+        bind:value={newCallsign}
+        on:keypress={handleKeyPress}
+        placeholder="Enter callsign or prefix (e.g., VK9)"
+        class="flex-1 px-3 py-2 bg-slate-700/50 border border-slate-600 rounded text-sm text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
+      />
+      <button 
+        on:click={addToWatchlist}
+        class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded text-sm font-medium transition-colors">
+        Add
+      </button>
+    </div>
+  </div>
+  
+  <div class="flex-1 overflow-y-auto p-3">
+    {#if displayList.length === 0}
+      <div class="text-center py-8 text-slate-400">
+        <svg class="w-12 h-12 mx-auto mb-3 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+        </svg>
+        <p class="text-sm">{showOnlyActive ? 'No active spots for watchlist callsigns' : 'No callsigns in watchlist'}</p>
+        <p class="text-xs mt-1">{showOnlyActive ? 'Click "Active Only" to see all entries' : 'Add callsigns or prefixes to monitor'}</p>
+      </div>
+    {:else}
+      {#each displayList as callsign}
+        {@const matchingSpots = getMatchingSpotsForCallsign(callsign)}
+        {@const count = matchingSpots.length}
+        {@const neededCount = matchingSpots.filter(s => !s.workedBandMode).length}
+        {@const borderClass = neededCount > 0 ? 'border-orange-500/30' : 'border-slate-700/50'}
+        
+        <div class="mb-3 p-3 bg-slate-900/30 rounded hover:bg-slate-700/30 transition-colors border {borderClass}">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex-1">
+              <div class="flex items-center gap-2 flex-wrap">
+                <div class="font-bold text-pink-400 text-lg">{callsign}</div>
+                {#if count > 0}
+                  <span class="text-xs text-slate-400">{count} active spot{count !== 1 ? 's' : ''}</span>
+                  {#if neededCount > 0}
+                    <span class="px-1.5 py-0.5 bg-orange-500/20 text-orange-400 rounded text-xs font-semibold">{neededCount} needed</span>
+                  {:else}
+                    <span class="px-1.5 py-0.5 bg-green-500/20 text-green-400 rounded text-xs font-semibold">All worked</span>
+                  {/if}
+                {:else}
+                  <span class="text-xs text-slate-500">No active spots</span>
+                {/if}
+              </div>
+            </div>
+            <button 
+              on:click={() => removeFromWatchlist(callsign)}
+              title="Remove from watchlist"
+              class="px-2 py-1 text-xs bg-red-600/20 hover:bg-red-600/40 text-red-400 rounded transition-colors">
+              Remove
+            </button>
+          </div>
+          
+          {#if count > 0}
+            <div class="mt-2 space-y-1 max-h-48 overflow-y-auto">
+              {#each matchingSpots.slice(0, 10) as spot}
+                <button 
+                  on:click={() => sendSpot(spot)}
+                  class="w-full flex items-center justify-between p-2 bg-slate-800/50 rounded text-xs hover:bg-slate-700/50 transition-colors {!spot.workedBandMode ? 'border-l-2 border-orange-500' : ''}"
+                  title="Click to send to Log4OM and tune radio">
+                  <div class="flex items-center gap-2 flex-1 min-w-0">
+                    {#if spot.workedBandMode}
+                      <svg class="w-4 h-4 text-green-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                      </svg>
+                    {:else}
+                      <svg class="w-4 h-4 text-orange-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                      </svg>
+                    {/if}
+                    <span class="font-bold text-blue-400">{spot.dx}</span>
+                    <span class="px-1.5 py-0.5 bg-slate-700/50 rounded flex-shrink-0">{spot.band}</span>
+                    <span class="px-1.5 py-0.5 bg-purple-500/20 text-purple-400 rounded flex-shrink-0">{spot.mode}</span>
+                    <span class="text-slate-400 font-mono truncate">{spot.frequencyMhz}</span>
+                  </div>
+                  <div class="flex items-center gap-2 flex-shrink-0 ml-2">
+                    {#if spot.workedBandMode}
+                      <span class="px-1.5 py-0.5 bg-green-500/20 text-green-400 rounded text-xs font-semibold">Worked</span>
+                    {:else if spot.newDXCC}
+                      <span class="px-1.5 py-0.5 bg-green-500/20 text-green-400 rounded text-xs font-semibold">New DXCC!</span>
+                    {:else if spot.newBand && spot.newMode}
+                      <span class="px-1.5 py-0.5 bg-purple-500/20 text-purple-400 rounded text-xs font-semibold">New B&M!</span>
+                    {:else if spot.newBand}
+                      <span class="px-1.5 py-0.5 bg-yellow-500/20 text-yellow-400 rounded text-xs font-semibold">New Band!</span>
+                    {:else if spot.newMode}
+                      <span class="px-1.5 py-0.5 bg-orange-500/20 text-orange-400 rounded text-xs font-semibold">New Mode!</span>
+                    {:else}
+                      <span class="px-1.5 py-0.5 bg-orange-500/20 text-orange-400 rounded text-xs font-semibold">Needed!</span>
+                    {/if}
+                    <span class="text-slate-500">{spot.utcTime}</span>
+                  </div>
+                </button>
+              {/each}
+            </div>
+          {:else}
+            <div class="mt-2 text-xs text-slate-500 text-center py-2 bg-slate-800/30 rounded">No active spots</div>
+          {/if}
+        </div>
+      {/each}
+    {/if}
+  </div>
+</div>

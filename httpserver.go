@@ -1,10 +1,12 @@
 package main
 
 import (
+	"embed"
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
 	"io"
+	"io/fs"
 	"net/http"
 	"os"
 	"strings"
@@ -15,6 +17,9 @@ import (
 	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
 )
+
+//go:embed frontend/dist/*
+var frontendFiles embed.FS
 
 type HTTPServer struct {
 	Router      *mux.Router
@@ -141,15 +146,35 @@ func (s *HTTPServer) setupRoutes() {
 	// WebSocket endpoint
 	api.HandleFunc("/ws", s.handleWebSocket).Methods("GET")
 
-	// Serve static files (dashboard)
-	// s.Router.PathPrefix("/").Handler(http.FileServer(http.Dir("./static")))
-	s.Router.HandleFunc("/", s.serveIndex).Methods("GET")
-
+	s.setupStaticFiles()
 }
 
-func (s *HTTPServer) serveIndex(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	w.Write(indexHTML)
+func (s *HTTPServer) setupStaticFiles() {
+	// Obtenir le sous-système de fichiers depuis dist/
+	distFS, err := fs.Sub(frontendFiles, "frontend/dist")
+	if err != nil {
+		s.Log.Fatal("Cannot load frontend files:", err)
+	}
+
+	spaHandler := http.FileServer(http.FS(distFS))
+	s.Router.PathPrefix("/").Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		path := r.URL.Path
+
+		// Vérifier si le fichier existe
+		if path != "/" {
+			file, err := distFS.Open(strings.TrimPrefix(path, "/"))
+			if err == nil {
+				file.Close()
+				spaHandler.ServeHTTP(w, r)
+				return
+			}
+		}
+
+		// Si pas trouvé ou racine, servir index.html
+		r.URL.Path = "/"
+		spaHandler.ServeHTTP(w, r)
+	}))
 }
 
 func (s *HTTPServer) handleWebSocket(w http.ResponseWriter, r *http.Request) {
@@ -214,7 +239,7 @@ func (s *HTTPServer) sendInitialData(conn *websocket.Conn) {
 	conn.WriteJSON(WSMessage{Type: "watchlist", Data: watchlist})
 
 	// Send initial log data
-	qsos := s.ContactRepo.GetRecentQSOs("10")
+	qsos := s.ContactRepo.GetRecentQSOs("8")
 	conn.WriteJSON(WSMessage{Type: "log", Data: qsos})
 
 	logStats := s.ContactRepo.GetQSOStats()
@@ -287,7 +312,7 @@ func (s *HTTPServer) broadcastUpdates() {
 			}
 
 			// Broadcast log data every 10 seconds
-			qsos := s.ContactRepo.GetRecentQSOs("10")
+			qsos := s.ContactRepo.GetRecentQSOs("8")
 			s.broadcast <- WSMessage{Type: "log", Data: qsos}
 
 			stats := s.ContactRepo.GetQSOStats()
