@@ -25,13 +25,13 @@ help:
 
 ## install-deps: Installe les dépendances npm
 install-deps:
-	@echo "[1/2] Installation des dépendances npm..."
+	@echo "[1/2] Installation des dependances npm..."
 	cd $(FRONTEND_DIR) && npm install
-	@echo "Dépendances installées"
+	@echo "Dependances installees"
 	@echo ""
-	@echo "[2/2] Vérification de Go..."
+	@echo "[2/2] Verification de Go..."
 	@go version
-	@echo "Go est installé"
+	@echo "Go est installe"
 
 ## frontend: Build le frontend Svelte
 frontend:

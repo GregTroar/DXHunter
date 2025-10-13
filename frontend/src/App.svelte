@@ -7,9 +7,11 @@
   import Sidebar from './components/Sidebar.svelte';
   import Toast from './components/Toast.svelte';
   import ErrorBanner from './components/ErrorBanner.svelte';
+  import SoundManager from './components/SoundManager.svelte';
   
   // State
   let spots = [];
+  let previousSpots = []; // Pour détecter les nouveaux spots
   let filteredSpots = [];
   let stats = {
     totalSpots: 0,
@@ -23,13 +25,14 @@
     filters: { skimmer: false, ft8: false, ft4: false }
   };
   let topSpotters = [];
-  let watchlist = [];
+  let watchlist = []; // ✅ Initialisé vide, sera rempli par WebSocket
   let recentQSOs = [];
   let logStats = { today: 0, thisWeek: 0, thisMonth: 0, total: 0 };
   let dxccProgress = { worked: 0, total: 340, percentage: 0 };
   let solarData = { sfi: 'N/A', sunspots: 'N/A', aIndex: 'N/A', kIndex: 'N/A' };
   
   let activeTab = 'stats';
+  let showOnlyActive = false; // ✅ État global pour persister entre les onglets
   let wsStatus = 'disconnected';
   let errorMessage = '';
   let toastMessage = '';
@@ -58,13 +61,15 @@
     band12M: false,
     band10M: false,
     band6M: false
-  };
+  };  
   
   // WebSocket
   let ws;
   let reconnectTimer;
   let reconnectAttempts = 0;
   let maxReconnectAttempts = 10;
+  let soundEnabled = true;
+  let isShuttingDown = false; // ✅ Flag pour éviter les erreurs pendant le shutdown
   
   // Reactive filtered spots
   $: {
@@ -73,6 +78,52 @@
     } else {
       filteredSpots = applyFilters(spots, spotFilters, watchlist);
     }
+  }
+  
+  // Détecter les nouveaux spots et jouer les sons appropriés
+  $: if (spots.length > 0 && soundEnabled) {
+    checkForNewSpots(spots, previousSpots, watchlist);
+    previousSpots = [...spots];
+  }
+
+  // ✅ SUPPRIMÉ - La watchlist est gérée côté serveur via WebSocket
+  // Les fonctions addToWatchlist et removeFromWatchlist ne sont plus nécessaires
+  
+  function checkForNewSpots(currentSpots, prevSpots, wl) {
+    // Ne pas jouer de sons au chargement initial
+    if (prevSpots.length === 0) return;
+    
+    // Créer un Set des IDs précédents pour une recherche rapide
+    const previousIds = new Set(prevSpots.map(s => `${s.DX}-${s.Frequency}-${s.Time}`));
+    
+    // Trouver les nouveaux spots
+    const newSpots = currentSpots.filter(spot => {
+      const spotId = `${spot.DX}-${spot.Frequency}-${spot.Time}`;
+      return !previousIds.has(spotId);
+    });
+    
+    if (newSpots.length === 0) return;
+    
+    // Vérifier s'il y a un nouveau DXCC (priorité maximale)
+    const hasNewDXCC = newSpots.some(spot => spot.NewDXCC === true);
+    if (hasNewDXCC) {
+      playSound('newDXCC');
+      return; // Ne jouer qu'un seul son
+    }
+    
+    // Vérifier s'il y a un spot de la watchlist
+    const hasWatchlistSpot = newSpots.some(spot => 
+      wl.some(pattern => spot.DX === pattern || spot.DX.startsWith(pattern))
+    );
+    if (hasWatchlistSpot) {
+      playSound('watchlist');
+    }
+  }
+  
+  function playSound(type) {
+    window.dispatchEvent(new CustomEvent('playSound', { 
+      detail: { type } 
+    }));
   }
   
   function applyFilters(allSpots, filters, wl) {
@@ -255,6 +306,7 @@
         topSpotters = message.data || [];
         break;
       case 'watchlist':
+        // ✅ La watchlist est mise à jour par WebSocket
         watchlist = message.data || [];
         break;
       case 'log':
@@ -344,13 +396,11 @@
       if (data.success) {
         showToast('FlexDXCluster shutting down...', 'info');
         
-        // Fermer le WebSocket et arrêter les tentatives de reconnexion
         if (ws) ws.close();
         if (reconnectTimer) clearTimeout(reconnectTimer);
         wsStatus = 'disconnected';
-        maxReconnectAttempts = 0; // Empêcher les reconnexions
+        maxReconnectAttempts = 0;
         
-        // Afficher la page de shutdown après 1 seconde
         setTimeout(() => {
           document.body.innerHTML = `
             <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
@@ -378,10 +428,8 @@
     connectWebSocket();
     fetchSolarData();
     
-    // Update solar data every 15 minutes
     const solarInterval = setInterval(fetchSolarData, 15 * 60 * 1000);
     
-    // Listen for sendSpot events from watchlist
     const handleSendSpot = (e) => {
       sendCallsign(e.detail.callsign, e.detail.frequency, e.detail.mode);
     };
@@ -397,6 +445,9 @@
 </script>
 
 <div class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white min-h-screen p-4">
+  <!-- Gestionnaire de sons -->
+  <SoundManager bind:enabled={soundEnabled} />
+  
   {#if errorMessage}
     <ErrorBanner message={errorMessage} on:close={() => errorMessage = ''} />
   {/if}
@@ -424,8 +475,8 @@
     on:toggleFilter={(e) => toggleFilter(e.detail)} 
   />
   
-  <div class="grid grid-cols-4 gap-3" style="height: calc(100vh - 360px);">
-    <div class="col-span-3">
+  <div class="grid grid-cols-4 gap-3 overflow-hidden" style="height: calc(100vh - 360px); min-height: 500px;">
+    <div class="col-span-3 overflow-hidden">
       <SpotsTable 
         spots={filteredSpots} 
         {watchlist}
@@ -434,15 +485,18 @@
       />
     </div>
     
-    <Sidebar 
-      bind:activeTab
-      {topSpotters}
-      {spots}
-      {watchlist}
-      {recentQSOs}
-      {logStats}
-      {dxccProgress}
-      on:toast={(e) => showToast(e.detail.message, e.detail.type)}
-    />
+    <div class="overflow-hidden">
+      <Sidebar 
+        bind:activeTab
+        bind:showOnlyActive
+        {topSpotters}
+        {spots}
+        {watchlist}
+        {recentQSOs}
+        {logStats}
+        {dxccProgress}
+        on:toast={(e) => showToast(e.detail.message, e.detail.type)}
+      />
+    </div>
   </div>
 </div>

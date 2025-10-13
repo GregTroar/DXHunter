@@ -1,23 +1,59 @@
 <script>
-  import { createEventDispatcher } from 'svelte';
+  import { createEventDispatcher, onMount, onDestroy } from 'svelte';
   
   export let watchlist;
   export let spots;
+  export let showOnlyActive = false;
   
   const dispatch = createEventDispatcher();
   
   let newCallsign = '';
-  let showOnlyActive = false;
   let watchlistSpots = [];
+  let refreshInterval;
   
   $: matchingSpots = countWatchlistSpots(spots, watchlist);
-  $: displayList = showOnlyActive 
-    ? watchlist.filter(cs => getMatchingSpotsForCallsign(cs).length > 0)
-    : watchlist;
   
-  // Fetch watchlist spots with worked status from API
+  // ✅ Tri alphanumérique simple : 0-9 puis A-Z
+  $: displayList = getDisplayList(watchlist, watchlistSpots, showOnlyActive);
+  
+  // ✅ Rafraîchir automatiquement les spots de la watchlist
   $: if (watchlist.length > 0) {
     fetchWatchlistSpots();
+  }
+  
+  // ✅ Rafraîchir aussi quand les spots changent (temps réel)
+  $: if (spots.length > 0 && watchlist.length > 0) {
+    fetchWatchlistSpots();
+  }
+  
+  onMount(() => {
+    // Rafraîchir toutes les 10 secondes pour être sûr
+    refreshInterval = setInterval(() => {
+      if (watchlist.length > 0) {
+        fetchWatchlistSpots();
+      }
+    }, 10000);
+  });
+  
+  onDestroy(() => {
+    if (refreshInterval) {
+      clearInterval(refreshInterval);
+    }
+  });
+  
+  function getDisplayList(wl, wlSpots, activeOnly) {
+    let list = wl;
+    
+    if (activeOnly) {
+      // Filtrer pour ne montrer que les callsigns avec des spots actifs
+      list = wl.filter(cs => {
+        const spots = wlSpots.filter(s => s.dx === cs || s.dx.startsWith(cs));
+        return spots.length > 0;
+      });
+    }
+    
+    // Tri alphanumérique : 0-9 puis A-Z
+    return [...list].sort((a, b) => a.localeCompare(b, 'en', { numeric: true }));
   }
   
   async function fetchWatchlistSpots() {
@@ -110,14 +146,19 @@
     });
     window.dispatchEvent(event);
   }
+  
+  // ✅ Fonction pour le toggle
+  function toggleActiveOnly() {
+    showOnlyActive = !showOnlyActive;
+  }
 </script>
 
-<div class="h-full flex flex-col overflow-hidden">
+<div class="h-full flex flex-col" style="height: 100%; max-height: 100%;">
   <div class="p-3 border-b border-slate-700/50 flex-shrink-0">
     <div class="flex items-center justify-between mb-2">
       <h2 class="text-lg font-bold">Watchlist</h2>
       <button 
-        on:click={() => showOnlyActive = !showOnlyActive}
+        on:click={toggleActiveOnly}
         class="px-3 py-1.5 text-xs rounded transition-colors flex items-center gap-2 {showOnlyActive ? 'bg-blue-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
@@ -143,7 +184,7 @@
     </div>
   </div>
   
-  <div class="flex-1 overflow-y-auto p-3">
+  <div class="flex-1 p-3 overflow-y-auto" style="overflow-y: auto; min-height: 0; flex: 1 1 0;">
     {#if displayList.length === 0}
       <div class="text-center py-8 text-slate-400">
         <svg class="w-12 h-12 mx-auto mb-3 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -186,7 +227,7 @@
           </div>
           
           {#if count > 0}
-            <div class="mt-2 space-y-1 max-h-48 overflow-y-auto">
+            <div class="mt-2 space-y-1 max-h-48 overflow-y-auto" style="overflow-y: auto;">
               {#each matchingSpots.slice(0, 10) as spot}
                 <button 
                   on:click={() => sendSpot(spot)}

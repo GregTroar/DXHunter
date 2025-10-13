@@ -11,11 +11,17 @@
   export let recentQSOs;
   export let logStats;
   export let dxccProgress;
+  export let showOnlyActive = false; // ✅ Export pour persister l'état
   
   const dispatch = createEventDispatcher();
+  
+  // ✅ Propagation des évènements vers le parent
+  function handleToast(event) {
+    dispatch('toast', event.detail);
+  }
 </script>
 
-<div class="bg-slate-800/50 backdrop-blur rounded-lg border border-slate-700/50 flex flex-col overflow-hidden h-full">
+<div class="bg-slate-800/50 backdrop-blur rounded-lg border border-slate-700/50 flex flex-col h-full" style="height: 100%; max-height: 100%;">
   <!-- Tabs Header -->
   <div class="flex border-b border-slate-700/50 bg-slate-900/30 flex-shrink-0">
     <button 
@@ -48,14 +54,15 @@
   </div>
   
   <!-- Tab Content -->
-  <div class="flex-1 overflow-hidden">
+  <div class="flex-1 overflow-hidden" style="min-height: 0;">
     {#if activeTab === 'stats'}
       <StatsTab {topSpotters} {spots} />
-    {:else if activeTab === 'watchlist'}
-      <WatchlistTab 
-        {watchlist} 
-        {spots} 
-        on:toast={(e) => dispatch('toast', e.detail)}
+    {:else if activeTab === 'watchlist'}  
+      <WatchlistTab
+        {watchlist}
+        {spots}
+        bind:showOnlyActive
+        on:toast={handleToast}
       />
     {:else if activeTab === 'log'}
       <LogTab 
