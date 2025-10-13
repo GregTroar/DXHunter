@@ -76,7 +76,15 @@
   }
   
   function getMatchingSpotsForCallsign(callsign) {
-    return watchlistSpots.filter(s => s.dx === callsign || s.dx.startsWith(callsign));
+    const spots = watchlistSpots.filter(s => s.dx === callsign || s.dx.startsWith(callsign));
+    
+    // ✅ Trier les spots par heure décroissante (plus récent en premier)
+    return spots.sort((a, b) => {
+      // Comparer les heures UTC (format "HH:MM")
+      const timeA = a.utcTime || "00:00";
+      const timeB = b.utcTime || "00:00";
+      return timeB.localeCompare(timeA);
+    });
   }
   
   async function addToWatchlist() {
