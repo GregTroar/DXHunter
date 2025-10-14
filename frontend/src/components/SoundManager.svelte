@@ -26,7 +26,7 @@
   });
   
   function handlePlaySound(event) {
-    if (!enabled || isMuted) return;
+    if (!enabled) return; // ✅ Utiliser 'enabled' (qui vient de App.svelte) au lieu de 'isMuted'
     
     const { type } = event.detail;
     
@@ -89,10 +89,20 @@
     oscillator.start(startTime);
     oscillator.stop(startTime + duration);
   }
+
+  function playMilestoneSound() {
+    if (!audioContext) return;
+    
+    const now = audioContext.currentTime;
+    // Mélodie festive : E5 -> G5 -> A5 -> C6
+    playBeep(now, 659.25, 0.15);
+    playBeep(now + 0.15, 783.99, 0.15);
+    playBeep(now + 0.3, 880.00, 0.15);
+    playBeep(now + 0.45, 1046.50, 0.2);
+  }
   
   function toggleMute() {
-    isMuted = !isMuted;
-    localStorage.setItem('soundMuted', isMuted.toString());
+    enabled = !enabled; // ✅ Modifier 'enabled' au lieu de 'isMuted'
   }
   
   function updateVolume(newVolume) {
@@ -105,9 +115,9 @@
   <div class="fixed bottom-4 right-4 flex items-center gap-2 bg-slate-800/90 backdrop-blur rounded-lg border border-slate-700/50 p-2 shadow-lg z-50">
     <button 
       on:click={toggleMute}
-      class="p-2 rounded transition-colors {isMuted ? 'bg-red-600/20 text-red-400 hover:bg-red-600/30' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}"
-      title={isMuted ? 'Unmute sounds' : 'Mute sounds'}>
-      {#if isMuted}
+      class="p-2 rounded transition-colors {!enabled ? 'bg-red-600/20 text-red-400 hover:bg-red-600/30' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}"
+      title={!enabled ? 'Unmute sounds' : 'Mute sounds'}>
+      {#if !enabled}
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" clip-rule="evenodd"></path>
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"></path>

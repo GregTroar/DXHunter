@@ -75,17 +75,24 @@
     ).length;
   }
   
-  function getMatchingSpotsForCallsign(callsign) {
-    const spots = watchlistSpots.filter(s => s.dx === callsign || s.dx.startsWith(callsign));
+function getMatchingSpotsForCallsign(callsign) {
+  const spots = watchlistSpots.filter(s => s.dx === callsign || s.dx.startsWith(callsign));
+  
+  // ✅ Trier par bande d'abord, puis par heure
+  const bandOrder = { '160M': 0, '80M': 1, '60M': 2, '40M': 3, '30M': 4, '20M': 5, '17M': 6, '15M': 7, '12M': 8, '10M': 9, '6M': 10 };
+  
+  return spots.sort((a, b) => {
+    // Trier par bande en premier
+    const bandA = bandOrder[a.band] ?? 99;
+    const bandB = bandOrder[b.band] ?? 99;
+    if (bandA !== bandB) return bandA - bandB;
     
-    // ✅ Trier les spots par heure décroissante (plus récent en premier)
-    return spots.sort((a, b) => {
-      // Comparer les heures UTC (format "HH:MM")
-      const timeA = a.utcTime || "00:00";
-      const timeB = b.utcTime || "00:00";
-      return timeB.localeCompare(timeA);
-    });
-  }
+    // Si même bande, trier par heure (plus récent en premier)
+    const timeA = a.utcTime || "00:00";
+    const timeB = b.utcTime || "00:00";
+    return timeB.localeCompare(timeA);
+  });
+}
   
   async function addToWatchlist() {
     const callsign = newCallsign.trim().toUpperCase();

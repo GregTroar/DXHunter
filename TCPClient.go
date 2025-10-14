@@ -15,7 +15,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-var spotRe *regexp.Regexp = regexp.MustCompile(`DX\sde\s([\w\d]+).*:\s+(\d+.\d)\s+([\w\d\/]+)\s+(CW|SSB|FT8|FT4|RTTY|USB|LSB)?\s+(.*)\s\s\s+([\d]+\w{1})`)
+var spotRe *regexp.Regexp = regexp.MustCompile(`DX\sde\s([\w\d]+).*:\s+(\d+.\d)\s+([\w\d\/]+)\s+(CW|cw|SSB|ssb|FT8|ft8|FT4|ft4|RTTY|rtty|USB|usb|LSB|lsb)?\s+(.*)\s\s\s+([\d]+\w{1})`)
 var defaultLoginRe *regexp.Regexp = regexp.MustCompile("[\\w\\d-_]+ login:")
 var defaultPasswordRe *regexp.Regexp = regexp.MustCompile("Password:")
 
@@ -51,7 +51,7 @@ type TCPClient struct {
 	maxReconnectDelay    time.Duration
 }
 
-func NewTCPClient(TCPServer *TCPServer, Countries Countries, contactRepo *Log4OMContactsRepository) *TCPClient {
+func NewTCPClient(TCPServer *TCPServer, Countries Countries, contactRepo *Log4OMContactsRepository, spotChanToHTTPServer chan TelnetSpot) *TCPClient {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	return &TCPClient{
@@ -61,9 +61,9 @@ func NewTCPClient(TCPServer *TCPServer, Countries Countries, contactRepo *Log4OM
 		Password:             Cfg.Cluster.Password,
 		MsgChan:              TCPServer.MsgChan,
 		CmdChan:              TCPServer.CmdChan,
+		SpotChanToHTTPServer: spotChanToHTTPServer,
 		SpotChanToFlex:       make(chan TelnetSpot, 100),
 		TCPServer:            *TCPServer,
-		SpotChanToHTTPServer: make(chan TelnetSpot, 100),
 		Countries:            Countries,
 		ContactRepo:          contactRepo,
 		ctx:                  ctx,

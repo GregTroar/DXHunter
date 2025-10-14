@@ -79,15 +79,17 @@
       filteredSpots = applyFilters(spots, spotFilters, watchlist);
     }
   }
+
+  $: if (typeof localStorage !== 'undefined') {
+  localStorage.setItem('soundEnabled', soundEnabled.toString());
+  }
   
   // Détecter les nouveaux spots et jouer les sons appropriés
   $: if (spots.length > 0 && soundEnabled) {
     checkForNewSpots(spots, previousSpots, watchlist);
-    previousSpots = [...spots];
+    // ✅ Ne garder que les 100 derniers spots pour la comparaison
+    previousSpots = spots.slice(0, 100);
   }
-
-  // ✅ SUPPRIMÉ - La watchlist est gérée côté serveur via WebSocket
-  // Les fonctions addToWatchlist et removeFromWatchlist ne sont plus nécessaires
   
   function checkForNewSpots(currentSpots, prevSpots, wl) {
     // Ne pas jouer de sons au chargement initial
@@ -318,6 +320,14 @@
       case 'dxccProgress':
         dxccProgress = message.data || { worked: 0, total: 340, percentage: 0 };
         break;
+      case 'milestone': // ✅ AJOUTER
+        const milestoneData = message.data;
+        const toastType = milestoneData.type === 'qso' ? 'milestone' : 'band';
+        showToast(milestoneData.message, toastType);
+        if (soundEnabled) {
+          playSound('milestone');
+        }
+        break;
     }
   }
   
@@ -425,11 +435,22 @@
   }
   
   onMount(() => {
+    const savedSoundEnabled = localStorage.getItem('soundEnabled');
+    if (savedSoundEnabled !== null) {
+      soundEnabled = savedSoundEnabled === 'true';
+    }
     connectWebSocket();
     fetchSolarData();
-    
+
     const solarInterval = setInterval(fetchSolarData, 15 * 60 * 1000);
-    
+
+    const cleanupInterval = setInterval(() => {
+      // Nettoyer previousSpots
+      if (previousSpots.length > 100) {
+        previousSpots = previousSpots.slice(0, 100);
+      }
+    }, 60000);
+
     const handleSendSpot = (e) => {
       sendCallsign(e.detail.callsign, e.detail.frequency, e.detail.mode);
     };
@@ -444,7 +465,7 @@
   });
 </script>
 
-<div class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white min-h-screen p-4">
+<div class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white min-h-screen p-2">
   <!-- Gestionnaire de sons -->
   <SoundManager bind:enabled={soundEnabled} />
   
@@ -460,7 +481,9 @@
     {stats} 
     {solarData} 
     {wsStatus} 
-    on:shutdown={shutdownApp} 
+    {soundEnabled}
+    on:shutdown={shutdownApp}
+    on:toggleSound={() => soundEnabled = !soundEnabled}
   />
   
   <StatsCards 
@@ -475,9 +498,9 @@
     on:toggleFilter={(e) => toggleFilter(e.detail)} 
   />
   
-  <div class="grid grid-cols-4 gap-3 overflow-hidden" style="height: calc(100vh - 360px); min-height: 500px;">
-    <div class="col-span-3 overflow-hidden">
-      <SpotsTable 
+  <div class="grid grid-cols-[2.8fr_1.2fr] gap-3 overflow-hidden" style="height: calc(100vh - 280px); min-height: 500px;">
+    <div class="overflow-hidden">
+      <SpotsTable
         spots={filteredSpots} 
         {watchlist}
         myCallsign={stats.myCallsign}

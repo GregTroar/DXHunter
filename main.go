@@ -68,17 +68,23 @@ func main() {
 	defer cRepo.db.Close()
 	contacts := cRepo.CountEntries()
 	log.Infof("Log4OM Database Contains %v Contacts", contacts)
-	defer cRepo.db.Close()
+
+	// ✅ Créer le canal pour le traitement centralisé des spots
+	SpotChanToHTTPServer := make(chan TelnetSpot, 100)
 
 	// Initialize servers and clients
 	TCPServer := NewTCPServer(cfg.TelnetServer.Host, cfg.TelnetServer.Port)
-	TCPClient := NewTCPClient(TCPServer, Countries, cRepo)
-	FlexClient := NewFlexClient(*fRepo, TCPServer, TCPClient.SpotChanToFlex, nil)
+	TCPClient := NewTCPClient(TCPServer, Countries, cRepo, SpotChanToHTTPServer)
+	FlexClient := NewFlexClient(*fRepo, TCPServer, nil, nil)
 
 	// Initialize HTTP Server for Dashboard
 	HTTPServer := NewHTTPServer(fRepo, cRepo, TCPServer, TCPClient, FlexClient, "8080")
 
 	FlexClient.HTTPServer = HTTPServer
+
+	spotProcessor := NewSpotProcessor(fRepo, FlexClient, HTTPServer, SpotChanToHTTPServer)
+
+	go spotProcessor.Start()
 
 	// Start all services
 	go FlexClient.StartFlexClient()

@@ -28,8 +28,6 @@ type TelnetSpot struct {
 	CallsignWorked bool
 }
 
-// var spotNumber = 1
-
 func ProcessTelnetSpot(re *regexp.Regexp, spotRaw string, SpotChanToFlex chan TelnetSpot, SpotChanToHTTPServer chan TelnetSpot, Countries Countries, contactRepo *Log4OMContactsRepository) {
 
 	match := re.FindStringSubmatch(spotRaw)
@@ -106,9 +104,16 @@ func ProcessTelnetSpot(re *regexp.Regexp, spotRaw string, SpotChanToFlex chan Te
 			spot.CallsignWorked = true
 		}
 
-		// Send spots to FlexRadio
-		SpotChanToFlex <- spot
+		// Envoyer TOUJOURS le spot vers le processeur principal (base de données + HTTP)
+		// Ce canal est maintenant géré par une goroutine dans main.go
+		select {
+		case SpotChanToHTTPServer <- spot:
+			// Spot envoyé avec succès
+		default:
+			Log.Warn("SpotChanToHTTPServer is full, spot may be lost")
+		}
 
+		// Logging des spots
 		if spot.NewDXCC {
 			Log.Debugf("(** New DXCC **) DX: %s - Spotter: %s - Freq: %s - Band: %s - Mode: %s - Comment: %s - Time: %s - DXCC: %s",
 				spot.DX, spot.Spotter, spot.Frequency, spot.Band, spot.Mode, spot.Comment, spot.Time, spot.DXCC)
@@ -143,12 +148,7 @@ func ProcessTelnetSpot(re *regexp.Regexp, spotRaw string, SpotChanToFlex chan Te
 			Log.Debugf("DX: %s - Spotter: %s - Freq: %s - Band: %s - Mode: %s - Comment: %s - Time: %s - DXCC: %s",
 				spot.DX, spot.Spotter, spot.Frequency, spot.Band, spot.Mode, spot.Comment, spot.Time, spot.DXCC)
 		}
-	} else {
-		// Log.Infof("Could not decode: %s", strings.Trim(spotRaw, "\n"))
 	}
-
-	// Log.Infof("Spots Processed: %v", spotNumber)
-	// spotNumber++
 }
 
 func (spot *TelnetSpot) GetBand() {
@@ -379,6 +379,15 @@ func (spot *TelnetSpot) GuessMode() {
 			}
 			if freqInt >= 50400 && freqInt < +52000 {
 				spot.Mode = "FM"
+			}
+		}
+	} else {
+		spot.Mode = strings.ToUpper(spot.Mode)
+		if spot.Mode == "SSB" {
+			if spot.Band == "10M" || spot.Band == "12M" || spot.Band == "6M" || spot.Band == "15M" || spot.Band == "17M" || spot.Band == "20M" {
+				spot.Mode = "USB"
+			} else {
+				spot.Mode = "LSB"
 			}
 		}
 	}

@@ -22,21 +22,23 @@ import (
 var frontendFiles embed.FS
 
 type HTTPServer struct {
-	Router      *mux.Router
-	FlexRepo    *FlexDXClusterRepository
-	ContactRepo *Log4OMContactsRepository
-	TCPServer   *TCPServer
-	TCPClient   *TCPClient
-	FlexClient  *FlexClient
-	Port        string
-	Log         *log.Logger
-	statsCache  Stats
-	statsMutex  sync.RWMutex
-	lastUpdate  time.Time
-	wsClients   map[*websocket.Conn]bool
-	wsMutex     sync.RWMutex
-	broadcast   chan WSMessage
-	Watchlist   *Watchlist
+	Router          *mux.Router
+	FlexRepo        *FlexDXClusterRepository
+	ContactRepo     *Log4OMContactsRepository
+	TCPServer       *TCPServer
+	TCPClient       *TCPClient
+	FlexClient      *FlexClient
+	Port            string
+	Log             *log.Logger
+	lastQSOCount    int
+	lastBandOpening map[string]time.Time
+	statsCache      Stats
+	statsMutex      sync.RWMutex
+	lastUpdate      time.Time
+	wsClients       map[*websocket.Conn]bool
+	wsMutex         sync.RWMutex
+	broadcast       chan WSMessage
+	Watchlist       *Watchlist
 }
 
 type Stats struct {
@@ -99,17 +101,19 @@ func NewHTTPServer(flexRepo *FlexDXClusterRepository, contactRepo *Log4OMContact
 	tcpServer *TCPServer, tcpClient *TCPClient, flexClient *FlexClient, port string) *HTTPServer {
 
 	server := &HTTPServer{
-		Router:      mux.NewRouter(),
-		FlexRepo:    flexRepo,
-		ContactRepo: contactRepo,
-		TCPServer:   tcpServer,
-		TCPClient:   tcpClient,
-		FlexClient:  flexClient,
-		Port:        port,
-		Log:         Log,
-		wsClients:   make(map[*websocket.Conn]bool),
-		broadcast:   make(chan WSMessage, 256),
-		Watchlist:   NewWatchlist("watchlist.json"),
+		Router:          mux.NewRouter(),
+		FlexRepo:        flexRepo,
+		ContactRepo:     contactRepo,
+		TCPServer:       tcpServer,
+		TCPClient:       tcpClient,
+		FlexClient:      flexClient,
+		Port:            port,
+		Log:             Log,
+		wsClients:       make(map[*websocket.Conn]bool),
+		broadcast:       make(chan WSMessage, 256),
+		Watchlist:       NewWatchlist("watchlist.json"),
+		lastQSOCount:    0,
+		lastBandOpening: make(map[string]time.Time),
 	}
 
 	server.setupRoutes()
@@ -239,7 +243,7 @@ func (s *HTTPServer) sendInitialData(conn *websocket.Conn) {
 	conn.WriteJSON(WSMessage{Type: "watchlist", Data: watchlist})
 
 	// Send initial log data
-	qsos := s.ContactRepo.GetRecentQSOs("8")
+	qsos := s.ContactRepo.GetRecentQSOs("13")
 	conn.WriteJSON(WSMessage{Type: "log", Data: qsos})
 
 	logStats := s.ContactRepo.GetQSOStats()
@@ -276,8 +280,11 @@ func (s *HTTPServer) handleBroadcasts() {
 func (s *HTTPServer) broadcastUpdates() {
 	statsTicker := time.NewTicker(1 * time.Second)
 	logTicker := time.NewTicker(10 * time.Second)
+	cleanupTicker := time.NewTicker(5 * time.Minute) // ✅ AJOUTER
+
 	defer statsTicker.Stop()
 	defer logTicker.Stop()
+	defer cleanupTicker.Stop() // ✅ AJOUTER
 
 	for {
 		select {
@@ -295,7 +302,8 @@ func (s *HTTPServer) broadcastUpdates() {
 			s.broadcast <- WSMessage{Type: "stats", Data: stats}
 
 			// Broadcast spots
-			spots := s.FlexRepo.GetAllSpots("0")
+			spots := s.FlexRepo.GetAllSpots("300")
+			s.checkBandOpening(spots)
 			s.broadcast <- WSMessage{Type: "spots", Data: spots}
 
 			// Broadcast spotters
@@ -312,10 +320,11 @@ func (s *HTTPServer) broadcastUpdates() {
 			}
 
 			// Broadcast log data every 10 seconds
-			qsos := s.ContactRepo.GetRecentQSOs("8")
+			qsos := s.ContactRepo.GetRecentQSOs("13")
 			s.broadcast <- WSMessage{Type: "log", Data: qsos}
 
 			stats := s.ContactRepo.GetQSOStats()
+			s.checkQSOMilestones(stats.Today)
 			s.broadcast <- WSMessage{Type: "logStats", Data: stats}
 
 			dxccCount := s.ContactRepo.GetDXCCCount()
@@ -324,7 +333,68 @@ func (s *HTTPServer) broadcastUpdates() {
 				"total":      340,
 				"percentage": float64(dxccCount) / 340.0 * 100.0,
 			}
+
 			s.broadcast <- WSMessage{Type: "dxccProgress", Data: dxccData}
+		}
+	}
+}
+
+func (s *HTTPServer) checkQSOMilestones(todayCount int) {
+	s.statsMutex.Lock()
+	defer s.statsMutex.Unlock()
+
+	if todayCount == s.lastQSOCount {
+		return
+	}
+
+	milestones := []int{5, 10, 25, 50, 100, 200, 500}
+
+	for _, milestone := range milestones {
+		if todayCount >= milestone && s.lastQSOCount < milestone {
+			s.broadcast <- WSMessage{
+				Type: "milestone",
+				Data: map[string]interface{}{
+					"type":    "qso",
+					"count":   milestone,
+					"message": fmt.Sprintf("🎉 %d QSOs today!", milestone),
+				},
+			}
+		}
+	}
+
+	s.lastQSOCount = todayCount
+}
+
+func (s *HTTPServer) checkBandOpening(spots []FlexSpot) {
+	s.statsMutex.Lock()
+	defer s.statsMutex.Unlock()
+
+	bandCounts := make(map[string]int)
+	for _, spot := range spots {
+		bandCounts[spot.Band]++
+	}
+
+	// ✅ Seulement surveiller 6M, 10M et 12M
+	monitoredBands := []string{"6M", "10M", "12M"}
+
+	now := time.Now()
+	for _, band := range monitoredBands {
+		count := bandCounts[band]
+		if count >= 20 { // Si 20+ spots sur une bande
+			lastSeen, exists := s.lastBandOpening[band]
+			// Notifier si première fois ou si pas vu depuis 2 heures
+			if !exists || now.Sub(lastSeen) > 2*time.Hour {
+				s.lastBandOpening[band] = now
+				s.broadcast <- WSMessage{
+					Type: "milestone",
+					Data: map[string]interface{}{
+						"type":    "band",
+						"band":    band,
+						"count":   count,
+						"message": fmt.Sprintf("📡 %s opening detected! (%d spots)", band, count),
+					},
+				}
+			}
 		}
 	}
 }
