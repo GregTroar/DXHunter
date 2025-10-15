@@ -4,6 +4,8 @@
   export let spotFilters;
   export let spots;
   export let watchlist;
+  export let isFiltering = false;
+
   
   const dispatch = createEventDispatcher();
   
@@ -76,9 +78,20 @@
   }
 </script>
 
-<div class="bg-slate-800/50 backdrop-blur rounded-lg p-2 border border-slate-700/50 mb-3">
-  <div class="flex items-center gap-1 flex-wrap">
-    <span class="text-xs font-bold text-slate-400 mr-2">TYPE:</span>
+    <div class="bg-slate-800/50 backdrop-blur rounded-lg p-2 border border-slate-700/50 mb-3">
+      <div class="flex items-center gap-1 flex-wrap">
+        <!-- ✅ AJOUTER le spinner ici -->
+        {#if isFiltering}
+          <div class="inline-flex items-center gap-2 text-xs text-blue-400 mr-3">
+            <svg class="animate-spin h-3 w-3" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Filtering...
+          </div>
+        {/if}
+        
+        <span class="text-xs font-bold text-slate-400 mr-2">TYPE:</span>
     
     <button 
       on:click={() => dispatch('toggleFilter', 'showAll')}

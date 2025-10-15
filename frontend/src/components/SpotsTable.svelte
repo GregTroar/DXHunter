@@ -1,11 +1,15 @@
 <script>
   import { createEventDispatcher } from 'svelte';
+  import VirtualList from 'svelte-virtual-list';
   
   export let spots;
   export let watchlist;
   export let myCallsign;
   
   const dispatch = createEventDispatcher();
+  
+  let container;
+  const itemHeight = 45;
   
   function handleSpotClick(spot) {
     dispatch('clickSpot', {
@@ -52,51 +56,54 @@
     <h2 class="text-lg font-bold">Recent Spots (<span>{spots.length}</span>)</h2>
   </div>
   
-  <div class="overflow-y-auto flex-1">
-    <table class="w-full text-sm">
-      <thead class="bg-slate-900/50 sticky top-0">
-        <tr class="text-left text-xs text-slate-400">
-          <th class="p-2 font-semibold">DX</th>
-          <th class="p-2 font-semibold">Freq</th>
-          <th class="p-2 font-semibold">Band</th>
-          <th class="p-2 font-semibold">Mode</th>
-          <th class="p-2 font-semibold">Spotter</th>
-          <th class="p-2 font-semibold">Time</th>
-          <th class="p-2 font-semibold">Country</th>
-          <th class="p-2 font-semibold">Status</th>
-        </tr>
-      </thead>
-      <tbody>
-        {#each spots as spot (spot.ID)}
-          <tr class="border-b border-slate-700/30 hover:bg-slate-700/30 transition-colors text-sm">
-            <td class="p-2">
-              <button
-                class="font-bold text-blue-400 dx-callsign"
-                on:click={() => handleSpotClick(spot)}
-                title="Click to send to Log4OM and tune radio">
-                {spot.DX}
-              </button>
-            </td>
-            <td class="p-2 font-mono text-xs">{spot.FrequencyMhz}</td>
-            <td class="p-2">
-              <span class="px-1.5 py-0.5 bg-slate-700/50 rounded text-xs">{spot.Band}</span>
-            </td>
-            <td class="p-2">
-              <span class="px-1.5 py-0.5 bg-purple-500/20 text-purple-400 rounded text-xs">{spot.Mode}</span>
-            </td>
-            <td class="p-2 text-slate-300 text-xs">{spot.SpotterCallsign}</td>
-            <td class="p-2 text-slate-400 text-xs">{spot.UTCTime}</td>
-            <td class="p-2 text-slate-400 text-xs">{spot.CountryName || 'N/A'}</td>
-            <td class="p-2">
-              {#if getStatusLabel(spot)}
-                <span class="px-1.5 py-0.5 rounded text-xs font-semibold border {getPriorityColor(spot)}">
-                  {getStatusLabel(spot)}
-                </span>
-              {/if}
-            </td>
-          </tr>
-        {/each}
-      </tbody>
-    </table>
+  <!-- Header fixe -->
+  <div class="bg-slate-900/50 flex-shrink-0">
+    <div class="flex text-left text-xs text-slate-400 font-semibold">
+      <div class="p-2" style="width: 12%;">DX</div>
+      <div class="p-2" style="width: 12%;">Freq</div>
+      <div class="p-2" style="width: 8%;">Band</div>
+      <div class="p-2" style="width: 8%;">Mode</div>
+      <div class="p-2" style="width: 12%;">Spotter</div>
+      <div class="p-2" style="width: 8%;">Time</div>
+      <div class="p-2" style="width: 25%;">Country</div>
+      <div class="p-2" style="width: 15%;">Status</div>
+    </div>
+  </div>
+  
+  <!-- Liste virtualisée -->
+  <div class="flex-1 overflow-hidden" bind:this={container}>
+    <VirtualList items={spots} {itemHeight} let:item>
+      <div class="flex border-b border-slate-700/30 hover:bg-slate-700/30 transition-colors text-sm" style="height: {itemHeight}px;">
+        <div class="p-2 flex items-center" style="width: 12%;">
+          <button
+            class="font-bold text-blue-400 hover:text-blue-300 transition-colors truncate w-full text-left"
+            on:click={() => handleSpotClick(item)}
+            title="Click to send to Log4OM and tune radio">
+            {item.DX}
+          </button>
+        </div>
+        <div class="p-2 flex items-center font-mono text-xs" style="width: 12%;">{item.FrequencyMhz}</div>
+        <div class="p-2 flex items-center" style="width: 8%;">
+          <span class="px-1.5 py-0.5 bg-slate-700/50 rounded text-xs">{item.Band}</span>
+        </div>
+        <div class="p-2 flex items-center" style="width: 8%;">
+          <span class="px-1.5 py-0.5 bg-purple-500/20 text-purple-400 rounded text-xs">{item.Mode}</span>
+        </div>
+        <div class="p-2 flex items-center text-slate-300 text-xs truncate" style="width: 12%;" title={item.SpotterCallsign}>
+          {item.SpotterCallsign}
+        </div>
+        <div class="p-2 flex items-center text-slate-400 text-xs" style="width: 8%;">{item.UTCTime}</div>
+        <div class="p-2 flex items-center text-slate-400 text-xs truncate" style="width: 25%;" title={item.CountryName || 'N/A'}>
+          {item.CountryName || 'N/A'}
+        </div>
+        <div class="p-2 flex items-center" style="width: 15%;">
+          {#if getStatusLabel(item)}
+            <span class="px-1.5 py-0.5 rounded text-xs font-semibold border {getPriorityColor(item)} truncate">
+              {getStatusLabel(item)}
+            </span>
+          {/if}
+        </div>
+      </div>
+    </VirtualList>
   </div>
 </div>

@@ -7,6 +7,9 @@
   import Sidebar from './components/Sidebar.svelte';
   import Toast from './components/Toast.svelte';
   import ErrorBanner from './components/ErrorBanner.svelte';
+  import { spotWorker } from './lib/spotWorker.js';
+  import { spotCache } from './lib/spotCache.js';
+
   
   // State
   let spots = [];
@@ -68,6 +71,9 @@
   let maxReconnectAttempts = 10;
   let isShuttingDown = false;
   let filterTimeout;
+  let isFiltering = false;
+  let cacheLoaded = false;
+  let notifiedSpots = new Set();
 
   $: {
     if (spotFilters.showAll) {
@@ -75,8 +81,10 @@
     } else {
       if (filterTimeout) clearTimeout(filterTimeout);
       
-      filterTimeout = setTimeout(() => {
-        filteredSpots = applyFilters(spots, spotFilters, watchlist);
+      filterTimeout = setTimeout(async () => {
+        isFiltering = true;
+        filteredSpots = await spotWorker.filterSpots(spots, spotFilters, watchlist);
+        isFiltering = false;
       }, 150);
     }
   }
@@ -248,29 +256,57 @@
             errorMessage = 'Unable to connect to server. Please refresh the page.';
           }
         };
-      } catch (error) {  // ✅ AJOUTER cette ligne
+      } catch (error) {
         console.error('Error creating WebSocket:', error);
         wsStatus = 'disconnected';
-      }  // ✅ AJOUTER cette ligne
+      } 
     }
   
   function handleWebSocketMessage(message) {
     switch (message.type) {
       case 'stats':
         stats = message.data;
+        spotCache.saveMetadata('stats', stats).catch(err => console.error('Cache save error:', err));
         break;
       case 'spots':
-        spots = message.data || [];
+        const newSpots = message.data || [];
+        
+        if (stats.myCallsign && newSpots.length > 0) {
+          newSpots.forEach(spot => {
+            // Vérifier si c'est votre callsign ET qu'on ne l'a pas déjà notifié
+            if (spot.DX === stats.myCallsign && !notifiedSpots.has(spot.ID)) {
+              notifiedSpots.add(spot.ID);
+              showToast(
+                `📢 You were spotted by ${spot.SpotterCallsign} on ${spot.FrequencyMhz} (${spot.Band} ${spot.Mode})`, 
+                'mycall'
+              );
+            }
+          });
+          
+          if (notifiedSpots.size > 100) {
+            const arr = Array.from(notifiedSpots);
+            notifiedSpots = new Set(arr.slice(-100));
+          }
+        }
+        
+        spots = newSpots;
+        
+        if (spots.length > 0) {
+          spotCache.saveSpots(spots).catch(err => console.error('Cache save error:', err));
+        }
         break;
       case 'spotters':
         topSpotters = message.data || [];
         break;
       case 'watchlist':
-        // ✅ La watchlist est mise à jour par WebSocket
         watchlist = message.data || [];
+        spotCache.saveMetadata('watchlist', watchlist).catch(err => console.error('Cache save error:', err));
         break;
       case 'log':
         recentQSOs = message.data || [];
+        if (recentQSOs.length > 0) {
+          spotCache.saveQSOs(recentQSOs).catch(err => console.error('Cache save error:', err));
+        }
         break;
       case 'logStats':
         logStats = message.data || {};
@@ -291,7 +327,7 @@
     toastType = type;
     setTimeout(() => {
       toastMessage = '';
-    }, 3000);
+    }, 5000);
   }
   
   async function fetchSolarData() {
@@ -401,8 +437,44 @@ async function shutdownApp() {
   }
 }
   
-  onMount(() => {
-    const savedSoundEnabled = localStorage.getItem('soundEnabled');
+  onMount(async () => {
+    // ✅ Initialiser IndexedDB
+    try {
+      await spotCache.init();
+      
+      // ✅ Charger les données du cache immédiatement
+      const cachedSpots = await spotCache.getSpots();
+      if (cachedSpots.length > 0) {
+        spots = cachedSpots;
+        cacheLoaded = true;
+        console.log('📦 Loaded data from cache');
+      }
+      
+      // Charger watchlist du cache
+      const cachedWatchlist = await spotCache.getMetadata('watchlist');
+      if (cachedWatchlist) {
+        watchlist = cachedWatchlist;
+      }
+      
+      // Charger QSOs du cache
+      const cachedQSOs = await spotCache.getQSOs();
+      if (cachedQSOs.length > 0) {
+        recentQSOs = cachedQSOs;
+      }
+      
+      // Charger stats du cache
+      const cachedStats = await spotCache.getMetadata('stats');
+      if (cachedStats) {
+        stats = cachedStats;
+      }
+    } catch (error) {
+      console.error('Failed to initialize cache:', error);
+    }
+    
+    // Initialiser le worker
+    spotWorker.init();
+    
+    // Se connecter au WebSocket (qui va mettre à jour avec les données fraîches)
     connectWebSocket();
     fetchSolarData();
 
@@ -414,6 +486,8 @@ async function shutdownApp() {
     window.addEventListener('sendSpot', handleSendSpot);
     
     return () => {
+      spotWorker.terminate();
+      spotCache.close();
       if (ws) ws.close();
       if (reconnectTimer) clearTimeout(reconnectTimer);
       clearInterval(solarInterval);
@@ -436,6 +510,7 @@ async function shutdownApp() {
     {stats} 
     {solarData} 
     {wsStatus} 
+    {cacheLoaded}
     on:shutdown={shutdownApp}
   />
   
@@ -448,6 +523,7 @@ async function shutdownApp() {
     {spotFilters} 
     {spots}
     {watchlist}
+    {isFiltering}
     on:toggleFilter={(e) => toggleFilter(e.detail)} 
   />
   

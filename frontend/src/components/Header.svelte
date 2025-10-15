@@ -4,6 +4,8 @@
   export let stats;
   export let solarData;
   export let wsStatus;
+  export let cacheLoaded = false;
+
   
   const dispatch = createEventDispatcher();
   
@@ -99,6 +101,15 @@
       <span class="w-2 h-2 {stats.flexStatus === 'connected' ? 'bg-green-500 animate-pulse' : 'bg-red-500'} rounded-full"></span>
       Flex
     </span>
+
+    {#if cacheLoaded}
+      <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-purple-500/20 text-purple-400">
+        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path>
+        </svg>
+        Cached
+      </span>
+    {/if}
 
     <button 
       on:click={() => dispatch('shutdown')}
