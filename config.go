@@ -56,7 +56,7 @@ type Config struct {
 		Skimmer     bool   `yaml:"skimmer"`
 		FT8         bool   `yaml:"ft8"`
 		FT4         bool   `yaml:"ft4"`
-		Command     string `yanl:"command"`
+		Command     string `yaml:"command"`
 		LoginPrompt string `yaml:"login_prompt"`
 	} `yaml:"cluster"`
 
@@ -93,7 +93,7 @@ func NewConfig(configPath string) *Config {
 	d := yaml.NewDecoder(file)
 
 	if err := d.Decode(&Cfg); err != nil {
-		log.Println("could not decod config file")
+		log.Println("could not decode config file")
 	}
 
 	return Cfg

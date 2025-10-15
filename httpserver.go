@@ -302,7 +302,7 @@ func (s *HTTPServer) broadcastUpdates() {
 			s.broadcast <- WSMessage{Type: "stats", Data: stats}
 
 			// Broadcast spots
-			spots := s.FlexRepo.GetAllSpots("300")
+			spots := s.FlexRepo.GetAllSpots("0")
 			s.checkBandOpening(spots)
 			s.broadcast <- WSMessage{Type: "spots", Data: spots}
 

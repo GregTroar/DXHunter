@@ -7,11 +7,9 @@
   import Sidebar from './components/Sidebar.svelte';
   import Toast from './components/Toast.svelte';
   import ErrorBanner from './components/ErrorBanner.svelte';
-  import SoundManager from './components/SoundManager.svelte';
   
   // State
   let spots = [];
-  let previousSpots = []; // Pour détecter les nouveaux spots
   let filteredSpots = [];
   let stats = {
     totalSpots: 0,
@@ -68,64 +66,19 @@
   let reconnectTimer;
   let reconnectAttempts = 0;
   let maxReconnectAttempts = 10;
-  let soundEnabled = true;
-  let isShuttingDown = false; // ✅ Flag pour éviter les erreurs pendant le shutdown
-  
-  // Reactive filtered spots
+  let isShuttingDown = false;
+  let filterTimeout;
+
   $: {
     if (spotFilters.showAll) {
       filteredSpots = spots;
     } else {
-      filteredSpots = applyFilters(spots, spotFilters, watchlist);
+      if (filterTimeout) clearTimeout(filterTimeout);
+      
+      filterTimeout = setTimeout(() => {
+        filteredSpots = applyFilters(spots, spotFilters, watchlist);
+      }, 150);
     }
-  }
-
-  $: if (typeof localStorage !== 'undefined') {
-  localStorage.setItem('soundEnabled', soundEnabled.toString());
-  }
-  
-  // Détecter les nouveaux spots et jouer les sons appropriés
-  $: if (spots.length > 0 && soundEnabled) {
-    checkForNewSpots(spots, previousSpots, watchlist);
-    // ✅ Ne garder que les 100 derniers spots pour la comparaison
-    previousSpots = spots.slice(0, 100);
-  }
-  
-  function checkForNewSpots(currentSpots, prevSpots, wl) {
-    // Ne pas jouer de sons au chargement initial
-    if (prevSpots.length === 0) return;
-    
-    // Créer un Set des IDs précédents pour une recherche rapide
-    const previousIds = new Set(prevSpots.map(s => `${s.DX}-${s.Frequency}-${s.Time}`));
-    
-    // Trouver les nouveaux spots
-    const newSpots = currentSpots.filter(spot => {
-      const spotId = `${spot.DX}-${spot.Frequency}-${spot.Time}`;
-      return !previousIds.has(spotId);
-    });
-    
-    if (newSpots.length === 0) return;
-    
-    // Vérifier s'il y a un nouveau DXCC (priorité maximale)
-    const hasNewDXCC = newSpots.some(spot => spot.NewDXCC === true);
-    if (hasNewDXCC) {
-      playSound('newDXCC');
-      return; // Ne jouer qu'un seul son
-    }
-    
-    // Vérifier s'il y a un spot de la watchlist
-    const hasWatchlistSpot = newSpots.some(spot => 
-      wl.some(pattern => spot.DX === pattern || spot.DX.startsWith(pattern))
-    );
-    if (hasWatchlistSpot) {
-      playSound('watchlist');
-    }
-  }
-  
-  function playSound(type) {
-    window.dispatchEvent(new CustomEvent('playSound', { 
-      detail: { type } 
-    }));
   }
   
   function applyFilters(allSpots, filters, wl) {
@@ -242,59 +195,64 @@
     }
   }
   
-  function connectWebSocket() {
-    if (ws && (ws.readyState === WebSocket.CONNECTING || ws.readyState === WebSocket.OPEN)) {
-      return;
-    }
-    
-    wsStatus = 'connecting';
-    
-    try {
-      ws = new WebSocket('ws://localhost:8080/api/ws');
+    function connectWebSocket() {
+      if (ws && (ws.readyState === WebSocket.CONNECTING || ws.readyState === WebSocket.OPEN)) {
+        return;
+      }
       
-      ws.onopen = () => {
-        console.log('WebSocket connected');
-        wsStatus = 'connected';
-        reconnectAttempts = 0;
-        errorMessage = '';
-        showToast('Connected to server', 'success');
-      };
+      wsStatus = 'connecting';
       
-      ws.onmessage = (event) => {
-        try {
-          const message = JSON.parse(event.data);
-          handleWebSocketMessage(message);
-        } catch (error) {
-          console.error('Error parsing WebSocket message:', error);
-        }
-      };
-      
-      ws.onerror = (error) => {
-        console.error('WebSocket error:', error);
-        wsStatus = 'disconnected';
-      };
-      
-      ws.onclose = () => {
-        console.log('WebSocket closed');
-        wsStatus = 'disconnected';
+      try {
+        ws = new WebSocket('ws://localhost:8080/api/ws');
         
-        if (reconnectAttempts < maxReconnectAttempts) {
-          reconnectAttempts++;
-          const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000);
-          errorMessage = `Connection lost. Reconnecting in ${delay/1000}s... (attempt ${reconnectAttempts}/${maxReconnectAttempts})`;
+        ws.onopen = () => {
+          console.log('WebSocket connected');
+          wsStatus = 'connected';
+          reconnectAttempts = 0;
+          errorMessage = '';
+          showToast('Connected to server', 'success');
+        };
+        
+        ws.onmessage = (event) => {
+          try {
+            const message = JSON.parse(event.data);
+            handleWebSocketMessage(message);
+          } catch (error) {
+            console.error('Error parsing WebSocket message:', error);
+          }
+        };
+        
+        ws.onerror = (error) => {
+          console.error('WebSocket error:', error);
+          wsStatus = 'disconnected';
+        };
+        
+        ws.onclose = () => {
+          console.log('WebSocket closed');
+          wsStatus = 'disconnected';
           
-          reconnectTimer = setTimeout(() => {
-            connectWebSocket();
-          }, delay);
-        } else {
-          errorMessage = 'Unable to connect to server. Please refresh the page.';
-        }
-      };
-    } catch (error) {
-      console.error('Error creating WebSocket:', error);
-      wsStatus = 'disconnected';
+          if (isShuttingDown) {
+            console.log('App is shutting down, skip reconnection');
+            return;
+          }
+          
+          if (reconnectAttempts < maxReconnectAttempts) {
+            reconnectAttempts++;
+            const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000);
+            errorMessage = `Connection lost. Reconnecting in ${delay/1000}s... (attempt ${reconnectAttempts}/${maxReconnectAttempts})`;
+            
+            reconnectTimer = setTimeout(() => {
+              connectWebSocket();
+            }, delay);
+          } else {
+            errorMessage = 'Unable to connect to server. Please refresh the page.';
+          }
+        };
+      } catch (error) {  // ✅ AJOUTER cette ligne
+        console.error('Error creating WebSocket:', error);
+        wsStatus = 'disconnected';
+      }  // ✅ AJOUTER cette ligne
     }
-  }
   
   function handleWebSocketMessage(message) {
     switch (message.type) {
@@ -324,9 +282,6 @@
         const milestoneData = message.data;
         const toastType = milestoneData.type === 'qso' ? 'milestone' : 'band';
         showToast(milestoneData.message, toastType);
-        if (soundEnabled) {
-          playSound('milestone');
-        }
         break;
     }
   }
@@ -395,61 +350,63 @@
     }
   }
   
-  async function shutdownApp() {
-    try {
-      const response = await fetch('/api/shutdown', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      });
-      
-      const data = await response.json();
-      if (data.success) {
-        showToast('FlexDXCluster shutting down...', 'info');
-        
-        if (ws) ws.close();
-        if (reconnectTimer) clearTimeout(reconnectTimer);
-        wsStatus = 'disconnected';
-        maxReconnectAttempts = 0;
-        
-        setTimeout(() => {
-          document.body.innerHTML = `
-            <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
-              <div class="text-center">
-                <svg class="w-24 h-24 mx-auto mb-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <h1 class="text-4xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                  FlexDXCluster Stopped
-                </h1>
-                <p class="text-slate-400 text-lg">The application has been shut down successfully.</p>
-                <p class="text-slate-500 text-sm mt-4">You can close this window.</p>
-              </div>
+async function shutdownApp() {
+  try {
+    // ✅ Désactiver la reconnexion et masquer l'erreur IMMÉDIATEMENT
+    isShuttingDown = true;
+    errorMessage = '';
+    maxReconnectAttempts = 0;
+    
+    // ✅ Fermer le WebSocket proprement
+    if (ws) {
+      ws.onclose = null; // Désactiver le handler de reconnexion
+      ws.close();
+    }
+    if (reconnectTimer) clearTimeout(reconnectTimer);
+    wsStatus = 'disconnected';
+    
+    showToast('FlexDXCluster shutting down...', 'info');
+    
+    // ✅ Envoyer la commande de shutdown au backend
+    const response = await fetch('/api/shutdown', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    
+    const data = await response.json();
+    if (data.success) {
+      // ✅ Afficher le message de shutdown après un court délai
+      setTimeout(() => {
+        document.body.innerHTML = `
+          <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
+            <div class="text-center">
+              <svg class="w-24 h-24 mx-auto mb-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <h1 class="text-4xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                FlexDXCluster Stopped
+              </h1>
+              <p class="text-slate-400 text-lg">The application has been shut down successfully.</p>
+              <p class="text-slate-500 text-sm mt-4">You can close this window.</p>
             </div>
-          `;
-        }, 1000);
-      }
-    } catch (error) {
-      console.error('Error shutting down:', error);
+          </div>
+        `;
+      }, 500);
+    }
+  } catch (error) {
+    console.error('Error shutting down:', error);
+    if (!isShuttingDown) {
       showToast(`Cannot shutdown: ${error.message}`, 'error');
     }
   }
+}
   
   onMount(() => {
     const savedSoundEnabled = localStorage.getItem('soundEnabled');
-    if (savedSoundEnabled !== null) {
-      soundEnabled = savedSoundEnabled === 'true';
-    }
     connectWebSocket();
     fetchSolarData();
 
     const solarInterval = setInterval(fetchSolarData, 15 * 60 * 1000);
-
-    const cleanupInterval = setInterval(() => {
-      // Nettoyer previousSpots
-      if (previousSpots.length > 100) {
-        previousSpots = previousSpots.slice(0, 100);
-      }
-    }, 60000);
 
     const handleSendSpot = (e) => {
       sendCallsign(e.detail.callsign, e.detail.frequency, e.detail.mode);
@@ -466,8 +423,6 @@
 </script>
 
 <div class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white min-h-screen p-2">
-  <!-- Gestionnaire de sons -->
-  <SoundManager bind:enabled={soundEnabled} />
   
   {#if errorMessage}
     <ErrorBanner message={errorMessage} on:close={() => errorMessage = ''} />
@@ -481,9 +436,7 @@
     {stats} 
     {solarData} 
     {wsStatus} 
-    {soundEnabled}
     on:shutdown={shutdownApp}
-    on:toggleSound={() => soundEnabled = !soundEnabled}
   />
   
   <StatsCards 
