@@ -9,7 +9,7 @@
   const dispatch = createEventDispatcher();
   
   let container;
-  const itemHeight = 45;
+  const itemHeight = 43;
   
   function handleSpotClick(spot) {
     dispatch('clickSpot', {

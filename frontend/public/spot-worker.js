@@ -1,19 +1,22 @@
 // spot-worker.js - Web Worker pour traiter les spots
 
 self.onmessage = function(e) {
-  const { type, data } = e.data;
-  
+
+  const { type, data, messageId } = e.data; 
+
   switch(type) {
     case 'FILTER_SPOTS':
       const filtered = filterSpots(data.spots, data.filters, data.watchlist);
-      self.postMessage({ type: 'FILTERED_SPOTS', data: filtered });
+      // ✅ AJOUTER messageId à la réponse
+      self.postMessage({ type: 'FILTERED_SPOTS', data: filtered, messageId });
       break;
-      
+
     case 'SORT_SPOTS':
       const sorted = sortSpots(data.spots, data.sortBy, data.sortOrder);
-      self.postMessage({ type: 'SORTED_SPOTS', data: sorted });
+      // ✅ AJOUTER messageId à la réponse
+      self.postMessage({ type: 'SORTED_SPOTS', data: sorted, messageId });
       break;
-      
+
     default:
       console.error('Unknown worker message type:', type);
   }

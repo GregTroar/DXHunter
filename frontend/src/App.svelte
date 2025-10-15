@@ -211,7 +211,9 @@
       wsStatus = 'connecting';
       
       try {
-        ws = new WebSocket('ws://localhost:8080/api/ws');
+        const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsHost = window.location.host; // Prend automatiquement l'IP:port depuis l'URL
+        ws = new WebSocket(`${wsProtocol}//${wsHost}/api/ws`);
         
         ws.onopen = () => {
           console.log('WebSocket connected');
