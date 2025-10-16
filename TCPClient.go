@@ -206,6 +206,11 @@ func (c *TCPClient) SetFilters() {
 		Log.Info("FT4: On")
 	}
 
+	if Cfg.Cluster.Beacon {
+		c.Write([]byte("set/beacon\r\n"))
+		Log.Info("Beacon: On")
+	}
+
 	if !Cfg.Cluster.FT8 {
 		c.Write([]byte("set/noft8\r\n"))
 		Log.Info("FT8: Off")
@@ -219,6 +224,11 @@ func (c *TCPClient) SetFilters() {
 	if !Cfg.Cluster.Skimmer {
 		c.Write([]byte("set/noskimmer\r\n"))
 		Log.Info("Skimmer: Off")
+	}
+
+	if !Cfg.Cluster.Beacon {
+		c.Write([]byte("set/nobeacon\r\n"))
+		Log.Info("Beacon: Off")
 	}
 }
 

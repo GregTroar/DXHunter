@@ -59,12 +59,12 @@ func CheckSignal(TCPClient *TCPClient, TCPServer *TCPServer, FlexClient *FlexCli
 	}
 }
 
-func SendUDPMessage(message string) {
+func SendUDPMessage(data []byte) {
 	conn, err := net.Dial("udp", "127.0.0.1:2241")
 	if err != nil {
 		fmt.Printf("Some error %v", err)
 		return
 	}
-	conn.Write([]byte(message))
+	conn.Write(data)
 	conn.Close()
 }

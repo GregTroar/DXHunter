@@ -44,7 +44,17 @@ class SpotWorkerManager {
       
       const messageId = ++this.messageId;
       
+      // ✅ Créer un timeout pour éviter les callbacks orphelins
+      const timeoutId = setTimeout(() => {
+        if (this.callbacks.has(messageId)) {
+          console.warn('Worker callback timeout, cleaning up');
+          this.callbacks.delete(messageId);
+          resolve(spots); // Fallback sur les spots non filtrés
+        }
+      }, 5000); // 5 secondes max
+      
       this.callbacks.set(messageId, (filteredSpots) => {
+        clearTimeout(timeoutId); // ✅ Nettoyer le timeout
         resolve(filteredSpots);
       });
       
@@ -66,7 +76,17 @@ class SpotWorkerManager {
       
       const messageId = ++this.messageId;
       
+      // ✅ Timeout pour éviter les callbacks orphelins
+      const timeoutId = setTimeout(() => {
+        if (this.callbacks.has(messageId)) {
+          console.warn('Worker callback timeout, cleaning up');
+          this.callbacks.delete(messageId);
+          resolve(spots);
+        }
+      }, 5000);
+      
       this.callbacks.set(messageId, (sortedSpots) => {
+        clearTimeout(timeoutId); // ✅ Nettoyer le timeout
         resolve(sortedSpots);
       });
       

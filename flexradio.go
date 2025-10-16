@@ -315,7 +315,7 @@ func (fc *FlexClient) ReadLine() {
 			}
 
 			// Sending the callsign to Log4OM
-			SendUDPMessage("<CALLSIGN>" + spot.DX)
+			SendUDPMessage([]byte("<CALLSIGN>" + spot.DX))
 		}
 
 		// Status when a spot is deleted

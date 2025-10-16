@@ -57,14 +57,24 @@ class SpotCache {
       const transaction = this.db.transaction(['spots'], 'readwrite');
       const store = transaction.objectStore('spots');
 
-      // Vider d'abord le store
+      // ✅ Vider d'abord le store
       await store.clear();
 
-      // Ajouter tous les spots avec un timestamp
+      // ✅ Sauvegarder par batch de 100 pour éviter surcharge mémoire
       const timestamp = Date.now();
-      spots.forEach(spot => {
-        store.put({ ...spot, timestamp });
-      });
+      const batchSize = 100;
+      
+      for (let i = 0; i < spots.length; i += batchSize) {
+        const batch = spots.slice(i, i + batchSize);
+        batch.forEach(spot => {
+          store.put({ ...spot, timestamp });
+        });
+        
+        // ✅ Petite pause pour libérer la mémoire
+        if (i + batchSize < spots.length) {
+          await new Promise(resolve => setTimeout(resolve, 0));
+        }
+      }
 
       await this.waitForTransaction(transaction);
       console.log(`✅ Saved ${spots.length} spots to cache`);

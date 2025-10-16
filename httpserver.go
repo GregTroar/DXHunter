@@ -13,6 +13,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
@@ -58,6 +59,7 @@ type Filters struct {
 	Skimmer bool `json:"skimmer"`
 	FT8     bool `json:"ft8"`
 	FT4     bool `json:"ft4"`
+	Beacon  bool `json:"beacon"`
 }
 
 type APIResponse struct {
@@ -89,6 +91,20 @@ type WatchlistSpot struct {
 	NewMode         bool   `json:"newMode"`
 	Worked          bool   `json:"worked"`
 	WorkedBandMode  bool   `json:"workedBandMode"`
+}
+
+type RemoteControlRequestFreq struct {
+	XMLName              xml.Name `xml:"RemoteControlRequest"`
+	MessageId            string   `xml:"MessageId"`
+	RemoteControlMessage string   `xml:"RemoteControlMessage"`
+	Frequency            string   `xml:"Frequency"`
+}
+
+type RemoteControlRequestMode struct {
+	XMLName              xml.Name `xml:"RemoteControlRequest"`
+	MessageId            string   `xml:"MessageId"`
+	RemoteControlMessage string   `xml:"RemoteControlMessage"`
+	Mode                 string   `xml:"Mode"`
 }
 
 var upgrader = websocket.Upgrader{
@@ -461,6 +477,7 @@ func (s *HTTPServer) calculateStats() Stats {
 			Skimmer: Cfg.Cluster.Skimmer,
 			FT8:     Cfg.Cluster.FT8,
 			FT4:     Cfg.Cluster.FT4,
+			Beacon:  Cfg.Cluster.Beacon,
 		},
 	}
 }
@@ -523,6 +540,7 @@ type FilterRequest struct {
 	Skimmer *bool `json:"skimmer,omitempty"`
 	FT8     *bool `json:"ft8,omitempty"`
 	FT4     *bool `json:"ft4,omitempty"`
+	Beacon  *bool `json:"beacon,omitempty"`
 }
 
 func (s *HTTPServer) updateFilters(w http.ResponseWriter, r *http.Request) {
@@ -561,6 +579,16 @@ func (s *HTTPServer) updateFilters(w http.ResponseWriter, r *http.Request) {
 		} else {
 			commands = append(commands, "set/noft4")
 			Cfg.Cluster.FT4 = false
+		}
+	}
+
+	if req.Beacon != nil {
+		if *req.Beacon {
+			commands = append(commands, "set/beacon")
+			Cfg.Cluster.Beacon = true
+		} else {
+			commands = append(commands, "set/nobeacon")
+			Cfg.Cluster.Beacon = false
 		}
 	}
 
@@ -760,8 +788,38 @@ func (s *HTTPServer) handleSendCallsign(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	SendUDPMessage("<CALLSIGN>" + req.Callsign)
+	SendUDPMessage([]byte("<CALLSIGN>" + req.Callsign))
 	s.Log.Infof("Sent callsign %s to Log4OM via UDP (127.0.0.1:2241)", req.Callsign)
+
+	if Cfg.General.sendFreqModeToLog4OM {
+		freqLog4OM := strings.Replace(req.Frequency, ".", "", 1)
+
+		xmlRequestFreq := RemoteControlRequestFreq{
+			MessageId:            uuid.New().String(), // Generate a new unique ID
+			RemoteControlMessage: "SetTxFrequency",    // Note: Typo matches your required format
+			Frequency:            freqLog4OM,
+		}
+
+		xmlRequestMode := RemoteControlRequestMode{
+			MessageId:            uuid.New().String(), // Generate a new unique ID
+			RemoteControlMessage: "SetMode",           // Note: Typo matches your required format
+			Mode:                 req.Mode,
+		}
+
+		xmlBytesFreq, err := xml.MarshalIndent(xmlRequestFreq, "", "  ")
+		if err != nil {
+			s.Log.Errorf("Failed to marshal XML: %v", err)
+		} else {
+			SendUDPMessage([]byte(xmlBytesFreq))
+		}
+
+		xmlBytesMode, err := xml.MarshalIndent(xmlRequestMode, "", "  ")
+		if err != nil {
+			s.Log.Errorf("Failed to marshal XML: %v", err)
+		} else {
+			SendUDPMessage([]byte(xmlBytesMode))
+		}
+	}
 
 	if req.Frequency != "" && s.FlexClient != nil && s.FlexClient.IsConnected {
 		tuneCmd := fmt.Sprintf("C%v|slice tune 0 %s", CommandNumber, req.Frequency)

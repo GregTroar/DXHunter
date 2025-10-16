@@ -51,7 +51,7 @@
     <p class="text-xs text-slate-400 mt-1">Clients</p>
   </div>
   
-  <div class="col-span-3 bg-slate-800/50 backdrop-blur rounded-lg p-3 border border-slate-700/50">
+    <div class="col-span-3 bg-slate-800/50 backdrop-blur rounded-lg p-3 border border-slate-700/50">
     <div class="flex items-center justify-center gap-6 h-full">
       <label class="flex items-center gap-2 cursor-pointer">
         <input 
@@ -84,6 +84,18 @@
         />
         <div class="relative w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
         <span class="text-sm font-medium">FT4</span>
+      </label>
+      
+      <!-- ✅ AJOUTER ce switch Beacon -->
+      <label class="flex items-center gap-2 cursor-pointer">
+        <input 
+          type="checkbox" 
+          checked={stats.filters.beacon}
+          on:change={(e) => handleFilterChange('beacon', e.target.checked)}
+          class="sr-only peer"
+        />
+        <div class="relative w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+        <span class="text-sm font-medium">Beacon</span>
       </label>
     </div>
   </div>

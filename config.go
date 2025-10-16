@@ -19,6 +19,7 @@ type Config struct {
 		TelnetServer               bool   `yaml:"telnetserver"`
 		FlexRadioSpot              bool   `yaml:"flexradiospot"`
 		SpotColorNewEntity         string `yaml:"spot_color_new_entity"`
+		sendFreqModeToLog4OM       bool   `yaml:"sendFreqModeToLog4OM"`
 		BackgroundColorNewEntity   string `yaml:"background_color_new_entity"`
 		SpotColorNewBand           string `yaml:"spot_color_new_band"`
 		BackgroundColorNewBand     string `yaml:"background_color_new_band"`
@@ -56,6 +57,7 @@ type Config struct {
 		Skimmer     bool   `yaml:"skimmer"`
 		FT8         bool   `yaml:"ft8"`
 		FT4         bool   `yaml:"ft4"`
+		Beacon      bool   `yaml:"beacon"`
 		Command     string `yaml:"command"`
 		LoginPrompt string `yaml:"login_prompt"`
 	} `yaml:"cluster"`

@@ -78,13 +78,27 @@
   $: {
     if (spotFilters.showAll) {
       filteredSpots = spots;
+      isFiltering = false;
+      if (filterTimeout) {
+        clearTimeout(filterTimeout);
+        filterTimeout = null;
+      }
     } else {
-      if (filterTimeout) clearTimeout(filterTimeout);
+      if (filterTimeout) {
+        clearTimeout(filterTimeout);
+      }
       
       filterTimeout = setTimeout(async () => {
         isFiltering = true;
-        filteredSpots = await spotWorker.filterSpots(spots, spotFilters, watchlist);
-        isFiltering = false;
+        try {
+          filteredSpots = await spotWorker.filterSpots(spots, spotFilters, watchlist);
+        } catch (error) {
+          console.error('Filter error:', error);
+          filteredSpots = spots;
+        } finally {
+          isFiltering = false;
+          filterTimeout = null;
+        }
       }, 150);
     }
   }
@@ -220,7 +234,7 @@
           wsStatus = 'connected';
           reconnectAttempts = 0;
           errorMessage = '';
-          showToast('Connected to server', 'success');
+          showToast('✅ Connected to DX Cluster', 'connection');
         };
         
         ws.onmessage = (event) => {
@@ -273,9 +287,9 @@
       case 'spots':
         const newSpots = message.data || [];
         
+        // Détecter si votre indicatif a été spotté
         if (stats.myCallsign && newSpots.length > 0) {
           newSpots.forEach(spot => {
-            // Vérifier si c'est votre callsign ET qu'on ne l'a pas déjà notifié
             if (spot.DX === stats.myCallsign && !notifiedSpots.has(spot.ID)) {
               notifiedSpots.add(spot.ID);
               showToast(
@@ -285,16 +299,22 @@
             }
           });
           
-          if (notifiedSpots.size > 100) {
+          // ✅ Nettoyer les anciens IDs (garder seulement 200 derniers)
+          if (notifiedSpots.size > 200) {
             const arr = Array.from(notifiedSpots);
-            notifiedSpots = new Set(arr.slice(-100));
+            notifiedSpots = new Set(arr.slice(-200));
           }
         }
         
         spots = newSpots;
         
+        // ✅ Debounce la sauvegarde du cache (toutes les 30 secondes max)
         if (spots.length > 0) {
-          spotCache.saveSpots(spots).catch(err => console.error('Cache save error:', err));
+          if (window.cacheSaveTimeout) clearTimeout(window.cacheSaveTimeout);
+          window.cacheSaveTimeout = setTimeout(() => {
+            spotCache.saveSpots(spots).catch(err => console.error('Cache save error:', err));
+            window.cacheSaveTimeout = null; // ✅ Nettoyer la référence
+          }, 30000); // 30 secondes
         }
         break;
       case 'spotters':
@@ -359,13 +379,13 @@
       
       const data = await response.json();
       if (data.success) {
-        showToast(`${callsign} Sent - Radio tuned on ${frequency} in ${mode}`, 'success');
+        showToast(`📻 Tuned to ${callsign} • ${frequency} • ${mode}`, 'radio');
       } else {
-        showToast('Failed to send', 'error');
+        showToast('❌ Failed to send to radio', 'error');
       }
     } catch (error) {
       console.error('Error sending callsign:', error);
-      showToast(`Error: ${error.message}`, 'error');
+      showToast(`❌ Connection error: ${error.message}`, 'error');
     }
   }
   
@@ -380,11 +400,13 @@
       const data = await response.json();
       if (data.success) {
         stats.filters[filterName] = value;
-        showToast(`Filter ${filterName} updated`, 'success');
+        const filterLabel = filterName.toUpperCase();
+        const status = value ? 'ON' : 'OFF';
+        showToast(`🔧 ${filterLabel} filter ${status}`, 'success');
       }
     } catch (error) {
       console.error('Error updating filter:', error);
-      showToast(`Update error: ${error.message}`, 'error');
+      showToast(`❌ Failed to update filter: ${error.message}`, 'error');
     }
   }
   
@@ -403,7 +425,7 @@ async function shutdownApp() {
     if (reconnectTimer) clearTimeout(reconnectTimer);
     wsStatus = 'disconnected';
     
-    showToast('FlexDXCluster shutting down...', 'info');
+    showToast('⚡ Shutting down FlexDXCluster...', 'warning');
     
     // ✅ Envoyer la commande de shutdown au backend
     const response = await fetch('/api/shutdown', {
@@ -434,7 +456,7 @@ async function shutdownApp() {
   } catch (error) {
     console.error('Error shutting down:', error);
     if (!isShuttingDown) {
-      showToast(`Cannot shutdown: ${error.message}`, 'error');
+      showToast(`❌ Shutdown failed: ${error.message}`, 'error');
     }
   }
 }
@@ -496,6 +518,26 @@ async function shutdownApp() {
       window.removeEventListener('sendSpot', handleSendSpot);
     };
   });
+
+  onDestroy(() => {
+    console.log('Cleaning up App...');
+    
+    // ✅ Nettoyer tous les timeouts
+    if (filterTimeout) {
+      clearTimeout(filterTimeout);
+      filterTimeout = null;
+    }
+    
+    if (window.cacheSaveTimeout) {
+      clearTimeout(window.cacheSaveTimeout);
+      window.cacheSaveTimeout = null;
+    }
+    
+    notifiedSpots.clear();
+    
+    console.log('App cleanup complete');
+  });
+
 </script>
 
 <div class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white min-h-screen p-2">
