@@ -60,12 +60,12 @@
   <div class="bg-slate-900/50 flex-shrink-0">
     <div class="flex text-left text-xs text-slate-400 font-semibold">
       <div class="p-2" style="width: 12%;">DX</div>
+      <div class="p-2" style="width: 25%;">Country</div>
       <div class="p-2" style="width: 12%;">Freq</div>
       <div class="p-2" style="width: 8%;">Band</div>
       <div class="p-2" style="width: 8%;">Mode</div>
       <div class="p-2" style="width: 12%;">Spotter</div>
       <div class="p-2" style="width: 8%;">Time</div>
-      <div class="p-2" style="width: 25%;">Country</div>
       <div class="p-2" style="width: 15%;">Status</div>
     </div>
   </div>
@@ -82,6 +82,9 @@
             {item.DX}
           </button>
         </div>
+        <div class="p-2 flex items-center text-slate-400 text-xs truncate" style="width: 25%;" title={item.CountryName || 'N/A'}>
+          {item.CountryName || 'N/A'}
+        </div>
         <div class="p-2 flex items-center font-mono text-xs" style="width: 12%;">{item.FrequencyMhz}</div>
         <div class="p-2 flex items-center" style="width: 8%;">
           <span class="px-1.5 py-0.5 bg-slate-700/50 rounded text-xs">{item.Band}</span>
@@ -93,9 +96,6 @@
           {item.SpotterCallsign}
         </div>
         <div class="p-2 flex items-center text-slate-400 text-xs" style="width: 8%;">{item.UTCTime}</div>
-        <div class="p-2 flex items-center text-slate-400 text-xs truncate" style="width: 25%;" title={item.CountryName || 'N/A'}>
-          {item.CountryName || 'N/A'}
-        </div>
         <div class="p-2 flex items-center" style="width: 15%;">
           {#if getStatusLabel(item)}
             <span class="px-1.5 py-0.5 rounded text-xs font-semibold border {getPriorityColor(item)} truncate">

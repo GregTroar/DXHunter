@@ -1,12 +1,11 @@
 general:
   delete_log_file_at_start: true
   callsign: XXXXX # Log4OM Callsign used to check if you get spotted by someone
-  QRALocator: JN36dg
   log_to_file: true
   log_level: INFO # INFO or DEBUG or WARN
   telnetserver: true # not in use for now
-  flexradiospot: true # not in use for now
-  sendFreqModeToLog4OM: false # if not using a Flex then turn this on to send Freq and Mode to Log4OM which should in turn change the freq on the radio
+  flexradiospot: true
+  send_freq_log: true # if not using a Flex then turn this on to send Freq and Mode to Log4OM which should in turn change the freq on the radio
   # Spot colors, if empty then default, colors in HEX AARRGGBB format
   spot_color_new_entity:
   background_color_new_entity:

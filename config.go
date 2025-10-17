@@ -18,8 +18,8 @@ type Config struct {
 		LogLevel                   string `yaml:"log_level"`
 		TelnetServer               bool   `yaml:"telnetserver"`
 		FlexRadioSpot              bool   `yaml:"flexradiospot"`
+		SendFreqModeToLog          bool   `yaml:"send_freq_log"`
 		SpotColorNewEntity         string `yaml:"spot_color_new_entity"`
-		sendFreqModeToLog4OM       bool   `yaml:"sendFreqModeToLog4OM"`
 		BackgroundColorNewEntity   string `yaml:"background_color_new_entity"`
 		SpotColorNewBand           string `yaml:"spot_color_new_band"`
 		BackgroundColorNewBand     string `yaml:"background_color_new_band"`

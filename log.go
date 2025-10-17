@@ -51,22 +51,3 @@ func NewLog() *log.Logger {
 
 	return Log
 }
-
-// Info ...
-// func Info(format string, v ...interface{}) {
-// 	log.Infof(format, v...)
-// }
-
-// // Warn ...
-// func Warn(format string, v ...interface{}) {
-// 	log.Warnf(format, v...)
-// }
-
-// // Error ...
-// func Error(format string, v ...interface{}) {
-// 	log.Errorf(format, v...)
-// }
-
-// func Debug(format string, v ...interface{}) {
-// 	log.Debugf(format, v...)
-// }
