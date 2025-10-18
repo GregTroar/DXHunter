@@ -1,5 +1,6 @@
 <script>
   import { onMount, onDestroy } from 'svelte';
+  import { soundManager } from './lib/soundManager.js';
   import Header from './components/Header.svelte';
   import StatsCards from './components/StatsCards.svelte';
   import FilterBar from './components/FilterBar.svelte';
@@ -317,9 +318,6 @@
           }, 30000); // 30 secondes
         }
         break;
-      case 'spotters':
-        topSpotters = message.data || [];
-        break;
       case 'watchlist':
         watchlist = message.data || [];
         spotCache.saveMetadata('watchlist', watchlist).catch(err => console.error('Cache save error:', err));
@@ -336,10 +334,28 @@
       case 'dxccProgress':
         dxccProgress = message.data || { worked: 0, total: 340, percentage: 0 };
         break;
-      case 'milestone': // ✅ AJOUTER
+      case 'milestone':
         const milestoneData = message.data;
         const toastType = milestoneData.type === 'qso' ? 'milestone' : 'band';
         showToast(milestoneData.message, toastType);
+        break;
+      case 'watchlistAlert':
+        // Dispatch custom event for watchlist alert
+        const alertEvent = new CustomEvent('watchlistAlert', {
+          detail: message.data
+        });
+        window.dispatchEvent(alertEvent);
+        
+        // Play sound if enabled
+        if (message.data.playSound) {
+          soundManager.playWatchlistAlert('medium');
+        }
+        
+        // Show toast notification
+        showToast(
+          `🎯 ${message.data.callsign} spotted on ${message.data.band} ${message.data.mode}!`,
+          'success'
+        );
         break;
     }
   }
@@ -555,6 +571,7 @@ async function shutdownApp() {
     {solarData} 
     {wsStatus} 
     {cacheLoaded}
+    {soundManager}
     on:shutdown={shutdownApp}
   />
   

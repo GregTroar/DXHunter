@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"fmt"
 	"net"
 	"os"
 	"strings"
@@ -78,37 +77,45 @@ func (s *TCPServer) StartServer() {
 }
 
 func (s *TCPServer) handleConnection() {
-	s.Conn.Write([]byte("Welcome to the FlexDXCluster telnet server! Type 'bye' to exit.\n"))
+	// Store the connection locally to avoid race conditions
+	conn := s.Conn
 
-	s.Reader = bufio.NewReader(s.Conn)
-	s.Writer = bufio.NewWriter(s.Conn)
+	conn.Write([]byte("Welcome to the FlexDXCluster telnet server! Type 'bye' to exit.\n"))
+
+	reader := bufio.NewReader(conn)
+
+	defer func() {
+		s.Mutex.Lock()
+		delete(s.Clients, conn)
+		s.Mutex.Unlock()
+		conn.Close()
+		Log.Infof("Client %s disconnected", conn.RemoteAddr().String())
+	}()
 
 	for {
-
-		message, err := s.Reader.ReadString('\n')
+		message, err := reader.ReadString('\n')
 		if err != nil {
-			s.Mutex.Lock()
-			delete(s.Clients, s.Conn)
-			s.Mutex.Unlock()
+			Log.Debugf("Error reading from client %s: %v", conn.RemoteAddr().String(), err)
 			return
 		}
 
 		message = strings.TrimSpace(message)
 
-		// if message is by then disconnect
+		// if message is bye then disconnect
 		if message == "bye" {
-			s.Mutex.Lock()
-			delete(s.Clients, s.Conn)
-			s.Mutex.Unlock()
-			s.Conn.Close()
-			Log.Infof("client %s disconnected", s.Conn.RemoteAddr().String())
+			Log.Infof("Client %s sent bye command", conn.RemoteAddr().String())
+			return
 		}
 
 		if strings.Contains(message, "DX") || strings.Contains(message, "SH/DX") || strings.Contains(message, "set") || strings.Contains(message, "SET") {
 			// send DX spot to the client
-			s.CmdChan <- message
+			select {
+			case s.CmdChan <- message:
+				Log.Debugf("Command from client %s: %s", conn.RemoteAddr().String(), message)
+			default:
+				Log.Warn("Command channel is full, dropping command")
+			}
 		}
-
 	}
 }
 
@@ -123,17 +130,31 @@ func (s *TCPServer) Write(message string) (n int, err error) {
 func (s *TCPServer) broadcastMessage(message string) {
 	s.Mutex.Lock()
 	defer s.Mutex.Unlock()
-	if len(s.Clients) > 0 {
-		if s.MessageSent == 0 {
-			time.Sleep(3 * time.Second)
-			s.MessageSent += 1
+
+	if len(s.Clients) == 0 {
+		return
+	}
+
+	if s.MessageSent == 0 {
+		time.Sleep(3 * time.Second)
+		s.MessageSent = 1
+	}
+
+	// Collect failed clients
+	var failedClients []net.Conn
+
+	for client := range s.Clients {
+		_, err := client.Write([]byte(message + "\r\n"))
+		s.MessageSent++
+		if err != nil {
+			Log.Warnf("Error sending to client %s: %v", client.RemoteAddr(), err)
+			failedClients = append(failedClients, client)
 		}
-		for client := range s.Clients {
-			_, err := client.Write([]byte(message + "\r\n"))
-			s.MessageSent += 1
-			if err != nil {
-				fmt.Println("Error while sending message to clients:", client.RemoteAddr())
-			}
-		}
+	}
+
+	// Remove failed clients
+	for _, client := range failedClients {
+		delete(s.Clients, client)
+		client.Close()
 	}
 }

@@ -20,8 +20,8 @@
   }
   
   function getPriorityColor(spot) {
-    const inWatchlist = watchlist.some(pattern => 
-      spot.DX === pattern || spot.DX.startsWith(pattern)
+    const inWatchlist = watchlist.some(entry => 
+      spot.DX === entry.callsign || spot.DX.startsWith(entry.callsign)
     );
     
     if (inWatchlist) return 'bg-pink-500/20 text-pink-400 border-pink-500/50';
@@ -35,8 +35,8 @@
   }
   
   function getStatusLabel(spot) {
-    const inWatchlist = watchlist.some(pattern => 
-      spot.DX === pattern || spot.DX.startsWith(pattern)
+    const inWatchlist = watchlist.some(entry => 
+      spot.DX === entry.callsign || spot.DX.startsWith(entry.callsign)
     );
     
     if (inWatchlist) return 'Watchlist';
@@ -49,6 +49,12 @@
     if (spot.Worked) return 'Worked';
     return '';
   }
+  
+  function getCleanComment(spot) {
+    // Retirer le commentaire original brut s'il existe
+    if (!spot.OriginalComment) return '';
+    return spot.OriginalComment.trim();
+  }
 </script>
 
 <div class="bg-slate-800/50 backdrop-blur rounded-lg border border-slate-700/50 flex flex-col overflow-hidden h-full">
@@ -59,14 +65,15 @@
   <!-- Header fixe -->
   <div class="bg-slate-900/50 flex-shrink-0">
     <div class="flex text-left text-xs text-slate-400 font-semibold">
-      <div class="p-2" style="width: 12%;">DX</div>
-      <div class="p-2" style="width: 25%;">Country</div>
-      <div class="p-2" style="width: 12%;">Freq</div>
-      <div class="p-2" style="width: 8%;">Band</div>
-      <div class="p-2" style="width: 8%;">Mode</div>
-      <div class="p-2" style="width: 12%;">Spotter</div>
-      <div class="p-2" style="width: 8%;">Time</div>
-      <div class="p-2" style="width: 15%;">Status</div>
+      <div class="p-2" style="width: 10%;">DX</div>
+      <div class="p-2" style="width: 18%;">Country</div>
+      <div class="p-2" style="width: 10%;">Freq</div>
+      <div class="p-2" style="width: 7%;">Band</div>
+      <div class="p-2" style="width: 7%;">Mode</div>
+      <div class="p-2" style="width: 10%;">Spotter</div>
+      <div class="p-2" style="width: 7%;">Time</div>
+      <div class="p-2" style="width: 18%;">Comment</div>
+      <div class="p-2" style="width: 13%;">Status</div>
     </div>
   </div>
   
@@ -74,7 +81,7 @@
   <div class="flex-1 overflow-hidden" bind:this={container}>
     <VirtualList items={spots} {itemHeight} let:item>
       <div class="flex border-b border-slate-700/30 hover:bg-slate-700/30 transition-colors text-sm" style="height: {itemHeight}px;">
-        <div class="p-2 flex items-center" style="width: 12%;">
+        <div class="p-2 flex items-center" style="width: 10%;">
           <button
             class="font-bold text-blue-400 hover:text-blue-300 transition-colors truncate w-full text-left"
             on:click={() => handleSpotClick(item)}
@@ -82,21 +89,24 @@
             {item.DX}
           </button>
         </div>
-        <div class="p-2 flex items-center text-slate-400 text-xs truncate" style="width: 25%;" title={item.CountryName || 'N/A'}>
+        <div class="p-2 flex items-center text-slate-400 text-xs truncate" style="width: 18%;" title={item.CountryName || 'N/A'}>
           {item.CountryName || 'N/A'}
         </div>
-        <div class="p-2 flex items-center font-mono text-xs" style="width: 12%;">{item.FrequencyMhz}</div>
-        <div class="p-2 flex items-center" style="width: 8%;">
+        <div class="p-2 flex items-center font-mono text-xs" style="width: 10%;">{item.FrequencyMhz}</div>
+        <div class="p-2 flex items-center" style="width: 7%;">
           <span class="px-1.5 py-0.5 bg-slate-700/50 rounded text-xs">{item.Band}</span>
         </div>
-        <div class="p-2 flex items-center" style="width: 8%;">
+        <div class="p-2 flex items-center" style="width: 7%;">
           <span class="px-1.5 py-0.5 bg-purple-500/20 text-purple-400 rounded text-xs">{item.Mode}</span>
         </div>
-        <div class="p-2 flex items-center text-slate-300 text-xs truncate" style="width: 12%;" title={item.SpotterCallsign}>
+        <div class="p-2 flex items-center text-slate-300 text-xs truncate" style="width: 10%;" title={item.SpotterCallsign}>
           {item.SpotterCallsign}
         </div>
-        <div class="p-2 flex items-center text-slate-400 text-xs" style="width: 8%;">{item.UTCTime}</div>
-        <div class="p-2 flex items-center" style="width: 15%;">
+        <div class="p-2 flex items-center text-slate-400 text-xs" style="width: 7%;">{item.UTCTime}</div>
+        <div class="p-2 flex items-center text-slate-400 text-xs truncate" style="width: 18%;" title={getCleanComment(item)}>
+          {getCleanComment(item)}
+        </div>
+        <div class="p-2 flex items-center" style="width: 13%;">
           {#if getStatusLabel(item)}
             <span class="px-1.5 py-0.5 rounded text-xs font-semibold border {getPriorityColor(item)} truncate">
               {getStatusLabel(item)}

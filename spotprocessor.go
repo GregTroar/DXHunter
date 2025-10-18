@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"time"
@@ -11,23 +12,40 @@ type SpotProcessor struct {
 	FlexClient *FlexClient
 	HTTPServer *HTTPServer
 	SpotChan   chan TelnetSpot
+	ctx        context.Context
+	cancel     context.CancelFunc
 }
 
 func NewSpotProcessor(flexRepo *FlexDXClusterRepository, flexClient *FlexClient, httpServer *HTTPServer, spotChan chan TelnetSpot) *SpotProcessor {
+	ctx, cancel := context.WithCancel(context.Background())
+
 	return &SpotProcessor{
 		FlexRepo:   flexRepo,
 		FlexClient: flexClient,
 		HTTPServer: httpServer,
 		SpotChan:   spotChan,
+		ctx:        ctx,
+		cancel:     cancel,
 	}
 }
 
 func (sp *SpotProcessor) Start() {
 	Log.Info("Starting Spot Processor...")
 
-	for spot := range sp.SpotChan {
-		sp.processSpot(spot)
+	for {
+		select {
+		case <-sp.ctx.Done():
+			Log.Info("Spot Processor shutting down...")
+			return
+		case spot := <-sp.SpotChan:
+			sp.processSpot(spot)
+		}
 	}
+}
+
+func (sp *SpotProcessor) Stop() {
+	Log.Info("Stopping Spot Processor...")
+	sp.cancel()
 }
 
 func (sp *SpotProcessor) processSpot(spot TelnetSpot) {
@@ -66,7 +84,31 @@ func (sp *SpotProcessor) processSpot(spot TelnetSpot) {
 		if sp.HTTPServer.Watchlist.Matches(flexSpot.DX) {
 			flexSpot.InWatchlist = true
 			flexSpot.Comment = flexSpot.Comment + " [Watchlist]"
-			Log.Infof("🎯 Watchlist match: %s", flexSpot.DX)
+
+			// Mark as seen and update last seen time
+			sp.HTTPServer.Watchlist.MarkSeen(flexSpot.DX)
+
+			// Get entry to check if sound should be played
+			entry := sp.HTTPServer.Watchlist.GetEntry(flexSpot.DX)
+			if entry != nil {
+				Log.Infof("🎯 Watchlist match: %s (LastSeen: %s)",
+					flexSpot.DX, entry.LastSeenStr)
+
+				// Send notification to websocket clients for sound alert
+				if entry.PlaySound && sp.HTTPServer != nil {
+					sp.HTTPServer.broadcast <- WSMessage{
+						Type: "watchlistAlert",
+						Data: map[string]interface{}{
+							"callsign":    flexSpot.DX,
+							"frequency":   flexSpot.FrequencyMhz,
+							"band":        flexSpot.Band,
+							"mode":        flexSpot.Mode,
+							"countryName": flexSpot.CountryName,
+							"playSound":   entry.PlaySound,
+						},
+					}
+				}
+			}
 		}
 	}
 

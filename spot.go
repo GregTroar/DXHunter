@@ -301,10 +301,10 @@ func (spot *TelnetSpot) GuessMode() {
 			}
 
 		case "17M":
-			if freqInt >= 18068 && freqInt < 18095 {
+			if freqInt >= 18068 && freqInt < 18090 {
 				spot.Mode = "CW"
 			}
-			if freqInt >= 18095 && freqInt < 18104 {
+			if freqInt >= 18090 && freqInt < 18104 {
 				spot.Mode = "FT8"
 			}
 			if freqInt >= 18104 && freqInt < 18108 {
@@ -332,33 +332,39 @@ func (spot *TelnetSpot) GuessMode() {
 			}
 
 		case "12M":
-			if freqInt >= 24890 && freqInt < 24915 {
+			if freqInt >= 24890 && freqInt < 24910 {
 				spot.Mode = "CW"
 			}
-			if freqInt >= 24915 && freqInt < 24919 {
+			if freqInt >= 24910 && freqInt < 24919 {
 				spot.Mode = "FT8"
 			}
-			if freqInt >= 24919 && freqInt < 24930 {
-				spot.Mode = "CW"
+			if freqInt >= 24919 && freqInt < 24922 {
+				spot.Mode = "FT4"
+			}
+			if freqInt >= 24922 && freqInt < 24930 {
+				spot.Mode = "RTTY"
 			}
 			if freqInt >= 24930 && freqInt <= 24990 {
 				spot.Mode = "USB"
 			}
 
 		case "10M":
-			if freqInt >= 28000 && freqInt < 28074 {
+			if freqInt >= 28000 && freqInt < 28070 {
 				spot.Mode = "CW"
 			}
-			if freqInt >= 28074 && freqInt < 28080 {
+			if freqInt >= 28070 && freqInt < 28080 {
 				spot.Mode = "FT8"
 			}
 			if freqInt >= 28080 && freqInt < 28100 {
 				spot.Mode = "RTTY"
 			}
-			if freqInt >= 28100 && freqInt < 28300 {
+			if freqInt >= 28100 && freqInt < 28180 {
 				spot.Mode = "CW"
 			}
-			if freqInt >= 28300 && freqInt < 29000 {
+			if freqInt >= 28180 && freqInt < 28190 {
+				spot.Mode = "FT4"
+			}
+			if freqInt >= 28190 && freqInt < 29000 {
 				spot.Mode = "USB"
 			}
 			if freqInt >= 29000 && freqInt <= 29700 {

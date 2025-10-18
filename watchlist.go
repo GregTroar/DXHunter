@@ -2,111 +2,315 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"strings"
 	"sync"
+	"time"
 )
 
+type WatchlistEntry struct {
+	Callsign    string    `json:"callsign"`
+	Notes       string    `json:"notes"`
+	LastSeen    time.Time `json:"lastSeen"`
+	LastSeenStr string    `json:"lastSeenStr"`
+	AddedAt     time.Time `json:"addedAt"`
+	SpotCount   int       `json:"spotCount"`
+	PlaySound   bool      `json:"playSound"`
+}
+
 type Watchlist struct {
-	Callsigns []string `json:"callsigns"`
-	mu        sync.RWMutex
-	filename  string
+	entries  map[string]*WatchlistEntry
+	filePath string
+	mutex    sync.RWMutex
 }
 
-func NewWatchlist(filename string) *Watchlist {
-	wl := &Watchlist{
-		Callsigns: []string{},
-		filename:  filename,
+func NewWatchlist(filePath string) *Watchlist {
+	w := &Watchlist{
+		entries:  make(map[string]*WatchlistEntry),
+		filePath: filePath,
 	}
-	wl.Load()
-	return wl
+	w.load()
+	return w
 }
 
-func (wl *Watchlist) Load() error {
-	wl.mu.Lock()
-	defer wl.mu.Unlock()
+func (w *Watchlist) load() {
+	w.mutex.Lock()
+	defer w.mutex.Unlock()
 
-	data, err := os.ReadFile(wl.filename)
+	data, err := os.ReadFile(w.filePath)
 	if err != nil {
-		if os.IsNotExist(err) {
-			// File doesn't exist, start with empty watchlist
-			return nil
+		if !os.IsNotExist(err) {
+			Log.Errorf("Error reading watchlist file: %v", err)
+		} else {
+			Log.Debug("Watchlist file does not exist yet, will be created on first save")
 		}
-		return err
+		return
 	}
 
-	return json.Unmarshal(data, &wl.Callsigns)
+	var entries []WatchlistEntry
+	if err := json.Unmarshal(data, &entries); err != nil {
+		Log.Errorf("Error parsing watchlist file: %v", err)
+		return
+	}
+
+	for i := range entries {
+		entry := &entries[i]
+		if !entry.LastSeen.IsZero() {
+			entry.LastSeenStr = formatLastSeen(entry.LastSeen)
+		} else {
+			entry.LastSeenStr = "Never"
+		}
+		w.entries[entry.Callsign] = entry
+	}
+
+	Log.Infof("Loaded %d entries from watchlist", len(w.entries))
 }
 
-// save est une méthode privée sans lock (appelée par Add/Remove qui ont déjà le lock)
-func (wl *Watchlist) save() error {
-	data, err := json.Marshal(wl.Callsigns)
+// saveUnsafe fait la sauvegarde SANS prendre de lock (à utiliser quand on a déjà un lock)
+func (w *Watchlist) saveUnsafe() error {
+	entries := make([]WatchlistEntry, 0, len(w.entries))
+	for _, entry := range w.entries {
+		entries = append(entries, *entry)
+	}
+
+	data, err := json.MarshalIndent(entries, "", "  ")
 	if err != nil {
-		return err
+		Log.Errorf("Error marshaling watchlist: %v", err)
+		return fmt.Errorf("error marshaling watchlist: %w", err)
 	}
 
-	return os.WriteFile(wl.filename, data, 0644)
+	if err := os.WriteFile(w.filePath, data, 0644); err != nil {
+		Log.Errorf("Error writing watchlist file %s: %v", w.filePath, err)
+		return fmt.Errorf("error writing watchlist file: %w", err)
+	}
+
+	Log.Debugf("Watchlist saved successfully (%d entries)", len(entries))
+	return nil
 }
 
-func (wl *Watchlist) Add(callsign string) error {
-	wl.mu.Lock()
-	defer wl.mu.Unlock()
+// save est la version publique avec lock (pour les appels périodiques depuis httpserver)
+func (w *Watchlist) save() error {
+	w.mutex.RLock()
+	defer w.mutex.RUnlock()
+	return w.saveUnsafe()
+}
+
+func (w *Watchlist) Add(callsign string) error {
+	w.mutex.Lock()
+	defer w.mutex.Unlock()
 
 	callsign = strings.ToUpper(strings.TrimSpace(callsign))
 
-	// Check if already exists
-	for _, c := range wl.Callsigns {
-		if c == callsign {
-			return nil // Already in watchlist
-		}
+	Log.Debugf("Attempting to add callsign: %s", callsign)
+
+	if callsign == "" {
+		Log.Warn("Attempted to add empty callsign")
+		return fmt.Errorf("callsign cannot be empty")
 	}
 
-	wl.Callsigns = append(wl.Callsigns, callsign)
-	return wl.save() // ← Appel de save() minuscule (sans lock)
+	if _, exists := w.entries[callsign]; exists {
+		Log.Warnf("Callsign %s already exists in watchlist", callsign)
+		return fmt.Errorf("callsign already in watchlist")
+	}
+
+	w.entries[callsign] = &WatchlistEntry{
+		Callsign:    callsign,
+		Notes:       "",
+		AddedAt:     time.Now(),
+		LastSeen:    time.Time{},
+		LastSeenStr: "Never",
+		SpotCount:   0,
+		PlaySound:   true,
+	}
+
+	Log.Infof("Added %s to watchlist", callsign)
+
+	if err := w.saveUnsafe(); err != nil {
+		Log.Errorf("Failed to save watchlist after adding %s: %v", callsign, err)
+		return err
+	}
+
+	Log.Debugf("Watchlist saved successfully after adding %s", callsign)
+	return nil
 }
 
-func (wl *Watchlist) Remove(callsign string) error {
-	wl.mu.Lock()
-	defer wl.mu.Unlock()
+func (w *Watchlist) Remove(callsign string) error {
+	w.mutex.Lock()
+	defer w.mutex.Unlock()
 
 	callsign = strings.ToUpper(strings.TrimSpace(callsign))
 
-	for i, c := range wl.Callsigns {
-		if c == callsign {
-			wl.Callsigns = append(wl.Callsigns[:i], wl.Callsigns[i+1:]...)
-			return wl.save() // ← Appel de save() minuscule (sans lock)
+	if _, exists := w.entries[callsign]; !exists {
+		Log.Warnf("Attempted to remove non-existent callsign: %s", callsign)
+		return fmt.Errorf("callsign not in watchlist")
+	}
+
+	delete(w.entries, callsign)
+	Log.Infof("Removed %s from watchlist", callsign)
+
+	if err := w.saveUnsafe(); err != nil {
+		Log.Errorf("Failed to save watchlist after removing %s: %v", callsign, err)
+		return err
+	}
+
+	return nil
+}
+
+func (w *Watchlist) UpdateNotes(callsign, notes string) error {
+	w.mutex.Lock()
+	defer w.mutex.Unlock()
+
+	callsign = strings.ToUpper(strings.TrimSpace(callsign))
+
+	entry, exists := w.entries[callsign]
+	if !exists {
+		Log.Warnf("Attempted to update notes for non-existent callsign: %s", callsign)
+		return fmt.Errorf("callsign not in watchlist")
+	}
+
+	entry.Notes = notes
+	Log.Debugf("Updated notes for %s", callsign)
+
+	if err := w.saveUnsafe(); err != nil {
+		Log.Errorf("Failed to save watchlist after updating notes for %s: %v", callsign, err)
+		return err
+	}
+
+	return nil
+}
+
+func (w *Watchlist) UpdateSound(callsign string, playSound bool) error {
+	w.mutex.Lock()
+	defer w.mutex.Unlock()
+
+	callsign = strings.ToUpper(strings.TrimSpace(callsign))
+
+	entry, exists := w.entries[callsign]
+	if !exists {
+		Log.Warnf("Attempted to update sound for non-existent callsign: %s", callsign)
+		return fmt.Errorf("callsign not in watchlist")
+	}
+
+	entry.PlaySound = playSound
+	Log.Debugf("Updated sound setting for %s to %v", callsign, playSound)
+
+	if err := w.saveUnsafe(); err != nil {
+		Log.Errorf("Failed to save watchlist after updating sound for %s: %v", callsign, err)
+		return err
+	}
+
+	return nil
+}
+
+func (w *Watchlist) MarkSeen(callsign string) {
+	w.mutex.Lock()
+	defer w.mutex.Unlock()
+
+	callsign = strings.ToUpper(strings.TrimSpace(callsign))
+
+	entry, exists := w.entries[callsign]
+	if !exists {
+		return
+	}
+
+	entry.LastSeen = time.Now()
+	entry.LastSeenStr = formatLastSeen(entry.LastSeen)
+	entry.SpotCount++
+
+	Log.Debugf("Marked %s as seen (count: %d)", callsign, entry.SpotCount)
+
+	// Ne PAS sauvegarder à chaque spot - trop lent !
+	// La sauvegarde sera faite périodiquement par le ticker
+}
+
+func (w *Watchlist) Matches(callsign string) bool {
+	w.mutex.RLock()
+	defer w.mutex.RUnlock()
+
+	callsign = strings.ToUpper(callsign)
+
+	for pattern := range w.entries {
+		if callsign == pattern || strings.HasPrefix(callsign, pattern) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (w *Watchlist) GetEntry(callsign string) *WatchlistEntry {
+	w.mutex.RLock()
+	defer w.mutex.RUnlock()
+
+	callsign = strings.ToUpper(callsign)
+
+	for pattern, entry := range w.entries {
+		if callsign == pattern || strings.HasPrefix(callsign, pattern) {
+			// Retourner une copie pour éviter les race conditions
+			entryCopy := *entry
+			return &entryCopy
 		}
 	}
 
 	return nil
 }
 
-func (wl *Watchlist) GetAll() []string {
-	wl.mu.RLock()
-	defer wl.mu.RUnlock()
+func (w *Watchlist) GetAll() []WatchlistEntry {
+	w.mutex.RLock()
+	defer w.mutex.RUnlock()
 
-	result := make([]string, len(wl.Callsigns))
-	copy(result, wl.Callsigns)
-	return result
-}
-
-func (wl *Watchlist) Matches(callsign string) bool {
-	wl.mu.RLock()
-	defer wl.mu.RUnlock()
-
-	callsign = strings.ToUpper(callsign)
-
-	for _, pattern := range wl.Callsigns {
-		// Exact match
-		if callsign == pattern {
-			return true
+	entries := make([]WatchlistEntry, 0, len(w.entries))
+	for _, entry := range w.entries {
+		// Mettre à jour LastSeenStr avant de retourner
+		entryCopy := *entry
+		if !entryCopy.LastSeen.IsZero() {
+			entryCopy.LastSeenStr = formatLastSeen(entryCopy.LastSeen)
 		}
-
-		// Prefix match (e.g., VK9 matches VK9XX)
-		if strings.HasPrefix(callsign, pattern) {
-			return true
-		}
+		entries = append(entries, entryCopy)
 	}
 
-	return false
+	return entries
+}
+
+func (w *Watchlist) GetAllCallsigns() []string {
+	w.mutex.RLock()
+	defer w.mutex.RUnlock()
+
+	callsigns := make([]string, 0, len(w.entries))
+	for callsign := range w.entries {
+		callsigns = append(callsigns, callsign)
+	}
+
+	return callsigns
+}
+
+func formatLastSeen(t time.Time) string {
+	if t.IsZero() {
+		return "Never"
+	}
+
+	duration := time.Since(t)
+
+	if duration < time.Minute {
+		return "Just now"
+	} else if duration < time.Hour {
+		mins := int(duration.Minutes())
+		if mins == 1 {
+			return "1 minute ago"
+		}
+		return fmt.Sprintf("%d minutes ago", mins)
+	} else if duration < 24*time.Hour {
+		hours := int(duration.Hours())
+		if hours == 1 {
+			return "1 hour ago"
+		}
+		return fmt.Sprintf("%d hours ago", hours)
+	} else {
+		days := int(duration.Hours() / 24)
+		if days == 1 {
+			return "1 day ago"
+		}
+		return fmt.Sprintf("%d days ago", days)
+	}
 }

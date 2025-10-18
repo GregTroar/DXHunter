@@ -24,11 +24,6 @@ type Contact struct {
 	Country         string
 }
 
-type Spotter struct {
-	Spotter       string
-	NumberofSpots string
-}
-
 type QSO struct {
 	Callsign string `json:"callsign"`
 	Band     string `json:"band"`
@@ -65,6 +60,11 @@ func NewLog4OMContactsRepository(filePath string) *Log4OMContactsRepository {
 			Log.Errorf("Cannot open db", err)
 		}
 
+		// Configure connection pool
+		db.SetMaxOpenConns(25)
+		db.SetMaxIdleConns(5)
+		db.SetConnMaxLifetime(5 * time.Minute)
+
 		return &Log4OMContactsRepository{
 			db:  db,
 			Log: Log}
@@ -74,6 +74,11 @@ func NewLog4OMContactsRepository(filePath string) *Log4OMContactsRepository {
 		if err != nil {
 			Log.Errorf("Cannot open db", err)
 		}
+
+		// Configure connection pool for SQLite
+		db.SetMaxOpenConns(1) // SQLite works best with single connection for writes
+		db.SetMaxIdleConns(1)
+
 		_, err = db.Exec("PRAGMA journal_mode=WAL")
 		if err != nil {
 			panic(err)
@@ -91,10 +96,13 @@ func NewFlexDXDatabase(filePath string) *FlexDXClusterRepository {
 
 	db, err := sql.Open("sqlite3", filePath)
 	if err != nil {
-		fmt.Println("Cannot open db", err)
+		Log.Errorf("Cannot open db: %v", err)
 	}
 
 	Log.Debugln("Opening SQLite database")
+
+	db.SetMaxOpenConns(1)
+	db.SetMaxIdleConns(1)
 
 	_, err = db.ExecContext(
 		context.Background(),
@@ -204,7 +212,7 @@ func (r *Log4OMContactsRepository) ListByCountryMode(countryID string, mode stri
 		for rows.Next() {
 			c := Contact{}
 			if err := rows.Scan(&c.Callsign, &c.Band, &c.Mode, &c.DXCC, &c.StationCallsign, &c.Country); err != nil {
-				fmt.Println(err)
+				r.Log.Println(err)
 
 			}
 			contacts = append(contacts, c)
@@ -241,7 +249,7 @@ func (r *Log4OMContactsRepository) ListByCountryModeBand(countryID string, band 
 
 		rows, err := r.db.Query("SELECT callsign, band, mode, dxcc, stationcallsign, country FROM log WHERE dxcc = ? AND mode = ? AND band = ?", countryID, mode, band)
 		if err != nil {
-			log.Error("could not query the database", err)
+			r.Log.Error("could not query the database", err)
 		}
 
 		defer rows.Close()
@@ -250,7 +258,7 @@ func (r *Log4OMContactsRepository) ListByCountryModeBand(countryID string, band 
 		for rows.Next() {
 			c := Contact{}
 			if err := rows.Scan(&c.Callsign, &c.Band, &c.Mode, &c.DXCC, &c.StationCallsign, &c.Country); err != nil {
-				fmt.Println(err)
+				r.Log.Error(err)
 
 			}
 			contacts = append(contacts, c)
@@ -264,7 +272,7 @@ func (r *Log4OMContactsRepository) ListByCountryBand(countryID string, band stri
 	defer wg.Done()
 	rows, err := r.db.Query("SELECT callsign, band, mode, dxcc, stationcallsign, country FROM log WHERE dxcc = ? AND band = ?", countryID, band)
 	if err != nil {
-		fmt.Println(err)
+		r.Log.Error(err)
 	}
 
 	defer rows.Close()
@@ -273,7 +281,7 @@ func (r *Log4OMContactsRepository) ListByCountryBand(countryID string, band stri
 	for rows.Next() {
 		c := Contact{}
 		if err := rows.Scan(&c.Callsign, &c.Band, &c.Mode, &c.DXCC, &c.StationCallsign, &c.Country); err != nil {
-			fmt.Println(err)
+			r.Log.Error(err)
 
 		}
 		contacts = append(contacts, c)
@@ -285,7 +293,7 @@ func (r *Log4OMContactsRepository) ListByCallSign(callSign string, band string, 
 	defer wg.Done()
 	rows, err := r.db.Query("SELECT callsign, band, mode, dxcc, stationcallsign, country FROM log WHERE callsign = ? AND band = ? AND mode = ?", callSign, band, mode)
 	if err != nil {
-		fmt.Println(err)
+		r.Log.Error(err)
 	}
 
 	defer rows.Close()
@@ -294,7 +302,7 @@ func (r *Log4OMContactsRepository) ListByCallSign(callSign string, band string, 
 	for rows.Next() {
 		c := Contact{}
 		if err := rows.Scan(&c.Callsign, &c.Band, &c.Mode, &c.DXCC, &c.StationCallsign, &c.Country); err != nil {
-			fmt.Println(err)
+			r.Log.Error(err)
 
 		}
 		contacts = append(contacts, c)
@@ -461,32 +469,6 @@ func (r *FlexDXClusterRepository) GetAllSpots(limit string) []FlexSpot {
 	return Spots
 }
 
-func (r *FlexDXClusterRepository) GetSpotters() []Spotter {
-
-	sList := []Spotter{}
-
-	rows, err := r.db.Query("select spotter, count(*) as occurences from spots group by spotter order by occurences desc, spotter limit 15")
-
-	if err != nil {
-		r.Log.Error(err)
-		return nil
-	}
-
-	defer rows.Close()
-
-	s := Spotter{}
-	for rows.Next() {
-		if err := rows.Scan(&s.Spotter, &s.NumberofSpots); err != nil {
-			fmt.Println(err)
-			return nil
-		}
-
-		sList = append(sList, s)
-	}
-
-	return sList
-}
-
 func (r *FlexDXClusterRepository) FindDXSameBand(spot FlexSpot) (*FlexSpot, error) {
 	rows, err := r.db.Query("SELECT * from spots WHERE dx = ? AND band = ?", spot.DX, spot.Band)
 	if err != nil {
@@ -500,7 +482,7 @@ func (r *FlexDXClusterRepository) FindDXSameBand(spot FlexSpot) (*FlexSpot, erro
 	for rows.Next() {
 		if err := rows.Scan(&s.ID, &s.CommandNumber, &s.FlexSpotNumber, &s.DX, &s.FrequencyMhz, &s.FrequencyHz, &s.Band, &s.Mode, &s.SpotterCallsign, &s.FlexMode, &s.Source, &s.UTCTime, &s.TimeStamp, &s.LifeTime, &s.Priority,
 			&s.Comment, &s.Color, &s.BackgroundColor, &s.CountryName, &s.DXCC, &s.NewDXCC, &s.NewBand, &s.NewMode, &s.NewSlot, &s.Worked); err != nil {
-			fmt.Println(err)
+			r.Log.Error(err)
 			return nil, err
 		}
 	}
@@ -534,7 +516,7 @@ func (r *FlexDXClusterRepository) UpdateSpotSameBand(spot FlexSpot) error {
 func (r *FlexDXClusterRepository) FindSpotByCommandNumber(commandNumber string) (*FlexSpot, error) {
 	rows, err := r.db.Query("SELECT * from spots WHERE commandNumber = ?", commandNumber)
 	if err != nil {
-		fmt.Println(err)
+		r.Log.Error(err)
 		return nil, err
 	}
 
@@ -544,7 +526,7 @@ func (r *FlexDXClusterRepository) FindSpotByCommandNumber(commandNumber string) 
 	for rows.Next() {
 		if err := rows.Scan(&s.ID, &s.CommandNumber, &s.FlexSpotNumber, &s.DX, &s.FrequencyMhz, &s.FrequencyHz, &s.Band, &s.Mode, &s.SpotterCallsign, &s.FlexMode, &s.Source, &s.UTCTime, &s.TimeStamp, &s.LifeTime, &s.Priority,
 			&s.Comment, &s.Color, &s.BackgroundColor, &s.CountryName, &s.DXCC, &s.NewDXCC, &s.NewBand, &s.NewMode, &s.NewSlot, &s.Worked); err != nil {
-			fmt.Println(err)
+			r.Log.Error(err)
 			return nil, err
 		}
 	}
@@ -554,7 +536,7 @@ func (r *FlexDXClusterRepository) FindSpotByCommandNumber(commandNumber string) 
 func (r *FlexDXClusterRepository) FindSpotByFlexSpotNumber(spotNumber string) (*FlexSpot, error) {
 	rows, err := r.db.Query("SELECT * from spots WHERE flexSpotNumber = ?", spotNumber)
 	if err != nil {
-		fmt.Println(err)
+		r.Log.Error(err)
 		return nil, err
 	}
 
@@ -564,7 +546,7 @@ func (r *FlexDXClusterRepository) FindSpotByFlexSpotNumber(spotNumber string) (*
 	for rows.Next() {
 		if err := rows.Scan(&s.ID, &s.CommandNumber, &s.FlexSpotNumber, &s.DX, &s.FrequencyMhz, &s.FrequencyHz, &s.Band, &s.Mode, &s.SpotterCallsign, &s.FlexMode, &s.Source, &s.UTCTime, &s.TimeStamp, &s.LifeTime, &s.Priority,
 			&s.Comment, &s.Color, &s.BackgroundColor, &s.CountryName, &s.DXCC, &s.NewDXCC, &s.NewBand, &s.NewMode, &s.NewSlot, &s.Worked); err != nil {
-			fmt.Println(err)
+			r.Log.Error(err)
 			return nil, err
 		}
 	}
@@ -584,7 +566,7 @@ func (r *FlexDXClusterRepository) UpdateFlexSpotNumberByID(flexSpotNumber string
 	for rows.Next() {
 		if err := rows.Scan(&s.ID, &s.CommandNumber, &s.FlexSpotNumber, &s.DX, &s.FrequencyMhz, &s.FrequencyHz, &s.Band, &s.Mode, &s.SpotterCallsign, &s.FlexMode, &s.Source, &s.UTCTime, &s.TimeStamp, &s.LifeTime, &s.Priority,
 			&s.Comment, &s.Color, &s.BackgroundColor, &s.CountryName, &s.DXCC, &s.NewDXCC, &s.NewBand, &s.NewMode, &s.NewSlot, &s.Worked); err != nil {
-			fmt.Println(err)
+			r.Log.Error(err)
 			return nil, err
 		}
 	}

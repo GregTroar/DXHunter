@@ -1,5 +1,6 @@
 <script>
   import { createEventDispatcher, onMount, onDestroy } from 'svelte';
+  import { soundManager } from '../lib/soundManager.js';
   
   export let watchlist;
   export let spots;
@@ -10,50 +11,64 @@
   let newCallsign = '';
   let watchlistSpots = [];
   let refreshInterval;
+  let editingNotes = {};
+  let tempNotes = {};
   
   $: matchingSpots = countWatchlistSpots(spots, watchlist);
-  
-  // ✅ Tri alphanumérique simple : 0-9 puis A-Z
   $: displayList = getDisplayList(watchlist, watchlistSpots, showOnlyActive);
   
-  // ✅ Rafraîchir automatiquement les spots de la watchlist
   $: if (watchlist.length > 0) {
     fetchWatchlistSpots();
   }
   
-  // ✅ Rafraîchir aussi quand les spots changent (temps réel)
   $: if (spots.length > 0 && watchlist.length > 0) {
     fetchWatchlistSpots();
   }
   
   onMount(() => {
-    // Rafraîchir toutes les 10 secondes pour être sûr
     refreshInterval = setInterval(() => {
       if (watchlist.length > 0) {
         fetchWatchlistSpots();
       }
     }, 10000);
+    
+    // Listen for watchlist alerts
+    window.addEventListener('watchlistAlert', handleWatchlistAlert);
   });
   
   onDestroy(() => {
     if (refreshInterval) {
       clearInterval(refreshInterval);
     }
+    window.removeEventListener('watchlistAlert', handleWatchlistAlert);
   });
+  
+  function handleWatchlistAlert(event) {
+    const { callsign, playSound } = event.detail;
+    
+    if (playSound) {
+      soundManager.playWatchlistAlert('medium');
+    }
+    
+    // Show toast notification
+    dispatch('toast', { 
+      message: `🎯 ${callsign} spotted!`, 
+      type: 'success'
+    });
+  }
   
   function getDisplayList(wl, wlSpots, activeOnly) {
     let list = wl;
     
     if (activeOnly) {
-      // Filtrer pour ne montrer que les callsigns avec des spots actifs
-      list = wl.filter(cs => {
-        const spots = wlSpots.filter(s => s.dx === cs || s.dx.startsWith(cs));
+      list = wl.filter(entry => {
+        const spots = wlSpots.filter(s => s.dx === entry.callsign || s.dx.startsWith(entry.callsign));
         return spots.length > 0;
       });
     }
     
-    // Tri alphanumérique : 0-9 puis A-Z
-    return [...list].sort((a, b) => a.localeCompare(b, 'en', { numeric: true }));
+    // Sort alphabetically
+    return [...list].sort((a, b) => a.callsign.localeCompare(b.callsign, 'en', { numeric: true }));
   }
   
   async function fetchWatchlistSpots() {
@@ -71,28 +86,25 @@
   
   function countWatchlistSpots(allSpots, wl) {
     return allSpots.filter(spot => 
-      wl.some(pattern => spot.DX === pattern || spot.DX.startsWith(pattern))
+      wl.some(entry => spot.DX === entry.callsign || spot.DX.startsWith(entry.callsign))
     ).length;
   }
-  
-function getMatchingSpotsForCallsign(callsign) {
-  const spots = watchlistSpots.filter(s => s.dx === callsign || s.dx.startsWith(callsign));
-  
-  // ✅ Trier par bande d'abord, puis par heure
-  const bandOrder = { '160M': 0, '80M': 1, '60M': 2, '40M': 3, '30M': 4, '20M': 5, '17M': 6, '15M': 7, '12M': 8, '10M': 9, '6M': 10 };
-  
-  return spots.sort((a, b) => {
-    // Trier par bande en premier
-    const bandA = bandOrder[a.band] ?? 99;
-    const bandB = bandOrder[b.band] ?? 99;
-    if (bandA !== bandB) return bandA - bandB;
+
+  function getMatchingSpotsForCallsign(callsign) {
+    const spots = watchlistSpots.filter(s => s.dx === callsign || s.dx.startsWith(callsign));
     
-    // Si même bande, trier par heure (plus récent en premier)
-    const timeA = a.utcTime || "00:00";
-    const timeB = b.utcTime || "00:00";
-    return timeB.localeCompare(timeA);
-  });
-}
+    const bandOrder = { '160M': 0, '80M': 1, '60M': 2, '40M': 3, '30M': 4, '20M': 5, '17M': 6, '15M': 7, '12M': 8, '10M': 9, '6M': 10 };
+    
+    return spots.sort((a, b) => {
+      const bandA = bandOrder[a.band] ?? 99;
+      const bandB = bandOrder[b.band] ?? 99;
+      if (bandA !== bandB) return bandA - bandB;
+      
+      const timeA = a.utcTime || "00:00";
+      const timeB = b.utcTime || "00:00";
+      return timeB.localeCompare(timeA);
+    });
+  }
   
   async function addToWatchlist() {
     const callsign = newCallsign.trim().toUpperCase();
@@ -115,7 +127,7 @@ function getMatchingSpotsForCallsign(callsign) {
         dispatch('toast', { message: `${callsign} added to watchlist`, type: 'success' });
         await fetchWatchlistSpots();
       } else {
-        dispatch('toast', { message: 'Failed to add callsign', type: 'error' });
+        dispatch('toast', { message: data.error || 'Failed to add callsign', type: 'error' });
       }
     } catch (error) {
       console.error('Error adding to watchlist:', error);
@@ -144,6 +156,51 @@ function getMatchingSpotsForCallsign(callsign) {
     }
   }
   
+  async function updateSound(callsign, playSound) {
+    try {
+      const response = await fetch('/api/watchlist/update-sound', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ callsign, playSound })
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        dispatch('toast', { message: `Sound ${playSound ? 'enabled' : 'disabled'}`, type: 'success' });
+      }
+    } catch (error) {
+      console.error('Error updating sound:', error);
+    }
+  }
+  
+  function startEditNotes(callsign, currentNotes) {
+    editingNotes[callsign] = true;
+    tempNotes[callsign] = currentNotes || '';
+  }
+  
+  async function saveNotes(callsign) {
+    try {
+      const response = await fetch('/api/watchlist/update-notes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ callsign, notes: tempNotes[callsign] || '' })
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        editingNotes[callsign] = false;
+        dispatch('toast', { message: 'Notes saved', type: 'success' });
+      }
+    } catch (error) {
+      console.error('Error saving notes:', error);
+    }
+  }
+  
+  function cancelEditNotes(callsign) {
+    editingNotes[callsign] = false;
+    delete tempNotes[callsign];
+  }
+  
   function handleKeyPress(e) {
     if (e.key === 'Enter') {
       e.preventDefault();
@@ -162,7 +219,6 @@ function getMatchingSpotsForCallsign(callsign) {
     window.dispatchEvent(event);
   }
   
-  // ✅ Fonction pour le toggle
   function toggleActiveOnly() {
     showOnlyActive = !showOnlyActive;
   }
@@ -210,8 +266,8 @@ function getMatchingSpotsForCallsign(callsign) {
         <p class="text-xs mt-1">{showOnlyActive ? 'Click "Active Only" to see all entries' : 'Add callsigns or prefixes to monitor'}</p>
       </div>
     {:else}
-      {#each displayList as callsign}
-        {@const matchingSpots = getMatchingSpotsForCallsign(callsign)}
+      {#each displayList as entry}
+        {@const matchingSpots = getMatchingSpotsForCallsign(entry.callsign)}
         {@const count = matchingSpots.length}
         {@const neededCount = matchingSpots.filter(s => !s.workedBandMode).length}
         {@const borderClass = neededCount > 0 ? 'border-orange-500/30' : 'border-slate-700/50'}
@@ -220,7 +276,12 @@ function getMatchingSpotsForCallsign(callsign) {
           <div class="flex items-center justify-between mb-2">
             <div class="flex-1">
               <div class="flex items-center gap-2 flex-wrap">
-                <div class="font-bold text-pink-400 text-lg">{callsign}</div>
+                <div class="font-bold text-pink-400 text-lg">{entry.callsign}</div>
+                
+                {#if entry.playSound}
+                  <span class="text-xs" title="Sound enabled">🔊</span>
+                {/if}
+                
                 {#if count > 0}
                   <span class="text-xs text-slate-400">{count} active spot{count !== 1 ? 's' : ''}</span>
                   {#if neededCount > 0}
@@ -231,14 +292,62 @@ function getMatchingSpotsForCallsign(callsign) {
                 {:else}
                   <span class="text-xs text-slate-500">No active spots</span>
                 {/if}
+                
+                {#if entry.lastSeenStr && entry.lastSeenStr !== 'Never'}
+                  <span class="text-xs text-slate-500">Last seen: {entry.lastSeenStr}</span>
+                {/if}
               </div>
             </div>
-            <button 
-              on:click={() => removeFromWatchlist(callsign)}
-              title="Remove from watchlist"
-              class="px-2 py-1 text-xs bg-red-600/20 hover:bg-red-600/40 text-red-400 rounded transition-colors">
-              Remove
-            </button>
+            
+            <div class="flex gap-1">
+              <button
+                on:click={() => updateSound(entry.callsign, !entry.playSound)}
+                class="px-2 py-1 text-xs rounded transition-colors {entry.playSound ? 'bg-blue-600/20 text-blue-400' : 'bg-slate-700/50 text-slate-400'}"
+                title="{entry.playSound ? 'Disable' : 'Enable'} sound">
+                {entry.playSound ? '🔊' : '🔇'}
+              </button>
+              
+              <button 
+                on:click={() => removeFromWatchlist(entry.callsign)}
+                title="Remove from watchlist"
+                class="px-2 py-1 text-xs bg-red-600/20 hover:bg-red-600/40 text-red-400 rounded transition-colors">
+                Remove
+              </button>
+            </div>
+          </div>
+          
+          <!-- Notes section -->
+          <div class="mt-2 mb-2">
+            {#if editingNotes[entry.callsign]}
+              <div class="flex gap-2">
+                <input
+                  type="text"
+                  bind:value={tempNotes[entry.callsign]}
+                  placeholder="Add notes..."
+                  class="flex-1 px-2 py-1 bg-slate-700/50 border border-slate-600 rounded text-xs text-white focus:outline-none focus:border-blue-500"
+                />
+                <button
+                  on:click={() => saveNotes(entry.callsign)}
+                  class="px-2 py-1 text-xs bg-green-600 hover:bg-green-700 rounded">
+                  Save
+                </button>
+                <button
+                  on:click={() => cancelEditNotes(entry.callsign)}
+                  class="px-2 py-1 text-xs bg-slate-600 hover:bg-slate-700 rounded">
+                  Cancel
+                </button>
+              </div>
+            {:else}
+              <button
+                on:click={() => startEditNotes(entry.callsign, entry.notes)}
+                class="w-full text-left px-2 py-1 bg-slate-800/30 rounded text-xs text-slate-400 hover:bg-slate-700/30 hover:text-slate-300 transition-colors">
+                {#if entry.notes}
+                  📝 {entry.notes}
+                {:else}
+                  + Add notes...
+                {/if}
+              </button>
+            {/if}
           </div>
           
           {#if count > 0}
@@ -259,6 +368,7 @@ function getMatchingSpotsForCallsign(callsign) {
                       </svg>
                     {/if}
                     <span class="font-bold text-blue-400">{spot.dx}</span>
+                    <span class="text-slate-400 text-xs truncate" style="max-width: 120px;" title="{spot.countryName || 'Unknown'}">{spot.countryName || 'Unknown'}</span>
                     <span class="px-1.5 py-0.5 bg-slate-700/50 rounded flex-shrink-0">{spot.band}</span>
                     <span class="px-1.5 py-0.5 bg-purple-500/20 text-purple-400 rounded flex-shrink-0">{spot.mode}</span>
                     <span class="text-slate-400 font-mono truncate">{spot.frequencyMhz}</span>

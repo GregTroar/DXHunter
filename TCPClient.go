@@ -19,6 +19,21 @@ var spotRe *regexp.Regexp = regexp.MustCompile(`DX\sde\s([\w\d]+).*:\s+(\d+.\d)\
 var defaultLoginRe *regexp.Regexp = regexp.MustCompile("[\\w\\d-_]+ login:")
 var defaultPasswordRe *regexp.Regexp = regexp.MustCompile("Password:")
 
+const (
+	// Reconnection settings
+	MaxReconnectAttempts = 10
+	BaseReconnectDelay   = 1 * time.Second
+	MaxReconnectDelay    = 60 * time.Second
+
+	// Timeout settings
+	ConnectionTimeout = 10 * time.Second
+	LoginTimeout      = 30 * time.Second
+	ReadTimeout       = 5 * time.Minute
+
+	// Channel buffer sizes
+	SpotChannelBuffer = 100
+)
+
 type TCPClient struct {
 	Login                string
 	Password             string
@@ -62,15 +77,15 @@ func NewTCPClient(TCPServer *TCPServer, Countries Countries, contactRepo *Log4OM
 		MsgChan:              TCPServer.MsgChan,
 		CmdChan:              TCPServer.CmdChan,
 		SpotChanToHTTPServer: spotChanToHTTPServer,
-		SpotChanToFlex:       make(chan TelnetSpot, 100),
+		SpotChanToFlex:       make(chan TelnetSpot, SpotChannelBuffer),
 		TCPServer:            *TCPServer,
 		Countries:            Countries,
 		ContactRepo:          contactRepo,
 		ctx:                  ctx,
 		cancel:               cancel,
-		maxReconnectAttempts: 10,               // Max 10 tentatives avant abandon
-		baseReconnectDelay:   1 * time.Second,  // Délai initial
-		maxReconnectDelay:    60 * time.Second, // Max 1 minute entre tentatives
+		maxReconnectAttempts: MaxReconnectAttempts,
+		baseReconnectDelay:   BaseReconnectDelay,
+		maxReconnectDelay:    MaxReconnectDelay,
 	}
 }
 
@@ -108,7 +123,7 @@ func (c *TCPClient) connect() error {
 
 	Log.Debugf("Attempting to connect to %s (attempt %d/%d)", addr, c.reconnectAttempts+1, c.maxReconnectAttempts)
 
-	conn, err := net.DialTimeout("tcp", addr, 10*time.Second)
+	conn, err := net.DialTimeout("tcp", addr, ConnectionTimeout)
 	if err != nil {
 		return fmt.Errorf("failed to connect to %s: %w", addr, err)
 	}
@@ -267,12 +282,19 @@ func (c *TCPClient) ReadLine() {
 		}
 
 		if c.LoggedIn {
+			// Check for cancellation before reading
+			select {
+			case <-c.ctx.Done():
+				return
+			default:
+			}
+
 			// Lecture avec timeout pour détecter les connexions mortes
-			c.Conn.SetReadDeadline(time.Now().Add(5 * time.Minute))
+			c.Conn.SetReadDeadline(time.Now().Add(ReadTimeout))
 			message, err := c.Reader.ReadBytes('\n')
 			if err != nil {
 				Log.Errorf("Error reading message: %s", err)
-				return // ✅ Retour au lieu de récursion - la boucle principale va reconnecter
+				return
 			}
 			c.Conn.SetReadDeadline(time.Time{}) // Reset deadline
 

@@ -1,5 +1,4 @@
 <script>
-  export let topSpotters;
   export let spots;
   
   const BANDS = ['160M', '80M', '60M', '40M', '30M', '20M', '17M', '15M', '12M', '10M', '6M'];
@@ -30,24 +29,7 @@
 </script>
 
 <div class="h-full overflow-y-auto">
-  <div class="p-3 border-b border-slate-700/50">
-    <h2 class="text-lg font-bold">Top 3 Spotters</h2>
-  </div>
-  
-  <div class="p-3">
-    {#each topSpotters.slice(0, 3) as spotter, index}
-      <div class="flex items-center justify-between mb-2 p-2 bg-slate-900/30 rounded hover:bg-slate-700/30 transition-colors">
-        <div class="flex items-center gap-2">
-          <div class="w-6 h-6 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-xs font-bold">
-            {index + 1}
-          </div>
-          <span class="text-sm font-semibold">{spotter.Spotter}</span>
-        </div>
-        <span class="text-slate-400 font-mono text-xs">{spotter.NumberofSpots}</span>
-      </div>
-    {/each}
-  </div>
-  
+ 
   <div class="p-3 border-t border-slate-700/50">
     <h2 class="text-lg font-bold mb-3">Band Propagation</h2>
   </div>

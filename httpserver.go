@@ -44,7 +44,6 @@ type HTTPServer struct {
 
 type Stats struct {
 	TotalSpots       int     `json:"totalSpots"`
-	ActiveSpotters   int     `json:"activeSpotters"`
 	NewDXCC          int     `json:"newDXCC"`
 	ConnectedClients int     `json:"connectedClients"`
 	TotalContacts    int     `json:"totalContacts"`
@@ -149,19 +148,20 @@ func (s *HTTPServer) setupRoutes() {
 	api.HandleFunc("/stats", s.getStats).Methods("GET", "OPTIONS")
 	api.HandleFunc("/spots", s.getSpots).Methods("GET", "OPTIONS")
 	api.HandleFunc("/spots/{id}", s.getSpotByID).Methods("GET", "OPTIONS")
-	api.HandleFunc("/spotters", s.getTopSpotters).Methods("GET", "OPTIONS")
 	api.HandleFunc("/contacts", s.getContacts).Methods("GET", "OPTIONS")
 	api.HandleFunc("/filters", s.updateFilters).Methods("POST", "OPTIONS")
 	api.HandleFunc("/shutdown", s.shutdownApp).Methods("POST", "OPTIONS")
 	api.HandleFunc("/send-callsign", s.handleSendCallsign).Methods("POST", "OPTIONS")
 	api.HandleFunc("/watchlist", s.getWatchlist).Methods("GET", "OPTIONS")
-	api.HandleFunc("/watchlist/add", s.addToWatchlist).Methods("POST", "OPTIONS")
-	api.HandleFunc("/watchlist/remove", s.removeFromWatchlist).Methods("DELETE", "OPTIONS")
 	api.HandleFunc("/solar", s.HandleSolarData).Methods("GET", "OPTIONS")
 	api.HandleFunc("/log/recent", s.getRecentQSOs).Methods("GET", "OPTIONS")
 	api.HandleFunc("/log/stats", s.getLogStats).Methods("GET", "OPTIONS")
 	api.HandleFunc("/log/dxcc-progress", s.getDXCCProgress).Methods("GET", "OPTIONS")
 	api.HandleFunc("/watchlist/spots", s.getWatchlistSpotsWithStatus).Methods("GET", "OPTIONS")
+	api.HandleFunc("/watchlist/add", s.addToWatchlist).Methods("POST", "OPTIONS")
+	api.HandleFunc("/watchlist/remove", s.removeFromWatchlist).Methods("DELETE", "OPTIONS")
+	api.HandleFunc("/watchlist/update-notes", s.updateWatchlistNotes).Methods("POST", "OPTIONS")
+	api.HandleFunc("/watchlist/update-sound", s.updateWatchlistSound).Methods("POST", "OPTIONS")
 
 	// WebSocket endpoint
 	api.HandleFunc("/ws", s.handleWebSocket).Methods("GET")
@@ -250,10 +250,6 @@ func (s *HTTPServer) sendInitialData(conn *websocket.Conn) {
 	spots := s.FlexRepo.GetAllSpots("0")
 	conn.WriteJSON(WSMessage{Type: "spots", Data: spots})
 
-	// Send initial spotters
-	spotters := s.FlexRepo.GetSpotters()
-	conn.WriteJSON(WSMessage{Type: "spotters", Data: spotters})
-
 	// Send initial watchlist
 	watchlist := s.Watchlist.GetAll()
 	conn.WriteJSON(WSMessage{Type: "watchlist", Data: watchlist})
@@ -296,11 +292,13 @@ func (s *HTTPServer) handleBroadcasts() {
 func (s *HTTPServer) broadcastUpdates() {
 	statsTicker := time.NewTicker(1 * time.Second)
 	logTicker := time.NewTicker(10 * time.Second)
-	cleanupTicker := time.NewTicker(5 * time.Minute) // ✅ AJOUTER
+	cleanupTicker := time.NewTicker(5 * time.Minute)
+	watchlistSaveTicker := time.NewTicker(30 * time.Second)
 
 	defer statsTicker.Stop()
 	defer logTicker.Stop()
-	defer cleanupTicker.Stop() // ✅ AJOUTER
+	defer cleanupTicker.Stop()
+	defer watchlistSaveTicker.Stop()
 
 	for {
 		select {
@@ -321,10 +319,6 @@ func (s *HTTPServer) broadcastUpdates() {
 			spots := s.FlexRepo.GetAllSpots("0")
 			s.checkBandOpening(spots)
 			s.broadcast <- WSMessage{Type: "spots", Data: spots}
-
-			// Broadcast spotters
-			spotters := s.FlexRepo.GetSpotters()
-			s.broadcast <- WSMessage{Type: "spotters", Data: spotters}
 
 		case <-logTicker.C:
 			s.wsMutex.RLock()
@@ -351,6 +345,12 @@ func (s *HTTPServer) broadcastUpdates() {
 			}
 
 			s.broadcast <- WSMessage{Type: "dxccProgress", Data: dxccData}
+
+		case <-watchlistSaveTicker.C:
+			// Sauvegarder la watchlist périodiquement
+			if s.Watchlist != nil {
+				s.Watchlist.save()
+			}
 		}
 	}
 }
@@ -444,7 +444,6 @@ func (s *HTTPServer) getDXCCProgress(w http.ResponseWriter, r *http.Request) {
 
 func (s *HTTPServer) calculateStats() Stats {
 	allSpots := s.FlexRepo.GetAllSpots("0")
-	spotters := s.FlexRepo.GetSpotters()
 	contacts := s.ContactRepo.CountEntries()
 
 	newDXCCCount := 0
@@ -466,7 +465,6 @@ func (s *HTTPServer) calculateStats() Stats {
 
 	return Stats{
 		TotalSpots:       len(allSpots),
-		ActiveSpotters:   len(spotters),
 		NewDXCC:          newDXCCCount,
 		ConnectedClients: len(s.TCPServer.Clients),
 		TotalContacts:    contacts,
@@ -523,11 +521,6 @@ func (s *HTTPServer) getSpotByID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.sendJSON(w, APIResponse{Success: true, Data: spot})
-}
-
-func (s *HTTPServer) getTopSpotters(w http.ResponseWriter, r *http.Request) {
-	spotters := s.FlexRepo.GetSpotters()
-	s.sendJSON(w, APIResponse{Success: true, Data: spotters})
 }
 
 func (s *HTTPServer) getContacts(w http.ResponseWriter, r *http.Request) {
@@ -660,12 +653,76 @@ func (s *HTTPServer) removeFromWatchlist(w http.ResponseWriter, r *http.Request)
 	s.sendJSON(w, APIResponse{Success: true, Message: "Callsign removed from watchlist"})
 }
 
+func (s *HTTPServer) updateWatchlistNotes(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Callsign string `json:"callsign"`
+		Notes    string `json:"notes"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		s.sendJSON(w, APIResponse{Success: false, Error: "Invalid request"})
+		return
+	}
+
+	if req.Callsign == "" {
+		s.sendJSON(w, APIResponse{Success: false, Error: "Callsign is required"})
+		return
+	}
+
+	if err := s.Watchlist.UpdateNotes(req.Callsign, req.Notes); err != nil {
+		s.sendJSON(w, APIResponse{Success: false, Error: err.Error()})
+		return
+	}
+
+	s.Log.Debugf("Updated notes for %s", req.Callsign)
+
+	// Broadcast updated watchlist to all clients
+	s.broadcast <- WSMessage{Type: "watchlist", Data: s.Watchlist.GetAll()}
+
+	s.sendJSON(w, APIResponse{Success: true, Message: "Notes updated"})
+}
+
+func (s *HTTPServer) updateWatchlistSound(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Callsign  string `json:"callsign"`
+		PlaySound bool   `json:"playSound"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		s.sendJSON(w, APIResponse{Success: false, Error: "Invalid request"})
+		return
+	}
+
+	if req.Callsign == "" {
+		s.sendJSON(w, APIResponse{Success: false, Error: "Callsign is required"})
+		return
+	}
+
+	if err := s.Watchlist.UpdateSound(req.Callsign, req.PlaySound); err != nil {
+		s.sendJSON(w, APIResponse{Success: false, Error: err.Error()})
+		return
+	}
+
+	s.Log.Debugf("Updated sound setting for %s to %v", req.Callsign, req.PlaySound)
+
+	// Broadcast updated watchlist to all clients
+	s.broadcast <- WSMessage{Type: "watchlist", Data: s.Watchlist.GetAll()}
+
+	s.sendJSON(w, APIResponse{Success: true, Message: "Sound setting updated"})
+}
+
 func (s *HTTPServer) getWatchlistSpotsWithStatus(w http.ResponseWriter, r *http.Request) {
 	// Récupérer tous les spots
 	allSpots := s.FlexRepo.GetAllSpots("0")
 
-	// Récupérer la watchlist
-	watchlistCallsigns := s.Watchlist.GetAll()
+	// Récupérer la watchlist (maintenant ce sont des WatchlistEntry)
+	watchlistEntries := s.Watchlist.GetAll()
+
+	// Extraire juste les callsigns pour la comparaison
+	watchlistCallsigns := make([]string, len(watchlistEntries))
+	for i, entry := range watchlistEntries {
+		watchlistCallsigns[i] = entry.Callsign
+	}
 
 	// Filtrer les spots de la watchlist
 	var relevantSpots []FlexSpot
