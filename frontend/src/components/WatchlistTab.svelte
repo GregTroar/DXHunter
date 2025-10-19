@@ -11,8 +11,6 @@
   let newCallsign = '';
   let watchlistSpots = [];
   let refreshInterval;
-  let editingNotes = {};
-  let tempNotes = {};
   
   $: matchingSpots = countWatchlistSpots(spots, watchlist);
   $: displayList = getDisplayList(watchlist, watchlistSpots, showOnlyActive);
@@ -32,7 +30,6 @@
       }
     }, 10000);
     
-    // Listen for watchlist alerts
     window.addEventListener('watchlistAlert', handleWatchlistAlert);
   });
   
@@ -50,7 +47,6 @@
       soundManager.playWatchlistAlert('medium');
     }
     
-    // Show toast notification
     dispatch('toast', { 
       message: `🎯 ${callsign} spotted!`, 
       type: 'success'
@@ -67,7 +63,6 @@
       });
     }
     
-    // Sort alphabetically
     return [...list].sort((a, b) => a.callsign.localeCompare(b.callsign, 'en', { numeric: true }));
   }
   
@@ -173,34 +168,6 @@
     }
   }
   
-  function startEditNotes(callsign, currentNotes) {
-    editingNotes[callsign] = true;
-    tempNotes[callsign] = currentNotes || '';
-  }
-  
-  async function saveNotes(callsign) {
-    try {
-      const response = await fetch('/api/watchlist/update-notes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ callsign, notes: tempNotes[callsign] || '' })
-      });
-      
-      const data = await response.json();
-      if (data.success) {
-        editingNotes[callsign] = false;
-        dispatch('toast', { message: 'Notes saved', type: 'success' });
-      }
-    } catch (error) {
-      console.error('Error saving notes:', error);
-    }
-  }
-  
-  function cancelEditNotes(callsign) {
-    editingNotes[callsign] = false;
-    delete tempNotes[callsign];
-  }
-  
   function handleKeyPress(e) {
     if (e.key === 'Enter') {
       e.preventDefault();
@@ -294,7 +261,11 @@
                 {/if}
                 
                 {#if entry.lastSeenStr && entry.lastSeenStr !== 'Never'}
-                  <span class="text-xs text-slate-500">Last seen: {entry.lastSeenStr}</span>
+                  <span class="text-xs text-slate-500">• {entry.lastSeenStr}</span>
+                {/if}
+                
+                {#if entry.spotCount > 0}
+                  <span class="text-xs text-slate-600">• {entry.spotCount} total spot{entry.spotCount !== 1 ? 's' : ''}</span>
                 {/if}
               </div>
             </div>
@@ -314,40 +285,6 @@
                 Remove
               </button>
             </div>
-          </div>
-          
-          <!-- Notes section -->
-          <div class="mt-2 mb-2">
-            {#if editingNotes[entry.callsign]}
-              <div class="flex gap-2">
-                <input
-                  type="text"
-                  bind:value={tempNotes[entry.callsign]}
-                  placeholder="Add notes..."
-                  class="flex-1 px-2 py-1 bg-slate-700/50 border border-slate-600 rounded text-xs text-white focus:outline-none focus:border-blue-500"
-                />
-                <button
-                  on:click={() => saveNotes(entry.callsign)}
-                  class="px-2 py-1 text-xs bg-green-600 hover:bg-green-700 rounded">
-                  Save
-                </button>
-                <button
-                  on:click={() => cancelEditNotes(entry.callsign)}
-                  class="px-2 py-1 text-xs bg-slate-600 hover:bg-slate-700 rounded">
-                  Cancel
-                </button>
-              </div>
-            {:else}
-              <button
-                on:click={() => startEditNotes(entry.callsign, entry.notes)}
-                class="w-full text-left px-2 py-1 bg-slate-800/30 rounded text-xs text-slate-400 hover:bg-slate-700/30 hover:text-slate-300 transition-colors">
-                {#if entry.notes}
-                  📝 {entry.notes}
-                {:else}
-                  + Add notes...
-                {/if}
-              </button>
-            {/if}
           </div>
           
           {#if count > 0}

@@ -10,8 +10,8 @@ import (
 )
 
 type WatchlistEntry struct {
-	Callsign    string    `json:"callsign"`
-	Notes       string    `json:"notes"`
+	Callsign string `json:"callsign"`
+	// ✅ NOTES SUPPRIMÉES
 	LastSeen    time.Time `json:"lastSeen"`
 	LastSeenStr string    `json:"lastSeenStr"`
 	AddedAt     time.Time `json:"addedAt"`
@@ -67,7 +67,6 @@ func (w *Watchlist) load() {
 	Log.Infof("Loaded %d entries from watchlist", len(w.entries))
 }
 
-// saveUnsafe fait la sauvegarde SANS prendre de lock (à utiliser quand on a déjà un lock)
 func (w *Watchlist) saveUnsafe() error {
 	entries := make([]WatchlistEntry, 0, len(w.entries))
 	for _, entry := range w.entries {
@@ -89,7 +88,6 @@ func (w *Watchlist) saveUnsafe() error {
 	return nil
 }
 
-// save est la version publique avec lock (pour les appels périodiques depuis httpserver)
 func (w *Watchlist) save() error {
 	w.mutex.RLock()
 	defer w.mutex.RUnlock()
@@ -115,8 +113,8 @@ func (w *Watchlist) Add(callsign string) error {
 	}
 
 	w.entries[callsign] = &WatchlistEntry{
-		Callsign:    callsign,
-		Notes:       "",
+		Callsign: callsign,
+		// ✅ PAS DE NOTES
 		AddedAt:     time.Now(),
 		LastSeen:    time.Time{},
 		LastSeenStr: "Never",
@@ -157,28 +155,8 @@ func (w *Watchlist) Remove(callsign string) error {
 	return nil
 }
 
-func (w *Watchlist) UpdateNotes(callsign, notes string) error {
-	w.mutex.Lock()
-	defer w.mutex.Unlock()
-
-	callsign = strings.ToUpper(strings.TrimSpace(callsign))
-
-	entry, exists := w.entries[callsign]
-	if !exists {
-		Log.Warnf("Attempted to update notes for non-existent callsign: %s", callsign)
-		return fmt.Errorf("callsign not in watchlist")
-	}
-
-	entry.Notes = notes
-	Log.Debugf("Updated notes for %s", callsign)
-
-	if err := w.saveUnsafe(); err != nil {
-		Log.Errorf("Failed to save watchlist after updating notes for %s: %v", callsign, err)
-		return err
-	}
-
-	return nil
-}
+// ✅ FONCTION SUPPRIMÉE
+// func (w *Watchlist) UpdateNotes(callsign, notes string) error { ... }
 
 func (w *Watchlist) UpdateSound(callsign string, playSound bool) error {
 	w.mutex.Lock()
@@ -219,9 +197,6 @@ func (w *Watchlist) MarkSeen(callsign string) {
 	entry.SpotCount++
 
 	Log.Debugf("Marked %s as seen (count: %d)", callsign, entry.SpotCount)
-
-	// Ne PAS sauvegarder à chaque spot - trop lent !
-	// La sauvegarde sera faite périodiquement par le ticker
 }
 
 func (w *Watchlist) Matches(callsign string) bool {
@@ -247,7 +222,6 @@ func (w *Watchlist) GetEntry(callsign string) *WatchlistEntry {
 
 	for pattern, entry := range w.entries {
 		if callsign == pattern || strings.HasPrefix(callsign, pattern) {
-			// Retourner une copie pour éviter les race conditions
 			entryCopy := *entry
 			return &entryCopy
 		}
@@ -262,7 +236,6 @@ func (w *Watchlist) GetAll() []WatchlistEntry {
 
 	entries := make([]WatchlistEntry, 0, len(w.entries))
 	for _, entry := range w.entries {
-		// Mettre à jour LastSeenStr avant de retourner
 		entryCopy := *entry
 		if !entryCopy.LastSeen.IsZero() {
 			entryCopy.LastSeenStr = formatLastSeen(entryCopy.LastSeen)

@@ -1,6 +1,6 @@
 class SoundManager {
   constructor() {
-    this.enabled = true;
+    this.enabled = false;
     this.audioContext = null;
     this.sounds = {};
     this.init();

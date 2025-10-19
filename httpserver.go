@@ -167,7 +167,6 @@ func (s *HTTPServer) setupRoutes() {
 	api.HandleFunc("/watchlist/spots", s.getWatchlistSpotsWithStatus).Methods("GET", "OPTIONS")
 	api.HandleFunc("/watchlist/add", s.addToWatchlist).Methods("POST", "OPTIONS")
 	api.HandleFunc("/watchlist/remove", s.removeFromWatchlist).Methods("DELETE", "OPTIONS")
-	api.HandleFunc("/watchlist/update-notes", s.updateWatchlistNotes).Methods("POST", "OPTIONS")
 	api.HandleFunc("/watchlist/update-sound", s.updateWatchlistSound).Methods("POST", "OPTIONS")
 	api.HandleFunc("/stats/spots", s.getSpotProcessingStats).Methods("GET", "OPTIONS")
 	api.HandleFunc("/logs", s.getLogs).Methods("GET", "OPTIONS")
@@ -712,11 +711,6 @@ func (s *HTTPServer) updateWatchlistNotes(w http.ResponseWriter, r *http.Request
 
 	if req.Callsign == "" {
 		s.sendJSON(w, APIResponse{Success: false, Error: "Callsign is required"})
-		return
-	}
-
-	if err := s.Watchlist.UpdateNotes(req.Callsign, req.Notes); err != nil {
-		s.sendJSON(w, APIResponse{Success: false, Error: err.Error()})
 		return
 	}
 

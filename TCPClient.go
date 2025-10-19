@@ -134,8 +134,6 @@ func (c *TCPClient) connect() error {
 	c.LoggedIn = false
 	c.reconnectAttempts = 0 // Reset sur connexion réussie
 
-	Log.Infof("Successfully connected to %s", addr)
-
 	return nil
 }
 
