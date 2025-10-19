@@ -252,7 +252,7 @@ func (spot *TelnetSpot) GuessMode(rawSpot string) {
 	// ✅ Si pas de mode, deviner depuis la fréquence
 	if spot.Mode == "" {
 		freqInt, err := strconv.ParseFloat(spot.Frequency, 32)
-		Log.Debugf("No mode specified in spot, will guess from frequency %v with spot: %s", freqInt, strings.TrimSpace(rawSpot))
+		Log.Debugf("No mode specified in spot, will guess from frequency %v with spot: %s", spot.Frequency, strings.TrimSpace(rawSpot))
 		if err != nil {
 			Log.Errorf("could not convert frequency string to float: %v", err)
 			return
