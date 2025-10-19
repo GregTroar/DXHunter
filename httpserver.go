@@ -21,6 +21,7 @@ import (
 
 //go:embed frontend/dist/*
 var frontendFiles embed.FS
+var httpServerInstance *HTTPServer
 
 type HTTPServer struct {
 	Router          *mux.Router
@@ -52,6 +53,10 @@ type Stats struct {
 	MyCallsign       string  `json:"myCallsign"`
 	Mode             string  `json:"mode"`
 	Filters          Filters `json:"filters"`
+	SpotsReceived    int64   `json:"spotsReceived"`
+	SpotsProcessed   int64   `json:"spotsProcessed"`
+	SpotsRejected    int64   `json:"spotsRejected"`
+	SpotSuccessRate  float64 `json:"spotSuccessRate"`
 }
 
 type Filters struct {
@@ -131,6 +136,8 @@ func NewHTTPServer(flexRepo *FlexDXClusterRepository, contactRepo *Log4OMContact
 		lastBandOpening: make(map[string]time.Time),
 	}
 
+	httpServerInstance = server
+
 	server.setupRoutes()
 	go server.handleBroadcasts()
 	go server.broadcastUpdates()
@@ -162,6 +169,8 @@ func (s *HTTPServer) setupRoutes() {
 	api.HandleFunc("/watchlist/remove", s.removeFromWatchlist).Methods("DELETE", "OPTIONS")
 	api.HandleFunc("/watchlist/update-notes", s.updateWatchlistNotes).Methods("POST", "OPTIONS")
 	api.HandleFunc("/watchlist/update-sound", s.updateWatchlistSound).Methods("POST", "OPTIONS")
+	api.HandleFunc("/stats/spots", s.getSpotProcessingStats).Methods("GET", "OPTIONS")
+	api.HandleFunc("/logs", s.getLogs).Methods("GET", "OPTIONS")
 
 	// WebSocket endpoint
 	api.HandleFunc("/ws", s.handleWebSocket).Methods("GET")
@@ -268,6 +277,11 @@ func (s *HTTPServer) sendInitialData(conn *websocket.Conn) {
 		"percentage": float64(dxccCount) / 340.0 * 100.0,
 	}
 	conn.WriteJSON(WSMessage{Type: "dxccProgress", Data: dxccData})
+
+	if logBuffer != nil {
+		logs := logBuffer.GetAll()
+		conn.WriteJSON(WSMessage{Type: "appLogs", Data: logs})
+	}
 }
 
 func (s *HTTPServer) handleBroadcasts() {
@@ -353,6 +367,30 @@ func (s *HTTPServer) broadcastUpdates() {
 			}
 		}
 	}
+}
+
+func (s *HTTPServer) getLogs(w http.ResponseWriter, r *http.Request) {
+	if logBuffer == nil {
+		s.sendJSON(w, APIResponse{Success: true, Data: []LogEntry{}})
+		return
+	}
+
+	logs := logBuffer.GetAll()
+	s.sendJSON(w, APIResponse{Success: true, Data: logs})
+}
+
+func (s *HTTPServer) getSpotProcessingStats(w http.ResponseWriter, r *http.Request) {
+	received, processed, rejected := GetSpotStats()
+	successRate := GetSpotSuccessRate()
+
+	stats := map[string]interface{}{
+		"received":    received,
+		"processed":   processed,
+		"rejected":    rejected,
+		"successRate": successRate,
+	}
+
+	s.sendJSON(w, APIResponse{Success: true, Data: stats})
 }
 
 func (s *HTTPServer) checkQSOMilestones(todayCount int) {
@@ -463,6 +501,10 @@ func (s *HTTPServer) calculateStats() Stats {
 		flexStatus = "connected"
 	}
 
+	// Récupérer les stats de traitement des spots
+	received, processed, rejected := GetSpotStats()
+	successRate := GetSpotSuccessRate()
+
 	return Stats{
 		TotalSpots:       len(allSpots),
 		NewDXCC:          newDXCCCount,
@@ -477,6 +519,10 @@ func (s *HTTPServer) calculateStats() Stats {
 			FT4:     Cfg.Cluster.FT4,
 			Beacon:  Cfg.Cluster.Beacon,
 		},
+		SpotsReceived:   received,
+		SpotsProcessed:  processed,
+		SpotsRejected:   rejected,
+		SpotSuccessRate: successRate,
 	}
 }
 
@@ -901,6 +947,7 @@ func (s *HTTPServer) sendJSON(w http.ResponseWriter, data interface{}) {
 	json.NewEncoder(w).Encode(data)
 }
 
+// ✅ Fonction de shutdown propre
 func (s *HTTPServer) shutdownApp(w http.ResponseWriter, r *http.Request) {
 	s.Log.Info("Shutdown request received from dashboard")
 
@@ -908,7 +955,10 @@ func (s *HTTPServer) shutdownApp(w http.ResponseWriter, r *http.Request) {
 
 	go func() {
 		time.Sleep(500 * time.Millisecond)
-		s.Log.Info("Initiating shutdown...")
+
+		// ✅ Utiliser le shutdown centralisé
+		GracefulShutdown(s.TCPClient, s.TCPServer, s.FlexClient, s.FlexRepo, s.ContactRepo)
+
 		os.Exit(0)
 	}()
 }

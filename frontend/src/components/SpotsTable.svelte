@@ -51,7 +51,6 @@
   }
   
   function getCleanComment(spot) {
-    // Retirer le commentaire original brut s'il existe
     if (!spot.OriginalComment) return '';
     return spot.OriginalComment.trim();
   }
@@ -67,11 +66,11 @@
     <div class="flex text-left text-xs text-slate-400 font-semibold">
       <div class="p-2" style="width: 10%;">DX</div>
       <div class="p-2" style="width: 18%;">Country</div>
+      <div class="p-2" style="width: 7%;">Time</div>
       <div class="p-2" style="width: 10%;">Freq</div>
       <div class="p-2" style="width: 7%;">Band</div>
       <div class="p-2" style="width: 7%;">Mode</div>
       <div class="p-2" style="width: 10%;">Spotter</div>
-      <div class="p-2" style="width: 7%;">Time</div>
       <div class="p-2" style="width: 18%;">Comment</div>
       <div class="p-2" style="width: 13%;">Status</div>
     </div>
@@ -92,6 +91,7 @@
         <div class="p-2 flex items-center text-slate-400 text-xs truncate" style="width: 18%;" title={item.CountryName || 'N/A'}>
           {item.CountryName || 'N/A'}
         </div>
+        <div class="p-2 flex items-center text-slate-400 text-xs" style="width: 7%;">{item.UTCTime}</div>
         <div class="p-2 flex items-center font-mono text-xs" style="width: 10%;">{item.FrequencyMhz}</div>
         <div class="p-2 flex items-center" style="width: 7%;">
           <span class="px-1.5 py-0.5 bg-slate-700/50 rounded text-xs">{item.Band}</span>
@@ -102,7 +102,6 @@
         <div class="p-2 flex items-center text-slate-300 text-xs truncate" style="width: 10%;" title={item.SpotterCallsign}>
           {item.SpotterCallsign}
         </div>
-        <div class="p-2 flex items-center text-slate-400 text-xs" style="width: 7%;">{item.UTCTime}</div>
         <div class="p-2 flex items-center text-slate-400 text-xs truncate" style="width: 18%;" title={getCleanComment(item)}>
           {getCleanComment(item)}
         </div>

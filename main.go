@@ -33,6 +33,35 @@ func ParseFlags() (string, error) {
 	return configPath, nil
 }
 
+func GracefulShutdown(tcpClient *TCPClient, tcpServer *TCPServer, flexClient *FlexClient, flexRepo *FlexDXClusterRepository, contactRepo *Log4OMContactsRepository) {
+	Log.Info("Starting graceful shutdown...")
+
+	// Fermer les clients
+	if tcpClient != nil {
+		tcpClient.Close()
+	}
+	if flexClient != nil {
+		flexClient.Close()
+	}
+
+	// Fermer les serveurs
+	if tcpServer != nil {
+		// tcpServer.Close() si tu as une méthode close
+	}
+
+	// Fermer les bases de données
+	if flexRepo != nil && flexRepo.db != nil {
+		flexRepo.db.Close()
+	}
+	if contactRepo != nil && contactRepo.db != nil {
+		contactRepo.db.Close()
+	}
+
+	// ✅ Fermer le log en dernier
+	Log.Info("Shutdown complete")
+	CloseLog()
+}
+
 func main() {
 
 	// Generate our config based on the config supplied
@@ -42,17 +71,18 @@ func main() {
 		log.Fatal(err)
 	}
 
-	cfg := NewConfig(cfgPath)
+	NewConfig(cfgPath)
 
 	log := NewLog()
+	defer CloseLog()
 	log.Info("Running FlexDXCluster version 2.1")
-	log.Infof("Callsign: %s", cfg.General.Callsign)
+	log.Infof("Callsign: %s", Cfg.General.Callsign)
 
 	DeleteDatabase("./flex.sqlite", log)
 
-	log.Debugf("Gotify Push Enabled: %v", cfg.Gotify.Enable)
-	if cfg.Gotify.Enable {
-		log.Debugf("Gotify Push NewDXCC: %v - NewBand: %v - NewMode: %v - NewBandAndMode: %v", cfg.Gotify.NewDXCC, cfg.Gotify.NewBand, cfg.Gotify.NewMode, cfg.Gotify.NewBandAndMode)
+	log.Debugf("Gotify Push Enabled: %v", Cfg.Gotify.Enable)
+	if Cfg.Gotify.Enable {
+		log.Debugf("Gotify Push NewDXCC: %v - NewBand: %v - NewMode: %v - NewBandAndMode: %v", Cfg.Gotify.NewDXCC, Cfg.Gotify.NewBand, Cfg.Gotify.NewMode, Cfg.Gotify.NewBandAndMode)
 	}
 
 	// Load country.xml to get all the DXCC number
@@ -64,7 +94,7 @@ func main() {
 	defer fRepo.db.Close()
 
 	// Database connection to Log4OM
-	cRepo := NewLog4OMContactsRepository(cfg.SQLite.SQLitePath)
+	cRepo := NewLog4OMContactsRepository(Cfg.SQLite.SQLitePath)
 	defer cRepo.db.Close()
 	contacts := cRepo.CountEntries()
 	log.Infof("Log4OM Database Contains %v Contacts", contacts)
@@ -73,12 +103,13 @@ func main() {
 	SpotChanToHTTPServer := make(chan TelnetSpot, 100)
 
 	// Initialize servers and clients
-	TCPServer := NewTCPServer(cfg.TelnetServer.Host, cfg.TelnetServer.Port)
+	TCPServer := NewTCPServer(Cfg.TelnetServer.Host, Cfg.TelnetServer.Port)
 	TCPClient := NewTCPClient(TCPServer, Countries, cRepo, SpotChanToHTTPServer)
 	FlexClient := NewFlexClient(*fRepo, TCPServer, nil, nil)
 
 	// Initialize HTTP Server for Dashboard
 	HTTPServer := NewHTTPServer(fRepo, cRepo, TCPServer, TCPClient, FlexClient, "8080")
+	InitLogHook()
 
 	FlexClient.HTTPServer = HTTPServer
 
@@ -92,8 +123,8 @@ func main() {
 	go TCPServer.StartServer()
 	go HTTPServer.Start()
 
-	log.Infof("Telnet Server: %s:%s", cfg.TelnetServer.Host, cfg.TelnetServer.Port)
-	log.Infof("Cluster: %s:%s", cfg.Cluster.Server, cfg.Cluster.Port)
+	log.Infof("Telnet Server: %s:%s", Cfg.TelnetServer.Host, Cfg.TelnetServer.Port)
+	log.Infof("Cluster: %s:%s", Cfg.Cluster.Server, Cfg.Cluster.Port)
 
 	CheckSignal(TCPClient, TCPServer, FlexClient, fRepo, cRepo)
 

@@ -10,6 +10,7 @@
   import ErrorBanner from './components/ErrorBanner.svelte';
   import { spotWorker } from './lib/spotWorker.js';
   import { spotCache } from './lib/spotCache.js';
+  import LogsTab from './components/LogsTab.svelte';
 
   
   // State
@@ -39,6 +40,7 @@
   let errorMessage = '';
   let toastMessage = '';
   let toastType = 'info';
+  let logs = [];
   
   let spotFilters = {
     showAll: true,
@@ -328,6 +330,21 @@
           spotCache.saveQSOs(recentQSOs).catch(err => console.error('Cache save error:', err));
         }
         break;
+      case 'appLog':
+        // Un seul log applicatif
+        if (message.data) {
+          logs = [...logs, message.data];
+          // Garder seulement les 500 derniers
+          if (logs.length > 500) {
+            logs = logs.slice(-500);
+          }
+        }
+        break;
+      case 'appLogs':
+        // Logs initiaux (au chargement)
+        logs = message.data || [];
+        break;
+      
       case 'logStats':
         logStats = message.data || {};
         break;
@@ -608,6 +625,7 @@ async function shutdownApp() {
         {recentQSOs}
         {logStats}
         {dxccProgress}
+        {logs}
         on:toast={(e) => showToast(e.detail.message, e.detail.type)}
       />
     </div>

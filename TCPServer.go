@@ -16,31 +16,34 @@ var (
 )
 
 type TCPServer struct {
-	Address     string
-	Port        string
-	Clients     map[net.Conn]bool
-	Mutex       *sync.Mutex
-	LogWriter   *bufio.Writer
-	Reader      *bufio.Reader
-	Writer      *bufio.Writer
-	Conn        net.Conn
-	Listener    net.Listener
-	MsgChan     chan string
-	CmdChan     chan string
-	Log         *log.Logger
-	Config      *Config
-	MessageSent int
+	Address   string
+	Port      string
+	Clients   map[net.Conn]*ClientInfo // ✅ Map avec structure ClientInfo
+	Mutex     *sync.Mutex
+	LogWriter *bufio.Writer
+	Reader    *bufio.Reader
+	Writer    *bufio.Writer
+	Conn      net.Conn
+	Listener  net.Listener
+	MsgChan   chan string
+	CmdChan   chan string
+	Log       *log.Logger
+	Config    *Config
+}
+
+// ✅ Structure pour stocker les infos client
+type ClientInfo struct {
+	ConnectedAt time.Time
 }
 
 func NewTCPServer(address string, port string) *TCPServer {
 	return &TCPServer{
-		Address:     address,
-		Port:        port,
-		Clients:     make(map[net.Conn]bool),
-		MsgChan:     make(chan string, 100),
-		CmdChan:     make(chan string),
-		Mutex:       new(sync.Mutex),
-		MessageSent: 0,
+		Address: address,
+		Port:    port,
+		Clients: make(map[net.Conn]*ClientInfo),
+		MsgChan: make(chan string, 100),
+		CmdChan: make(chan string),
+		Mutex:   new(sync.Mutex),
 	}
 }
 
@@ -68,8 +71,11 @@ func (s *TCPServer) StartServer() {
 			Log.Error("Could not accept connections to telnet server")
 			continue
 		}
+
 		s.Mutex.Lock()
-		s.Clients[s.Conn] = true
+		s.Clients[s.Conn] = &ClientInfo{
+			ConnectedAt: time.Now(), // ✅ Enregistre l'heure de connexion
+		}
 		s.Mutex.Unlock()
 
 		go s.handleConnection()
@@ -77,7 +83,6 @@ func (s *TCPServer) StartServer() {
 }
 
 func (s *TCPServer) handleConnection() {
-	// Store the connection locally to avoid race conditions
 	conn := s.Conn
 
 	conn.Write([]byte("Welcome to the FlexDXCluster telnet server! Type 'bye' to exit.\n"))
@@ -101,14 +106,13 @@ func (s *TCPServer) handleConnection() {
 
 		message = strings.TrimSpace(message)
 
-		// if message is bye then disconnect
 		if message == "bye" {
 			Log.Infof("Client %s sent bye command", conn.RemoteAddr().String())
 			return
 		}
 
-		if strings.Contains(message, "DX") || strings.Contains(message, "SH/DX") || strings.Contains(message, "set") || strings.Contains(message, "SET") {
-			// send DX spot to the client
+		if strings.Contains(message, "DX") || strings.Contains(message, "SH/DX") ||
+			strings.Contains(message, "set") || strings.Contains(message, "SET") {
 			select {
 			case s.CmdChan <- message:
 				Log.Debugf("Command from client %s: %s", conn.RemoteAddr().String(), message)
@@ -135,24 +139,24 @@ func (s *TCPServer) broadcastMessage(message string) {
 		return
 	}
 
-	if s.MessageSent == 0 {
-		time.Sleep(3 * time.Second)
-		s.MessageSent = 1
+	// ✅ Si un client vient de se connecter (< 3 secondes), NE RIEN ENVOYER
+	for _, info := range s.Clients {
+		if time.Since(info.ConnectedAt) < 3*time.Second {
+			// ✅ Client trop récent, on DROP le spot
+			return
+		}
 	}
 
-	// Collect failed clients
 	var failedClients []net.Conn
 
 	for client := range s.Clients {
 		_, err := client.Write([]byte(message + "\r\n"))
-		s.MessageSent++
 		if err != nil {
 			Log.Warnf("Error sending to client %s: %v", client.RemoteAddr(), err)
 			failedClients = append(failedClients, client)
 		}
 	}
 
-	// Remove failed clients
 	for _, client := range failedClients {
 		delete(s.Clients, client)
 		client.Close()

@@ -78,6 +78,7 @@ func (sp *SpotProcessor) processSpot(spot TelnetSpot) {
 		DXCC:            spot.DXCC,
 	}
 
+	flexSpot.OriginalComment = spot.Comment
 	flexSpot.Comment = flexSpot.Comment + " [" + flexSpot.Mode + "] [" + flexSpot.SpotterCallsign + "] [" + flexSpot.UTCTime + "]"
 
 	if sp.HTTPServer != nil && sp.HTTPServer.Watchlist != nil {

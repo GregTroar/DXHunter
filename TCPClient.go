@@ -15,7 +15,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-var spotRe *regexp.Regexp = regexp.MustCompile(`DX\sde\s([\w\d]+).*:\s+(\d+.\d)\s+([\w\d\/]+)\s+(CW|cw|SSB|ssb|FT8|ft8|FT4|ft4|RTTY|rtty|USB|usb|LSB|lsb)?\s+(.*)\s\s\s+([\d]+\w{1})`)
+var spotRe *regexp.Regexp = regexp.MustCompile(`(?i)DX\sde\s([\w\d\-#]+).*?:\s*(\d+\.\d+)\s+([\w\d\/]+)\s+(?:(CW|SSB|FT8|FT4|RTTY|USB|LSB|FM)\s+)?(.+?)\s+(\d{4}Z)`)
 var defaultLoginRe *regexp.Regexp = regexp.MustCompile("[\\w\\d-_]+ login:")
 var defaultPasswordRe *regexp.Regexp = regexp.MustCompile("Password:")
 
@@ -315,6 +315,7 @@ func (c *TCPClient) ReadLine() {
 				}
 
 				if strings.Contains(messageString, "DX") {
+					IncrementSpotsReceived()
 					ProcessTelnetSpot(spotRe, messageString, c.SpotChanToFlex, c.SpotChanToHTTPServer, c.Countries, c.ContactRepo)
 				}
 

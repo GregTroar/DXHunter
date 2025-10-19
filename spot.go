@@ -32,123 +32,136 @@ func ProcessTelnetSpot(re *regexp.Regexp, spotRaw string, SpotChanToFlex chan Te
 
 	match := re.FindStringSubmatch(spotRaw)
 
-	if len(match) != 0 {
-		spot := TelnetSpot{
-			DX:        match[3],
-			Spotter:   match[1],
-			Frequency: match[2],
-			Mode:      match[4],
-			Comment:   strings.Trim(match[5], " "),
-			Time:      match[6],
-		}
-
-		DXCC := GetDXCC(spot.DX, Countries)
-		spot.DXCC = DXCC.DXCC
-		spot.CountryName = DXCC.CountryName
-
-		if spot.DXCC == "" {
-			Log.Errorf("Could not identify the DXCC for %s", spot.DX)
-			return
-		}
-
-		spot.GetBand()
-		spot.GuessMode()
-		spot.CallsignWorked = false
-		spot.NewBand = false
-		spot.NewMode = false
-		spot.NewDXCC = false
-		spot.NewSlot = false
-
-		contactsChan := make(chan []Contact)
-		contactsModeChan := make(chan []Contact)
-		contactsModeBandChan := make(chan []Contact)
-		contactsBandChan := make(chan []Contact)
-		contactsCallChan := make(chan []Contact)
-
-		wg := new(sync.WaitGroup)
-		wg.Add(5)
-
-		go contactRepo.ListByCountry(spot.DXCC, contactsChan, wg)
-		contacts := <-contactsChan
-
-		go contactRepo.ListByCountryMode(spot.DXCC, spot.Mode, contactsModeChan, wg)
-		contactsMode := <-contactsModeChan
-
-		go contactRepo.ListByCountryBand(spot.DXCC, spot.Band, contactsBandChan, wg)
-		contactsBand := <-contactsBandChan
-
-		go contactRepo.ListByCallSign(spot.DX, spot.Band, spot.Mode, contactsCallChan, wg)
-		contactsCall := <-contactsCallChan
-
-		go contactRepo.ListByCountryModeBand(spot.DXCC, spot.Band, spot.Mode, contactsModeBandChan, wg)
-		contactsModeBand := <-contactsModeBandChan
-
-		wg.Wait()
-
-		if len(contacts) == 0 {
-			spot.NewDXCC = true
-		}
-
-		if len(contactsMode) == 0 {
-			spot.NewMode = true
-		}
-		if len(contactsBand) == 0 {
-			spot.NewBand = true
-		}
-
-		if len(contactsModeBand) == 0 && !spot.NewDXCC && !spot.NewBand && !spot.NewMode {
-			spot.NewSlot = true
-		}
-
-		if len(contactsCall) > 0 {
-			spot.CallsignWorked = true
-		}
-
-		// Envoyer TOUJOURS le spot vers le processeur principal (base de données + HTTP)
-		// Ce canal est maintenant géré par une goroutine dans main.go
-		select {
-		case SpotChanToHTTPServer <- spot:
-			// Spot envoyé avec succès
-		default:
-			Log.Warn("SpotChanToHTTPServer is full, spot may be lost")
-		}
-
-		// Logging des spots
-		if spot.NewDXCC {
-			Log.Debugf("(** New DXCC **) DX: %s - Spotter: %s - Freq: %s - Band: %s - Mode: %s - Comment: %s - Time: %s - DXCC: %s",
-				spot.DX, spot.Spotter, spot.Frequency, spot.Band, spot.Mode, spot.Comment, spot.Time, spot.DXCC)
-		}
-
-		if !spot.NewDXCC && spot.NewBand && spot.NewMode {
-			Log.Debugf("(** New Band/Mode **) DX: %s - Spotter: %s - Freq: %s - Band: %s - Mode: %s - Comment: %s - Time: %s - DXCC: %s",
-				spot.DX, spot.Spotter, spot.Frequency, spot.Band, spot.Mode, spot.Comment, spot.Time, spot.DXCC)
-		}
-
-		if !spot.NewDXCC && spot.NewBand && !spot.NewMode {
-			Log.Debugf("(** New Band **) DX: %s - Spotter: %s - Freq: %s - Band: %s - Mode: %s - Comment: %s - Time: %s - DXCC: %s",
-				spot.DX, spot.Spotter, spot.Frequency, spot.Band, spot.Mode, spot.Comment, spot.Time, spot.DXCC)
-		}
-
-		if !spot.NewDXCC && !spot.NewBand && spot.NewMode && spot.Mode != "" {
-			Log.Debugf("(** New Mode **) DX: %s - Spotter: %s - Freq: %s - Band: %s - Mode: %s - Comment: %s - Time: %s - DXCC: %s",
-				spot.DX, spot.Spotter, spot.Frequency, spot.Band, spot.Mode, spot.Comment, spot.Time, spot.DXCC)
-		}
-
-		if !spot.NewDXCC && !spot.NewBand && !spot.NewMode && spot.NewSlot && spot.Mode != "" {
-			Log.Debugf("(** New Slot **) DX: %s - Spotter: %s - Freq: %s - Band: %s - Mode: %s - Comment: %s - Time: %s - DXCC: %s",
-				spot.DX, spot.Spotter, spot.Frequency, spot.Band, spot.Mode, spot.Comment, spot.Time, spot.DXCC)
-		}
-
-		if !spot.NewDXCC && !spot.NewBand && !spot.NewMode && spot.CallsignWorked {
-			Log.Debugf("(** Worked **) DX: %s - Spotter: %s - Freq: %s - Band: %s - Mode: %s - Comment: %s - Time: %s - DXCC: %s",
-				spot.DX, spot.Spotter, spot.Frequency, spot.Band, spot.Mode, spot.Comment, spot.Time, spot.DXCC)
-		}
-
-		if !spot.NewDXCC && !spot.NewBand && !spot.NewMode && !spot.CallsignWorked {
-			Log.Debugf("DX: %s - Spotter: %s - Freq: %s - Band: %s - Mode: %s - Comment: %s - Time: %s - DXCC: %s",
-				spot.DX, spot.Spotter, spot.Frequency, spot.Band, spot.Mode, spot.Comment, spot.Time, spot.DXCC)
-		}
+	if len(match) == 0 {
+		IncrementSpotsRejected()
+		Log.Warnf("❌ Regex no match: %s", spotRaw)
+		return
 	}
+
+	spot := TelnetSpot{
+		DX:        match[3],
+		Spotter:   match[1],
+		Frequency: match[2],
+		Mode:      match[4],
+		Comment:   strings.Trim(match[5], " "),
+		Time:      match[6],
+	}
+
+	DXCC := GetDXCC(spot.DX, Countries)
+	spot.DXCC = DXCC.DXCC
+	spot.CountryName = DXCC.CountryName
+
+	if spot.DXCC == "" {
+		IncrementSpotsRejected()
+		Log.Warnf("❌ DXCC not found: %s", spot.DX)
+		return
+	}
+
+	spot.GetBand()
+	spot.GuessMode(spotRaw)
+	spot.CallsignWorked = false
+	spot.NewBand = false
+	spot.NewMode = false
+	spot.NewDXCC = false
+	spot.NewSlot = false
+
+	contactsChan := make(chan []Contact)
+	contactsModeChan := make(chan []Contact)
+	contactsModeBandChan := make(chan []Contact)
+	contactsBandChan := make(chan []Contact)
+	contactsCallChan := make(chan []Contact)
+
+	wg := new(sync.WaitGroup)
+	wg.Add(5)
+
+	go contactRepo.ListByCountry(spot.DXCC, contactsChan, wg)
+	contacts := <-contactsChan
+
+	go contactRepo.ListByCountryMode(spot.DXCC, spot.Mode, contactsModeChan, wg)
+	contactsMode := <-contactsModeChan
+
+	go contactRepo.ListByCountryBand(spot.DXCC, spot.Band, contactsBandChan, wg)
+	contactsBand := <-contactsBandChan
+
+	go contactRepo.ListByCallSign(spot.DX, spot.Band, spot.Mode, contactsCallChan, wg)
+	contactsCall := <-contactsCallChan
+
+	go contactRepo.ListByCountryModeBand(spot.DXCC, spot.Band, spot.Mode, contactsModeBandChan, wg)
+	contactsModeBand := <-contactsModeBandChan
+
+	wg.Wait()
+
+	// ✅ Déterminer le statut
+	if len(contacts) == 0 {
+		spot.NewDXCC = true
+	}
+	if len(contactsMode) == 0 {
+		spot.NewMode = true
+	}
+	if len(contactsBand) == 0 {
+		spot.NewBand = true
+	}
+	if len(contactsModeBand) == 0 && !spot.NewDXCC && !spot.NewBand && !spot.NewMode {
+		spot.NewSlot = true
+	}
+	if len(contactsCall) > 0 {
+		spot.CallsignWorked = true
+	}
+
+	// ✅ Envoyer le spot
+	select {
+	case SpotChanToHTTPServer <- spot:
+		IncrementSpotsProcessed()
+	default:
+		IncrementSpotsRejected()
+		Log.Errorf("❌ Spot dropped (channel full): %s @ %s", spot.DX, spot.Frequency)
+		return
+	}
+
+	// ✅ LOGS CONCIS ET ADAPTES
+	statusIcon := ""
+	statusText := ""
+
+	if spot.NewDXCC {
+		statusIcon = "🆕"
+		statusText = "NEW DXCC"
+	} else if spot.NewBand && spot.NewMode {
+		statusIcon = "📻"
+		statusText = "NEW BAND+MODE"
+	} else if spot.NewBand {
+		statusIcon = "📡"
+		statusText = "NEW BAND"
+	} else if spot.NewMode {
+		statusIcon = "🔧"
+		statusText = "NEW MODE"
+	} else if spot.NewSlot {
+		statusIcon = "✨"
+		statusText = "NEW SLOT"
+	} else if spot.CallsignWorked {
+		statusIcon = "✓"
+		statusText = "WORKED"
+	} else {
+		statusIcon = "·"
+		statusText = "SPOT"
+	}
+
+	// ✅ Log unique et concis
+	Log.Debugf("%s [%s] %s on %.1f kHz (%s %s) - %s @ %s",
+		statusIcon,
+		statusText,
+		spot.DX,
+		mustParseFloat(spot.Frequency),
+		spot.Band,
+		spot.Mode,
+		spot.CountryName,
+		spot.Time,
+	)
+}
+
+// ✅ Helper pour convertir la fréquence
+func mustParseFloat(s string) float64 {
+	f, _ := strconv.ParseFloat(s, 64)
+	return f
 }
 
 func (spot *TelnetSpot) GetBand() {
@@ -216,189 +229,231 @@ func (spot *TelnetSpot) GetBand() {
 	}
 }
 
-func (spot *TelnetSpot) GuessMode() {
+func (spot *TelnetSpot) GuessMode(rawSpot string) {
+	// ✅ D'ABORD : Chercher le mode dans le commentaire
+	if spot.Mode == "" {
+		spot.Mode = extractModeFromComment(spot.Comment)
+		if spot.Mode != "" {
+			Log.Debugf("Mode extracted from comment: %s", spot.Mode)
+		}
+	}
+
+	// ✅ Normaliser SSB avant de deviner
+	if spot.Mode == "SSB" {
+		if spot.Band == "10M" || spot.Band == "12M" || spot.Band == "6M" || spot.Band == "15M" || spot.Band == "17M" || spot.Band == "20M" {
+			spot.Mode = "USB"
+		} else {
+			spot.Mode = "LSB"
+		}
+		Log.Debugf("Converted SSB to %s for band %s", spot.Mode, spot.Band)
+		return
+	}
+
+	// ✅ Si pas de mode, deviner depuis la fréquence
 	if spot.Mode == "" {
 		freqInt, err := strconv.ParseFloat(spot.Frequency, 32)
+		Log.Debugf("No mode specified in spot, will guess from frequency %v with spot: %s", freqInt, strings.TrimSpace(rawSpot))
 		if err != nil {
-			Log.Errorf("could not convert frequency string in float64:", err)
+			Log.Errorf("could not convert frequency string to float: %v", err)
+			return
 		}
 
 		switch spot.Band {
-		case "160M":
-			if freqInt >= 1800 && freqInt <= 1840 {
+		case "160M": // 1.800 - 2.000 MHz
+			if freqInt < 1838 {
 				spot.Mode = "CW"
-			}
-			if freqInt >= 1840 && freqInt <= 1844 {
+			} else if freqInt < 1843 {
 				spot.Mode = "FT8"
-			}
-		case "80M":
-			if freqInt >= 3500 && freqInt < 3568 {
-				spot.Mode = "CW"
-			}
-			if freqInt >= 3568 && freqInt < 3573 {
-				spot.Mode = "FT4"
-			}
-			if freqInt >= 3573 && freqInt < 3580 {
-				spot.Mode = "FT8"
-			}
-			if freqInt >= 3580 && freqInt < 3600 {
-				spot.Mode = "CW"
-			}
-			if freqInt >= 3600 && freqInt <= 3800 {
-				spot.Mode = "LSB"
-			}
-		case "60M":
-			if freqInt >= 5351.5 && freqInt < 5354 {
-				spot.Mode = "CW"
-			}
-			if freqInt >= 5354 && freqInt < 5366 {
-				spot.Mode = "LSB"
-			}
-			if freqInt >= 5366 && freqInt <= 5266.5 {
-				spot.Mode = "FT8"
-			}
-		case "40M":
-			if freqInt >= 7000 && freqInt < 7045.5 {
-				spot.Mode = "CW"
-			}
-			if freqInt >= 7045.5 && freqInt < 7048.5 {
-				spot.Mode = "FT4"
-			}
-			if freqInt >= 7048.5 && freqInt < 7074 {
-				spot.Mode = "CW"
-			}
-			if freqInt >= 7074 && freqInt < 7078 {
-				spot.Mode = "FT8"
-			}
-			if freqInt >= 7078 && freqInt <= 7300 {
-				spot.Mode = "LSB"
-			}
-		case "30M":
-			if freqInt >= 10100 && freqInt < 10130 {
-				spot.Mode = "CW"
-			}
-			if freqInt >= 10130 && freqInt < 10140 {
-				spot.Mode = "FT8"
-			}
-			if freqInt >= 10140 && freqInt <= 10150 {
-				spot.Mode = "FT4"
-			}
-		case "20M":
-			if freqInt >= 14000 && freqInt < 14074 {
-				spot.Mode = "CW"
-			}
-			if freqInt >= 14074 && freqInt < 14078 {
-				spot.Mode = "FT8"
-			}
-			if freqInt >= 14078 && freqInt < 14083 {
-				spot.Mode = "FT4"
-			}
-			if freqInt >= 14083 && freqInt < 14119 {
-				spot.Mode = "FT8"
-			}
-			if freqInt >= 14119 && freqInt < 14350 {
-				spot.Mode = "USB"
-			}
-
-		case "17M":
-			if freqInt >= 18068 && freqInt < 18090 {
-				spot.Mode = "CW"
-			}
-			if freqInt >= 18090 && freqInt < 18104 {
-				spot.Mode = "FT8"
-			}
-			if freqInt >= 18104 && freqInt < 18108 {
-				spot.Mode = "FT4"
-			}
-			if freqInt >= 18108 && freqInt <= 18168 {
-				spot.Mode = "USB"
-			}
-
-		case "15M":
-			if freqInt >= 21000 && freqInt < 21074 {
-				spot.Mode = "CW"
-			}
-			if freqInt >= 21074 && freqInt < 21100 {
-				spot.Mode = "FT8"
-			}
-			if freqInt >= 21100 && freqInt < 21140 {
-				spot.Mode = "RTTY"
-			}
-			if freqInt >= 21140 && freqInt < 21144 {
-				spot.Mode = "FT4"
-			}
-			if freqInt >= 21144 && freqInt <= 21450 {
-				spot.Mode = "USB"
-			}
-
-		case "12M":
-			if freqInt >= 24890 && freqInt < 24910 {
-				spot.Mode = "CW"
-			}
-			if freqInt >= 24910 && freqInt < 24919 {
-				spot.Mode = "FT8"
-			}
-			if freqInt >= 24919 && freqInt < 24922 {
-				spot.Mode = "FT4"
-			}
-			if freqInt >= 24922 && freqInt < 24930 {
-				spot.Mode = "RTTY"
-			}
-			if freqInt >= 24930 && freqInt <= 24990 {
-				spot.Mode = "USB"
-			}
-
-		case "10M":
-			if freqInt >= 28000 && freqInt < 28070 {
-				spot.Mode = "CW"
-			}
-			if freqInt >= 28070 && freqInt < 28080 {
-				spot.Mode = "FT8"
-			}
-			if freqInt >= 28080 && freqInt < 28100 {
-				spot.Mode = "RTTY"
-			}
-			if freqInt >= 28100 && freqInt < 28180 {
-				spot.Mode = "CW"
-			}
-			if freqInt >= 28180 && freqInt < 28190 {
-				spot.Mode = "FT4"
-			}
-			if freqInt >= 28190 && freqInt < 29000 {
-				spot.Mode = "USB"
-			}
-			if freqInt >= 29000 && freqInt <= 29700 {
-				spot.Mode = "FM"
-			}
-		case "6M":
-			if freqInt >= 50000 && freqInt < 50100 {
-				spot.Mode = "CW"
-			}
-			if freqInt >= 50100 && freqInt < 50313 {
-				spot.Mode = "USB"
-			}
-			if freqInt >= 50313 && freqInt < 50320 {
-				spot.Mode = "FT8"
-			}
-			if freqInt >= 50320 && freqInt < 50400 {
-				spot.Mode = "USB"
-			}
-			if freqInt >= 50400 && freqInt < +52000 {
-				spot.Mode = "FM"
-			}
-		}
-	} else {
-		spot.Mode = strings.ToUpper(spot.Mode)
-		if spot.Mode == "SSB" {
-			if spot.Band == "10M" || spot.Band == "12M" || spot.Band == "6M" || spot.Band == "15M" || spot.Band == "17M" || spot.Band == "20M" {
-				spot.Mode = "USB"
 			} else {
 				spot.Mode = "LSB"
 			}
+
+		case "80M": // 3.500 - 4.000 MHz
+			if freqInt < 3570 {
+				spot.Mode = "CW"
+			} else if freqInt < 3575 {
+				spot.Mode = "FT4"
+			} else if freqInt < 3578 {
+				spot.Mode = "FT8"
+			} else if freqInt < 3590 {
+				spot.Mode = "RTTY"
+			} else {
+				spot.Mode = "LSB"
+			}
+
+		case "60M": // 5.330 - 5.405 MHz
+			if freqInt < 5357 {
+				spot.Mode = "CW"
+			} else if freqInt < 5359 {
+				spot.Mode = "FT8"
+			} else {
+				spot.Mode = "USB"
+			}
+
+		case "40M": // 7.000 - 7.300 MHz
+			if freqInt < 7040 {
+				spot.Mode = "CW"
+			} else if freqInt < 7047 {
+				spot.Mode = "RTTY"
+			} else if freqInt < 7050 {
+				spot.Mode = "FT4"
+			} else if freqInt < 7080 {
+				spot.Mode = "FT8" // ✅ 7.056 = FT8
+			} else if freqInt < 7125 {
+				spot.Mode = "RTTY" // ✅ 7.112 = RTTY
+			} else {
+				spot.Mode = "LSB"
+			}
+
+		case "30M": // 10.100 - 10.150 MHz (CW/Digital seulement)
+			if freqInt < 10130 {
+				spot.Mode = "CW"
+			} else if freqInt < 10142 {
+				spot.Mode = "FT8"
+			} else {
+				spot.Mode = "FT4"
+			}
+
+		case "20M": // 14.000 - 14.350 MHz
+			if freqInt < 14070 {
+				spot.Mode = "CW"
+			} else if freqInt < 14078 {
+				spot.Mode = "FT8"
+			} else if freqInt < 14083 {
+				spot.Mode = "FT4"
+			} else if freqInt < 14112 {
+				spot.Mode = "RTTY"
+			} else {
+				spot.Mode = "USB"
+			}
+
+		case "17M": // 18.068 - 18.168 MHz
+			if freqInt < 18090 {
+				spot.Mode = "CW"
+			} else if freqInt < 18104 {
+				spot.Mode = "FT8"
+			} else if freqInt < 18106 {
+				spot.Mode = "FT4"
+			} else if freqInt < 18110 {
+				spot.Mode = "RTTY"
+			} else {
+				spot.Mode = "USB"
+			}
+
+		case "15M": // 21.000 - 21.450 MHz
+			if freqInt < 21070 {
+				spot.Mode = "CW"
+			} else if freqInt < 21078 {
+				spot.Mode = "FT8"
+			} else if freqInt < 21120 {
+				spot.Mode = "RTTY"
+			} else if freqInt < 21143 {
+				spot.Mode = "FT4"
+			} else {
+				spot.Mode = "USB"
+			}
+
+		case "12M": // 24.890 - 24.990 MHz
+			if freqInt < 24910 {
+				spot.Mode = "CW" // ✅ 24.896 = CW
+			} else if freqInt < 24918 {
+				spot.Mode = "FT8"
+			} else if freqInt < 24922 {
+				spot.Mode = "FT4"
+			} else if freqInt < 24930 {
+				spot.Mode = "RTTY"
+			} else {
+				spot.Mode = "USB"
+			}
+
+		case "10M": // 28.000 - 29.700 MHz
+			if freqInt < 28070 {
+				spot.Mode = "CW"
+			} else if freqInt < 28095 {
+				spot.Mode = "FT8"
+			} else if freqInt < 28179 {
+				spot.Mode = "RTTY"
+			} else if freqInt < 28190 {
+				spot.Mode = "FT4"
+			} else if freqInt < 29000 {
+				spot.Mode = "USB"
+			} else {
+				spot.Mode = "FM"
+			}
+
+		case "6M": // 50.000 - 54.000 MHz
+			if freqInt < 50100 {
+				spot.Mode = "CW"
+			} else if freqInt < 50313 {
+				spot.Mode = "USB" // ✅ DX Window + général
+			} else if freqInt < 50318 {
+				spot.Mode = "FT8" // ✅ 50.313-50.318
+			} else if freqInt < 50323 {
+				spot.Mode = "FT4" // ✅ 50.318-50.323
+			} else if freqInt < 51000 {
+				spot.Mode = "USB" // ✅ Retour à USB
+			} else {
+				spot.Mode = "FM"
+			}
+
+		default:
+			// ✅ Bande inconnue
+			if freqInt < 10.0 {
+				spot.Mode = "LSB"
+			} else {
+				spot.Mode = "USB"
+			}
+		}
+
+		if spot.Mode != "" {
+			Log.Debugf("✅ Guessed mode %s for %s on %s MHz (band %s)", spot.Mode, spot.DX, spot.Frequency, spot.Band)
+		} else {
+			Log.Warnf("❌ Could not guess mode for %s on %s MHz (band %s), raw spot: %s", spot.DX, spot.Frequency, spot.Band, rawSpot)
+		}
+	} else {
+		spot.Mode = strings.ToUpper(spot.Mode)
+	}
+}
+
+// ✅ Extraire le mode depuis le commentaire
+func extractModeFromComment(comment string) string {
+	commentUpper := strings.ToUpper(comment)
+
+	// ✅ 1. Détecter FT8/FT4 avec leurs patterns typiques (dB + Hz)
+	if strings.Contains(commentUpper, "FT8") ||
+		(strings.Contains(commentUpper, "DB") && strings.Contains(commentUpper, "HZ")) {
+		return "FT8"
+	}
+
+	if strings.Contains(commentUpper, "FT4") {
+		return "FT4"
+	}
+
+	// ✅ 2. Détecter CW avec WPM (Words Per Minute)
+	if strings.Contains(commentUpper, "WPM") || strings.Contains(commentUpper, " CW ") ||
+		strings.HasSuffix(commentUpper, "CW") || strings.HasPrefix(commentUpper, "CW ") {
+		return "CW"
+	}
+
+	// ✅ 3. Autres modes digitaux
+	digitalModes := []string{"RTTY", "PSK31", "PSK63", "PSK", "MFSK", "OLIVIA", "CONTESTIA", "JT65", "JT9"}
+	for _, mode := range digitalModes {
+		if strings.Contains(commentUpper, mode) {
+			return mode
 		}
 	}
 
-	if spot.Mode == "" {
-		Log.Errorf("Could not identify mode for %s on %s", spot.DX, spot.Frequency)
+	// ✅ 4. Modes voice
+	voiceModes := []string{"USB", "LSB", "SSB", "FM", "AM"}
+	for _, mode := range voiceModes {
+		// Chercher le mode comme mot complet (pas dans "SSBC" par exemple)
+		if strings.Contains(commentUpper, " "+mode+" ") ||
+			strings.HasPrefix(commentUpper, mode+" ") ||
+			strings.HasSuffix(commentUpper, " "+mode) ||
+			commentUpper == mode {
+			return mode
+		}
 	}
+
+	return ""
 }
