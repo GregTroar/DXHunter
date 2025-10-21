@@ -84,7 +84,6 @@ func (sp *SpotProcessor) processSpot(spot TelnetSpot) {
 	if sp.HTTPServer != nil && sp.HTTPServer.Watchlist != nil {
 		if sp.HTTPServer.Watchlist.Matches(flexSpot.DX) {
 			flexSpot.InWatchlist = true
-			flexSpot.Comment = flexSpot.Comment + " [Watchlist]"
 
 			// Mark as seen and update last seen time
 			sp.HTTPServer.Watchlist.MarkSeen(flexSpot.DX)

@@ -773,6 +773,7 @@ func (s *HTTPServer) getWatchlistSpotsWithStatus(w http.ResponseWriter, r *http.
 		for _, pattern := range watchlistCallsigns {
 			if spot.DX == pattern || strings.HasPrefix(spot.DX, pattern) {
 				isInWatchlist = true
+				Log.Debugf("✅ Watchlist match in API: %s matches pattern %s", spot.DX, pattern)
 				break
 			}
 		}
@@ -781,6 +782,8 @@ func (s *HTTPServer) getWatchlistSpotsWithStatus(w http.ResponseWriter, r *http.
 			relevantSpots = append(relevantSpots, spot)
 		}
 	}
+
+	Log.Debugf("📊 Watchlist spots API returned %d spots", len(relevantSpots))
 
 	type BandModeKey struct {
 		Band string

@@ -10,8 +10,7 @@ import (
 )
 
 type WatchlistEntry struct {
-	Callsign string `json:"callsign"`
-	// ✅ NOTES SUPPRIMÉES
+	Callsign    string    `json:"callsign"`
 	LastSeen    time.Time `json:"lastSeen"`
 	LastSeenStr string    `json:"lastSeenStr"`
 	AddedAt     time.Time `json:"addedAt"`
