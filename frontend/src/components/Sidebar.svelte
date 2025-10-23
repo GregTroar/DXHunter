@@ -12,14 +12,19 @@
   export let recentQSOs;
   export let logStats;
   export let dxccProgress;
-  export let showOnlyActive = false; // ✅ Export pour persister l'état
+  export let showOnlyActive = false;
   export let logs = [];
   
   const dispatch = createEventDispatcher();
   
-  // ✅ Propagation des évènements vers le parent
+  // ✅ Propagation des événements vers le parent
   function handleToast(event) {
     dispatch('toast', event.detail);
+  }
+  
+  // ✅ Propager clearLogs vers App.svelte
+  function handleClearLogs() {
+    dispatch('clearLogs');
   }
 </script>
 
@@ -83,7 +88,10 @@
         {dxccProgress}
       />
     {:else if activeTab === 'logs'}
-      <LogsTab {logs} />
+      <LogsTab 
+        {logs} 
+        on:clearLogs={handleClearLogs}
+      />
     {/if}
   </div>
 </div>

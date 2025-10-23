@@ -1,5 +1,5 @@
 <script>
-  import { createEventDispatcher } from 'svelte';
+  import { createEventDispatcher, onMount } from 'svelte';
   
   export let stats;
   export let solarData;
@@ -7,15 +7,20 @@
   export let cacheLoaded = false;
   export let soundManager;
 
-  let soundEnabled = true;
+  let soundEnabled = false; // ✅ Initialisé à false
   
   const dispatch = createEventDispatcher();
 
-  function toggleSound() {
-  soundEnabled = !soundEnabled;
-  soundManager.setEnabled(soundEnabled);
-  }
+  // ✅ Synchroniser avec le soundManager au montage
+  onMount(() => {
+    soundEnabled = soundManager.isEnabled();
+  });
 
+  function toggleSound() {
+    soundEnabled = !soundEnabled;
+    soundManager.setEnabled(soundEnabled);
+  }
+  
   function getSFIColor(sfi) {
     const value = parseInt(sfi);
     if (isNaN(value)) return 'text-slate-500';
@@ -58,89 +63,102 @@
       <h1 class="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
         FlexDXCluster
       </h1>
-      <div class="flex items-center gap-3 text-xs text-slate-400">
-        <span>{stats.myCallsign || 'N/A'} • <span>{stats.totalContacts}</span> Contacts</span>
+      <div class="flex items-center gap-2 text-xs text-slate-400">
+        <!-- Callsign & Contacts -->
+        <span class="font-semibold text-blue-400">{stats.myCallsign || 'N/A'}</span>
+        <span class="text-slate-600">•</span>
+        <span>{stats.totalContacts} QSOs</span>
+        
+        <!-- Spots count -->
+        <span class="text-slate-600">•</span>
+        <span class="text-pink-400 font-semibold">{stats.totalSpots || 0}</span>
+        <span>spots</span>
+        
         <span class="text-slate-600">|</span>
-        <span class="flex items-center gap-1">
-          <span class="font-semibold text-amber-400">SFI:</span> 
+        
+        <!-- Solar data compacts -->
+        <span class="flex items-center gap-0.5">
+          <span class="text-amber-400">SFI</span> 
           <span class={getSFIColor(solarData.sfi)}>{solarData.sfi}</span>
         </span>
-        <span class="flex items-center gap-1">
-          <span class="font-semibold text-yellow-400">SSN:</span> 
+        
+        <span class="flex items-center gap-0.5">
+          <span class="text-yellow-400">SSN</span> 
           <span class={getSunspotsColor(solarData.sunspots)}>{solarData.sunspots}</span>
         </span>
-        <span class="flex items-center gap-1">
-          <span class="font-semibold text-red-400">A:</span> 
+        
+        <span class="flex items-center gap-0.5">
+          <span class="text-red-400">A</span> 
           <span class={getAIndexColor(solarData.aIndex)}>{solarData.aIndex}</span>
         </span>
-        <span class="flex items-center gap-1">
-          <span class="font-semibold text-purple-400">K:</span> 
+        
+        <span class="flex items-center gap-0.5">
+          <span class="text-purple-400">K</span> 
           <span class={getKIndexColor(solarData.kIndex)}>{solarData.kIndex}</span>
         </span>
       </div>
     </div>
   </div>
   
-  <div class="flex items-center gap-3">
+  <div class="flex items-center gap-2">
     {#if wsStatus === 'connected'}
-      <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-green-500/20 text-green-400">
-        <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-        WebSocket
+      <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-500/20 text-green-400">
+        <span class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
+        WS
       </span>
     {:else if wsStatus === 'connecting'}
-      <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-orange-500/20 text-orange-400">
-        <span class="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></span>
-        Connecting...
+      <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-orange-500/20 text-orange-400">
+        <span class="w-1.5 h-1.5 bg-orange-500 rounded-full animate-pulse"></span>
+        WS
       </span>
     {:else}
-      <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-red-500/20 text-red-400">
-        <span class="w-2 h-2 bg-red-500 rounded-full"></span>
-        Disconnected
+      <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-500/20 text-red-400">
+        <span class="w-1.5 h-1.5 bg-red-500 rounded-full"></span>
+        WS
       </span>
     {/if}
     
-    <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold {stats.clusterStatus === 'connected' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}">
-      <span class="w-2 h-2 {stats.clusterStatus === 'connected' ? 'bg-green-500 animate-pulse' : 'bg-red-500'} rounded-full"></span>
+    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold {stats.clusterStatus === 'connected' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}">
+      <span class="w-1.5 h-1.5 {stats.clusterStatus === 'connected' ? 'bg-green-500 animate-pulse' : 'bg-red-500'} rounded-full"></span>
       Cluster
     </span>
     
-    <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold {stats.flexStatus === 'connected' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}">
-      <span class="w-2 h-2 {stats.flexStatus === 'connected' ? 'bg-green-500 animate-pulse' : 'bg-red-500'} rounded-full"></span>
+    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold {stats.flexStatus === 'connected' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}">
+      <span class="w-1.5 h-1.5 {stats.flexStatus === 'connected' ? 'bg-green-500 animate-pulse' : 'bg-red-500'} rounded-full"></span>
       Flex
     </span>
 
     {#if cacheLoaded}
-      <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-purple-500/20 text-purple-400">
+      <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-purple-500/20 text-purple-400" title="Data loaded from cache">
         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path>
         </svg>
-        Cached
       </span>
     {/if}
 
     <button 
       on:click={toggleSound}
       title="{soundEnabled ? 'Disable' : 'Enable'} sound alerts"
-      class="px-3 py-1.5 rounded transition-colors {soundEnabled ? 'bg-blue-600 hover:bg-blue-700' : 'bg-slate-700 hover:bg-slate-600'} flex items-center gap-2">
+      class="px-2.5 py-1 rounded transition-colors {soundEnabled ? 'bg-blue-600 hover:bg-blue-700' : 'bg-slate-700 hover:bg-slate-600'} flex items-center gap-1.5">
       {#if soundEnabled}
-        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+        <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
           <path fill-rule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243 1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828 1 1 0 010-1.415z" clip-rule="evenodd"></path>
         </svg>
       {:else}
-        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+        <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
           <path fill-rule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM12.293 7.293a1 1 0 011.414 0L15 8.586l1.293-1.293a1 1 0 111.414 1.414L16.414 10l1.293 1.293a1 1 0 01-1.414 1.414L15 11.414l-1.293 1.293a1 1 0 01-1.414-1.414L13.586 10l-1.293-1.293a1 1 0 010-1.414z" clip-rule="evenodd"></path>
         </svg>
       {/if}
-      <span class="text-xs hidden sm:inline">{soundEnabled ? 'Sound ON' : 'Sound OFF'}</span>
+      <span class="text-xs hidden lg:inline">{soundEnabled ? 'ON' : 'OFF'}</span>
     </button>
 
     <button 
       on:click={() => dispatch('shutdown')}
-      class="px-3 py-1.5 text-xs bg-red-600 hover:bg-red-700 rounded transition-colors flex items-center gap-1">
+      class="px-2.5 py-1 text-xs bg-red-600 hover:bg-red-700 rounded transition-colors flex items-center gap-1">
       <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
       </svg>
-      Shutdown
+      <span class="hidden lg:inline">Shutdown</span>
     </button>
   </div>
 </div>

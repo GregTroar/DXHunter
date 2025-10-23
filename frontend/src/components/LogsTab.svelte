@@ -1,5 +1,9 @@
 <script>
+  import { createEventDispatcher } from 'svelte';
+  
   export let logs = [];
+  
+  const dispatch = createEventDispatcher();
   
   let autoScroll = true;
   let container;
@@ -19,7 +23,7 @@
   // ✅ Auto-scroll UNIQUEMENT si activé
   $: if (autoScroll && container && filteredLogs.length > 0) {
     setTimeout(() => {
-      if (autoScroll) { // ✅ Vérifier à nouveau car peut avoir changé
+      if (autoScroll) {
         container.scrollTop = container.scrollHeight;
       }
     }, 10);
@@ -47,8 +51,9 @@
     }
   }
   
+  // ✅ Dispatcher l'événement au parent
   function clearLogs() {
-    logs = [];
+    dispatch('clearLogs');
   }
   
   function toggleLevel(level) {

@@ -499,6 +499,8 @@ async function shutdownApp() {
     try {
       await spotCache.init();
       
+      soundManager.setEnabled(false);
+
       // ✅ Charger les données du cache immédiatement
       const cachedSpots = await spotCache.getSpots();
       if (cachedSpots.length > 0) {
@@ -627,6 +629,7 @@ async function shutdownApp() {
         {dxccProgress}
         {logs}
         on:toast={(e) => showToast(e.detail.message, e.detail.type)}
+        on:clearLogs={() => logs = []}
       />
     </div>
   </div>
