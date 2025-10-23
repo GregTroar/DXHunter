@@ -310,6 +310,7 @@ func (fc *FlexClient) ReadLine() {
 
 		if len(respTrigger) > 0 {
 			spot, err := fc.Repo.FindSpotByFlexSpotNumber(respTrigger[1])
+			Log.Debugf("Spot %s has been triggered", message)
 			if err != nil {
 				Log.Errorf("could not find spot by flex spot number in database: %s", err)
 			}
@@ -324,6 +325,7 @@ func (fc *FlexClient) ReadLine() {
 
 		if len(respDelete) > 0 {
 			fc.Repo.DeleteSpotByFlexSpotNumber(respDelete[1])
+			Log.Debugf("Spot deleted from Flex Panadater and database: ", message)
 		}
 	}
 }
