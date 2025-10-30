@@ -263,7 +263,7 @@ func (s *HTTPServer) sendInitialData(conn *websocket.Conn) {
 	conn.WriteJSON(WSMessage{Type: "watchlist", Data: watchlist})
 
 	// Send initial log data
-	qsos := s.ContactRepo.GetRecentQSOs("13")
+	qsos := s.ContactRepo.GetRecentQSOs("19")
 	conn.WriteJSON(WSMessage{Type: "log", Data: qsos})
 
 	logStats := s.ContactRepo.GetQSOStats()
@@ -304,9 +304,9 @@ func (s *HTTPServer) handleBroadcasts() {
 
 func (s *HTTPServer) broadcastUpdates() {
 	statsTicker := time.NewTicker(1 * time.Second)
-	logTicker := time.NewTicker(10 * time.Second)
+	logTicker := time.NewTicker(5 * time.Second)
 	cleanupTicker := time.NewTicker(5 * time.Minute)
-	watchlistSaveTicker := time.NewTicker(30 * time.Second)
+	watchlistSaveTicker := time.NewTicker(20 * time.Second)
 
 	defer statsTicker.Stop()
 	defer logTicker.Stop()
@@ -343,7 +343,7 @@ func (s *HTTPServer) broadcastUpdates() {
 			}
 
 			// Broadcast log data every 10 seconds
-			qsos := s.ContactRepo.GetRecentQSOs("13")
+			qsos := s.ContactRepo.GetRecentQSOs("19")
 			s.broadcast <- WSMessage{Type: "log", Data: qsos}
 
 			stats := s.ContactRepo.GetQSOStats()

@@ -112,8 +112,7 @@ func (w *Watchlist) Add(callsign string) error {
 	}
 
 	w.entries[callsign] = &WatchlistEntry{
-		Callsign: callsign,
-		// ✅ PAS DE NOTES
+		Callsign:    callsign,
 		AddedAt:     time.Now(),
 		LastSeen:    time.Time{},
 		LastSeenStr: "Never",
@@ -153,9 +152,6 @@ func (w *Watchlist) Remove(callsign string) error {
 
 	return nil
 }
-
-// ✅ FONCTION SUPPRIMÉE
-// func (w *Watchlist) UpdateNotes(callsign, notes string) error { ... }
 
 func (w *Watchlist) UpdateSound(callsign string, playSound bool) error {
 	w.mutex.Lock()

@@ -363,7 +363,7 @@ func (r *Log4OMContactsRepository) GetQSOStats() QSOStats {
 
 func (r *Log4OMContactsRepository) GetDXCCCount() int {
 	var count int
-	err := r.db.QueryRow("SELECT COUNT(DISTINCT dxcc) FROM log WHERE dxcc != '' AND dxcc IS NOT NULL").Scan(&count)
+	err := r.db.QueryRow("SELECT COUNT(DISTINCT dxcc) FROM log WHERE dxcc != '' AND dxcc IS NOT NULL AND dxcc != 0").Scan(&count)
 	if err != nil {
 		log.Error("could not get DXCC count:", err)
 		return 0

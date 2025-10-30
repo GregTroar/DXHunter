@@ -113,7 +113,7 @@ func (sp *SpotProcessor) processSpot(spot TelnetSpot) {
 	}
 
 	sp.applySpotColors(&flexSpot, spot)
-	Gotify(flexSpot)
+	sp.sendGotifyNotification(flexSpot)
 
 	flexSpot.Comment = strings.ReplaceAll(flexSpot.Comment, " ", "\u00A0")
 
@@ -240,4 +240,28 @@ func (sp *SpotProcessor) sendToFlexRadio(flexSpot FlexSpot, srcFlexSpot *FlexSpo
 		CommandNumber++
 		sp.FlexClient.SendSpot(stringSpot)
 	}
+}
+
+func (sp *SpotProcessor) sendGotifyNotification(flexSpot FlexSpot) {
+	if !Cfg.Gotify.Enable {
+		return
+	}
+
+	// Cas 1 : Nouveau DXCC - toujours notifier si activé dans la config
+	if flexSpot.NewDXCC && Cfg.Gotify.NewDXCC {
+		Gotify(flexSpot)
+		Log.Debugf("📢 Gotify notification sent: New DXCC - %s", flexSpot.DX)
+		return
+	}
+
+	// Cas 2 : Callsign dans la watchlist ET non contacté
+	if flexSpot.InWatchlist && !flexSpot.Worked {
+		Gotify(flexSpot)
+		Log.Debugf("📢 Gotify notification sent: Watchlist match (not worked) - %s", flexSpot.DX)
+		return
+	}
+
+	// Tous les autres cas : pas de notification
+	Log.Debugf("🔇 Gotify notification skipped for %s (InWatchlist=%v, Worked=%v, NewDXCC=%v)",
+		flexSpot.DX, flexSpot.InWatchlist, flexSpot.Worked, flexSpot.NewDXCC)
 }

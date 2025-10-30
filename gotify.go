@@ -29,28 +29,39 @@ func Gotify(spot FlexSpot) {
 		}
 
 		if spot.NewDXCC && Cfg.Gotify.NewDXCC {
-			title := "FlexDXCluster New DXCC"
+			title := "🆕 FlexDXCluster - New DXCC"
 			gotifyMsg.Title = title
 			gotifyMsg.Message = message
 			sendToGotify(gotifyMsg)
+			return
 		}
 
+		// Notification pour callsign dans watchlist
+		if spot.InWatchlist && !spot.Worked {
+			title := "🎯 FlexDXCluster - Watchlist Alert"
+			gotifyMsg.Title = title
+			gotifyMsg.Message = message
+			sendToGotify(gotifyMsg)
+			return
+		}
+
+		// Autres notifications (conservées pour compatibilité, mais ne seront plus appelées normalement)
 		if spot.NewBand && spot.NewMode && Cfg.Gotify.NewBandAndMode {
-			title := "FlexDXCluster New Mode & Band"
+			title := "📻 FlexDXCluster - New Mode & Band"
 			gotifyMsg.Title = title
 			gotifyMsg.Message = message
 			sendToGotify(gotifyMsg)
 		}
 
 		if spot.NewMode && Cfg.Gotify.NewMode && !spot.NewBand {
-			title := "FlexDXCluster New Mode"
+			title := "🔧 FlexDXCluster - New Mode"
 			gotifyMsg.Title = title
 			gotifyMsg.Message = message
 			sendToGotify(gotifyMsg)
 		}
 
 		if spot.NewBand && Cfg.Gotify.NewBand && !spot.NewMode {
-			title := "FlexDXCluster New Band"
+			title := "📡 FlexDXCluster - New Band"
 			gotifyMsg.Title = title
 			gotifyMsg.Message = message
 			sendToGotify(gotifyMsg)
