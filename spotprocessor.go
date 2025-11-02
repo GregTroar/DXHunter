@@ -255,7 +255,7 @@ func (sp *SpotProcessor) sendGotifyNotification(flexSpot FlexSpot) {
 	}
 
 	// Cas 2 : Callsign dans la watchlist ET non contacté
-	if flexSpot.InWatchlist && !flexSpot.Worked {
+	if flexSpot.InWatchlist && !flexSpot.Worked && Cfg.Gotify.WatchList {
 		Gotify(flexSpot)
 		Log.Debugf("📢 Gotify notification sent: Watchlist match (not worked) - %s", flexSpot.DX)
 		return
