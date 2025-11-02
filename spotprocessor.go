@@ -79,7 +79,7 @@ func (sp *SpotProcessor) processSpot(spot TelnetSpot) {
 	}
 
 	flexSpot.OriginalComment = spot.Comment
-	flexSpot.Comment = flexSpot.Comment + " [" + flexSpot.Mode + "] [" + flexSpot.SpotterCallsign + "] [" + flexSpot.UTCTime + "]"
+	flexSpot.Comment = flexSpot.Comment + " [" + flexSpot.Mode + "] [" + flexSpot.SpotterCallsign + "] [" + flexSpot.CountryName + "]"
 
 	if sp.HTTPServer != nil && sp.HTTPServer.Watchlist != nil {
 		if sp.HTTPServer.Watchlist.Matches(flexSpot.DX) {
