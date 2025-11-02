@@ -107,6 +107,13 @@ func (c *TCPClient) setDefaultParams() {
 	}
 }
 
+func (c *TCPClient) ReloadFilters() {
+	if c.LoggedIn {
+		Log.Info("Reloading cluster filters...")
+		c.SetFilters()
+	}
+}
+
 func (c *TCPClient) calculateBackoff() time.Duration {
 	// Formule: min(baseDelay * 2^attempts, maxDelay)
 	delay := time.Duration(float64(c.baseReconnectDelay) * math.Pow(2, float64(c.reconnectAttempts)))

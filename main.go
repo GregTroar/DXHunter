@@ -73,10 +73,21 @@ func main() {
 
 	NewConfig(cfgPath)
 
+	configWatcher, err := NewConfigWatcher(cfgPath)
+	if err != nil {
+		log.Fatalf("Could not create config watcher: %v", err)
+	}
+	defer configWatcher.Stop()
+
+	if err := configWatcher.Start(); err != nil {
+		log.Fatalf("Could not start config watcher: %v", err)
+	}
+
 	log := NewLog()
 	defer CloseLog()
 	log.Info("Running FlexDXCluster version 2.1")
 	log.Infof("Callsign: %s", Cfg.General.Callsign)
+	log.Info("Config hot reload enabled")
 
 	DeleteDatabase("./flex.sqlite", log)
 

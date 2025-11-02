@@ -2,9 +2,11 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"os"
+	"sync"
 
+	"github.com/fsnotify/fsnotify"
+	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 )
 
@@ -81,7 +83,14 @@ type Config struct {
 		NewBand        bool   `yaml:"NewBand"`
 		NewMode        bool   `yaml:"NewMode"`
 		NewBandAndMode bool   `yaml:"NewBandAndMode"`
+		WatchList      bool   `yaml:"Watchlist"`
 	} `yaml:"gotify"`
+}
+
+type ConfigWatcher struct {
+	watcher    *fsnotify.Watcher
+	configPath string
+	mu         sync.RWMutex
 }
 
 func NewConfig(configPath string) *Config {
@@ -110,4 +119,108 @@ func ValidateConfigPath(path string) error {
 		return fmt.Errorf("'%s' is a directory, not a normal file", path)
 	}
 	return nil
+}
+
+func NewConfigWatcher(configPath string) (*ConfigWatcher, error) {
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		return nil, err
+	}
+
+	return &ConfigWatcher{
+		watcher:    watcher,
+		configPath: configPath,
+	}, nil
+}
+
+func (cw *ConfigWatcher) Start() error {
+	if err := cw.watcher.Add(cw.configPath); err != nil {
+		return err
+	}
+
+	go func() {
+		for {
+			select {
+			case event, ok := <-cw.watcher.Events:
+				if !ok {
+					return
+				}
+				if event.Op&fsnotify.Write == fsnotify.Write {
+					Log.Info("Config file modified, reloading...")
+					cw.reloadConfig()
+				}
+			case err, ok := <-cw.watcher.Errors:
+				if !ok {
+					return
+				}
+				Log.Errorf("Config watcher error: %v", err)
+			}
+		}
+	}()
+
+	return nil
+}
+
+func (cw *ConfigWatcher) reloadConfig() {
+	cw.mu.Lock()
+	defer cw.mu.Unlock()
+
+	newCfg := &Config{}
+	file, err := os.Open(cw.configPath)
+	if err != nil {
+		Log.Errorf("Could not reload config: %v", err)
+		return
+	}
+	defer file.Close()
+
+	d := yaml.NewDecoder(file)
+	if err := d.Decode(newCfg); err != nil {
+		Log.Errorf("Could not decode reloaded config: %v", err)
+		return
+	}
+
+	// Sauvegarder l'ancienne config
+	oldCfg := Cfg
+
+	// Appliquer la nouvelle config
+	Cfg = newCfg
+
+	// Vérifier les changements qui nécessitent des actions
+	cw.applyConfigChanges(oldCfg, newCfg)
+
+	Log.Info("✅ Config reloaded successfully")
+}
+
+func (cw *ConfigWatcher) applyConfigChanges(oldCfg, newCfg *Config) {
+	// Log level
+	if oldCfg.General.LogLevel != newCfg.General.LogLevel {
+		switch newCfg.General.LogLevel {
+		case "DEBUG":
+			Log.SetLevel(log.DebugLevel)
+		case "INFO":
+			Log.SetLevel(log.InfoLevel)
+		case "WARN":
+			Log.SetLevel(log.WarnLevel)
+		default:
+			Log.SetLevel(log.InfoLevel)
+		}
+		Log.Infof("Log level changed to %s", newCfg.General.LogLevel)
+	}
+
+	// Gotify
+	if oldCfg.Gotify.Enable != newCfg.Gotify.Enable {
+		Log.Infof("Gotify notifications %s", map[bool]string{true: "enabled", false: "disabled"}[newCfg.Gotify.Enable])
+	}
+
+	if oldCfg.Cluster.FT8 != newCfg.Cluster.FT8 ||
+		oldCfg.Cluster.FT4 != newCfg.Cluster.FT4 ||
+		oldCfg.Cluster.Skimmer != newCfg.Cluster.Skimmer ||
+		oldCfg.Cluster.Beacon != newCfg.Cluster.Beacon {
+		Log.Info("Cluster filters changed, applying")
+		httpServerInstance.TCPClient.ReloadFilters()
+	}
+}
+
+func (cw *ConfigWatcher) Stop() {
+	cw.watcher.Close()
 }

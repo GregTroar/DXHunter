@@ -57,3 +57,4 @@ gotify:
   NewBand: false
   NewMode: false
   NewBandAndMode: false
+  Watchlist: false
