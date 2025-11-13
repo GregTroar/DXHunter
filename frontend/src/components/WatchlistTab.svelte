@@ -89,12 +89,25 @@
     const spots = watchlistSpots.filter(s => s.dx === callsign || s.dx.startsWith(callsign));
     
     const bandOrder = { '160M': 0, '80M': 1, '60M': 2, '40M': 3, '30M': 4, '20M': 5, '17M': 6, '15M': 7, '12M': 8, '10M': 9, '6M': 10 };
+    const modeOrder = { 'CW': 0, 'SSB': 1, 'USB': 1, 'LSB': 1, 'RTTY': 2, 'FT4': 3, 'FT8': 4, 'FM': 5 };
     
     return spots.sort((a, b) => {
+      // D'abord trier par bande
       const bandA = bandOrder[a.band] ?? 99;
       const bandB = bandOrder[b.band] ?? 99;
       if (bandA !== bandB) return bandA - bandB;
       
+      // Ensuite trier par mode pour éviter les sauts entre modes
+      const modeA = modeOrder[a.mode] ?? 99;
+      const modeB = modeOrder[b.mode] ?? 99;
+      if (modeA !== modeB) return modeA - modeB;
+      
+      // Puis trier par fréquence pour un tri stable dans le même mode
+      const freqA = parseFloat(a.frequencyMhz) || 0;
+      const freqB = parseFloat(b.frequencyMhz) || 0;
+      if (freqA !== freqB) return freqA - freqB;
+      
+      // Finalement, trier par heure (le plus récent en premier)
       const timeA = a.utcTime || "00:00";
       const timeB = b.utcTime || "00:00";
       return timeB.localeCompare(timeA);

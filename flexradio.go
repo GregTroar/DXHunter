@@ -110,7 +110,7 @@ func (fc *FlexClient) resolveAddress() (string, error) {
 	}
 
 	if Cfg.Flex.Discover {
-		Log.Debug("Attempting FlexRadio discovery...")
+		Log.Info("Attempting FlexRadio discovery...")
 
 		discoveryDone := make(chan struct {
 			success   bool
@@ -159,7 +159,7 @@ func (fc *FlexClient) connect() error {
 		return fmt.Errorf("cannot resolve address %s:%s: %w", fc.Address, fc.Port, err)
 	}
 
-	Log.Debugf("Attempting to connect to FlexRadio at %s:%s (attempt %d)",
+	Log.Infof("Attempting to connect to FlexRadio at %s:%s (attempt %d)",
 		fc.Address, fc.Port, fc.reconnectAttempts+1)
 
 	conn, err := net.DialTimeout("tcp", addr.String(), 10*time.Second)
@@ -218,7 +218,7 @@ func (fc *FlexClient) StartFlexClient() {
 				Log.Warnf("FlexRadio not available: %v", err)
 				Log.Info("FlexDXCluster will continue without FlexRadio and retry connection periodically")
 			} else {
-				Log.Debugf("FlexRadio still not available. Next retry in %v", backoff)
+				Log.Infof("FlexRadio still not available. Next retry in %v", backoff)
 			}
 
 			// Attendre avant de réessayer
