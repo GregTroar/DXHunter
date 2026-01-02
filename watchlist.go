@@ -16,6 +16,9 @@ type WatchlistEntry struct {
 	AddedAt     time.Time `json:"addedAt"`
 	SpotCount   int       `json:"spotCount"`
 	PlaySound   bool      `json:"playSound"`
+	// ActiveSpotIDs tracks the IDs of currently active spots for this callsign
+	// This is not persisted to JSON, only kept in memory
+	ActiveSpotIDs map[int]bool `json:"-"`
 }
 
 type Watchlist struct {
@@ -55,6 +58,8 @@ func (w *Watchlist) load() {
 
 	for i := range entries {
 		entry := &entries[i]
+		// Initialize ActiveSpotIDs map
+		entry.ActiveSpotIDs = make(map[int]bool)
 		if !entry.LastSeen.IsZero() {
 			entry.LastSeenStr = formatLastSeen(entry.LastSeen)
 		} else {
@@ -112,12 +117,13 @@ func (w *Watchlist) Add(callsign string) error {
 	}
 
 	w.entries[callsign] = &WatchlistEntry{
-		Callsign:    callsign,
-		AddedAt:     time.Now(),
-		LastSeen:    time.Time{},
-		LastSeenStr: "Never",
-		SpotCount:   0,
-		PlaySound:   true,
+		Callsign:      callsign,
+		AddedAt:       time.Now(),
+		LastSeen:      time.Time{},
+		LastSeenStr:   "Never",
+		SpotCount:     0,
+		PlaySound:     true,
+		ActiveSpotIDs: make(map[int]bool),
 	}
 
 	Log.Infof("Added %s to watchlist", callsign)
@@ -176,6 +182,93 @@ func (w *Watchlist) UpdateSound(callsign string, playSound bool) error {
 	return nil
 }
 
+// AddActiveSpot marks a spot as active for a watchlist entry
+func (w *Watchlist) AddActiveSpot(callsign string, spotID int) {
+	w.mutex.Lock()
+	defer w.mutex.Unlock()
+
+	callsign = strings.ToUpper(strings.TrimSpace(callsign))
+
+	entry, exists := w.entries[callsign]
+	if !exists {
+		// Check if any entry matches as a prefix
+		for pattern, e := range w.entries {
+			if callsign == pattern || strings.HasPrefix(callsign, pattern) {
+				entry = e
+				break
+			}
+		}
+		if entry == nil {
+			return
+		}
+	}
+
+	if entry.ActiveSpotIDs == nil {
+		entry.ActiveSpotIDs = make(map[int]bool)
+	}
+
+	entry.ActiveSpotIDs[spotID] = true
+	Log.Debugf("Added active spot ID %d for watchlist entry %s", spotID, entry.Callsign)
+}
+
+// RemoveActiveSpot removes a spot from the active list for a watchlist entry
+func (w *Watchlist) RemoveActiveSpot(spotID int) {
+	w.mutex.Lock()
+	defer w.mutex.Unlock()
+
+	// Search all entries for this spot ID
+	for _, entry := range w.entries {
+		if entry.ActiveSpotIDs != nil {
+			if _, exists := entry.ActiveSpotIDs[spotID]; exists {
+				delete(entry.ActiveSpotIDs, spotID)
+				Log.Debugf("Removed active spot ID %d from watchlist entry %s", spotID, entry.Callsign)
+			}
+		}
+	}
+}
+
+// RemoveActiveSpotByFlexNumber removes a spot by its Flex spot number
+func (w *Watchlist) RemoveActiveSpotByFlexNumber(flexSpotNumber string) {
+	// This needs to be coordinated with the FlexRepo to get the actual spot ID
+	// For now, we'll need the httpServer to handle this coordination
+	Log.Debugf("Request to remove spot with Flex number %s from watchlist", flexSpotNumber)
+}
+
+// HasActiveSpots returns true if the entry has any active spots
+func (w *Watchlist) HasActiveSpots(callsign string) bool {
+	w.mutex.RLock()
+	defer w.mutex.RUnlock()
+
+	callsign = strings.ToUpper(callsign)
+
+	for pattern, entry := range w.entries {
+		if callsign == pattern || strings.HasPrefix(callsign, pattern) {
+			return entry.ActiveSpotIDs != nil && len(entry.ActiveSpotIDs) > 0
+		}
+	}
+
+	return false
+}
+
+// GetActiveSpotCount returns the number of active spots for a callsign
+func (w *Watchlist) GetActiveSpotCount(callsign string) int {
+	w.mutex.RLock()
+	defer w.mutex.RUnlock()
+
+	callsign = strings.ToUpper(callsign)
+
+	for pattern, entry := range w.entries {
+		if callsign == pattern || strings.HasPrefix(callsign, pattern) {
+			if entry.ActiveSpotIDs != nil {
+				return len(entry.ActiveSpotIDs)
+			}
+			return 0
+		}
+	}
+
+	return 0
+}
+
 func (w *Watchlist) MarkSeen(callsign string) {
 	w.mutex.Lock()
 	defer w.mutex.Unlock()
@@ -184,14 +277,23 @@ func (w *Watchlist) MarkSeen(callsign string) {
 
 	entry, exists := w.entries[callsign]
 	if !exists {
-		return
+		// Check if any entry matches as a prefix
+		for pattern, e := range w.entries {
+			if callsign == pattern || strings.HasPrefix(callsign, pattern) {
+				entry = e
+				break
+			}
+		}
+		if entry == nil {
+			return
+		}
 	}
 
 	entry.LastSeen = time.Now()
 	entry.LastSeenStr = formatLastSeen(entry.LastSeen)
 	entry.SpotCount++
 
-	Log.Debugf("Marked %s as seen (count: %d)", callsign, entry.SpotCount)
+	Log.Debugf("Marked %s as seen (count: %d)", entry.Callsign, entry.SpotCount)
 }
 
 func (w *Watchlist) Matches(callsign string) bool {
@@ -223,6 +325,34 @@ func (w *Watchlist) GetEntry(callsign string) *WatchlistEntry {
 	}
 
 	return nil
+}
+
+// GetAllWithActiveStatus returns all watchlist entries with their active spot status
+func (w *Watchlist) GetAllWithActiveStatus() []map[string]interface{} {
+	w.mutex.RLock()
+	defer w.mutex.RUnlock()
+
+	entries := make([]map[string]interface{}, 0, len(w.entries))
+	for _, entry := range w.entries {
+		entryMap := map[string]interface{}{
+			"callsign":       entry.Callsign,
+			"lastSeen":       entry.LastSeen,
+			"lastSeenStr":    entry.LastSeenStr,
+			"addedAt":        entry.AddedAt,
+			"spotCount":      entry.SpotCount,
+			"playSound":      entry.PlaySound,
+			"hasActiveSpots": len(entry.ActiveSpotIDs) > 0,
+			"activeCount":    len(entry.ActiveSpotIDs),
+		}
+
+		if !entry.LastSeen.IsZero() {
+			entryMap["lastSeenStr"] = formatLastSeen(entry.LastSeen)
+		}
+
+		entries = append(entries, entryMap)
+	}
+
+	return entries
 }
 
 func (w *Watchlist) GetAll() []WatchlistEntry {

@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"context"
 	"fmt"
-	"math"
 	"net"
 	"os"
 	"regexp"
@@ -68,8 +67,7 @@ type FlexClient struct {
 	cancel               context.CancelFunc
 	reconnectAttempts    int
 	maxReconnectAttempts int
-	baseReconnectDelay   time.Duration
-	maxReconnectDelay    time.Duration
+	reconnectDelay       time.Duration
 	Enabled              bool
 }
 
@@ -88,20 +86,9 @@ func NewFlexClient(repo FlexDXClusterRepository, TCPServer *TCPServer, SpotChanT
 		Enabled:              enabled,
 		ctx:                  ctx,
 		cancel:               cancel,
-		maxReconnectAttempts: -1,              // -1 = infini
-		baseReconnectDelay:   5 * time.Second, // Délai initial
-		maxReconnectDelay:    5 * time.Minute, // Max 5 minutes
+		maxReconnectAttempts: -1,               // -1 = infini
+		reconnectDelay:       30 * time.Second, // Délai initial
 	}
-}
-
-func (fc *FlexClient) calculateBackoff() time.Duration {
-	delay := time.Duration(float64(fc.baseReconnectDelay) * math.Pow(1.5, float64(fc.reconnectAttempts)))
-
-	if delay > fc.maxReconnectDelay {
-		delay = fc.maxReconnectDelay
-	}
-
-	return delay
 }
 
 func (fc *FlexClient) resolveAddress() (string, error) {
@@ -211,21 +198,19 @@ func (fc *FlexClient) StartFlexClient() {
 			fc.IsConnected = false
 			fc.reconnectAttempts++
 
-			backoff := fc.calculateBackoff()
-
 			// Message moins alarmiste
 			if fc.reconnectAttempts == 1 {
 				Log.Warnf("FlexRadio not available: %v", err)
 				Log.Info("FlexDXCluster will continue without FlexRadio and retry connection periodically")
 			} else {
-				Log.Infof("FlexRadio still not available. Next retry in %v", backoff)
+				Log.Infof("FlexRadio still not available. Next retry in %v", fc.reconnectDelay)
 			}
 
 			// Attendre avant de réessayer
 			select {
 			case <-fc.ctx.Done():
 				return
-			case <-time.After(backoff):
+			case <-time.After(fc.reconnectDelay):
 				continue
 			}
 		}
@@ -324,8 +309,24 @@ func (fc *FlexClient) ReadLine() {
 		respDelete := regSpotDeleted.FindStringSubmatch(message)
 
 		if len(respDelete) > 0 {
+			// D'abord, récupérer le spot avant de le supprimer pour obtenir son ID
+			spot, err := fc.Repo.FindSpotByFlexSpotNumber(respDelete[1])
+			if err == nil && spot != nil && spot.ID > 0 {
+				// Notifier le HTTPServer/Watchlist que ce spot est supprimé
+				if fc.HTTPServer != nil && fc.HTTPServer.Watchlist != nil {
+					fc.HTTPServer.Watchlist.RemoveActiveSpot(spot.ID)
+
+					// Envoyer une mise à jour WebSocket
+					fc.HTTPServer.broadcast <- WSMessage{
+						Type: "watchlistUpdate",
+						Data: fc.HTTPServer.Watchlist.GetAllWithActiveStatus(),
+					}
+				}
+			}
+
+			// Maintenant supprimer le spot de la base de données
 			fc.Repo.DeleteSpotByFlexSpotNumber(respDelete[1])
-			Log.Debugf("Spot deleted from Flex Panadater and database: ", message)
+			Log.Debugf("Spot deleted from Flex Panadapter and database: %s", message)
 		}
 	}
 }

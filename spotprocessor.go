@@ -32,6 +32,9 @@ func NewSpotProcessor(flexRepo *FlexDXClusterRepository, flexClient *FlexClient,
 func (sp *SpotProcessor) Start() {
 	Log.Info("Starting Spot Processor...")
 
+	// Start cleanup goroutine
+	go sp.cleanupExpiredSpots()
+
 	for {
 		select {
 		case <-sp.ctx.Done():
@@ -81,9 +84,12 @@ func (sp *SpotProcessor) processSpot(spot TelnetSpot) {
 	flexSpot.OriginalComment = spot.Comment
 	flexSpot.Comment = flexSpot.Comment + " [" + flexSpot.Mode + "] [" + flexSpot.SpotterCallsign + "] [" + flexSpot.CountryName + "]"
 
+	// Check if this spot is in the watchlist
+	isInWatchlist := false
 	if sp.HTTPServer != nil && sp.HTTPServer.Watchlist != nil {
 		if sp.HTTPServer.Watchlist.Matches(flexSpot.DX) {
 			flexSpot.InWatchlist = true
+			isInWatchlist = true
 
 			// Mark as seen and update last seen time
 			sp.HTTPServer.Watchlist.MarkSeen(flexSpot.DX)
@@ -127,7 +133,24 @@ func (sp *SpotProcessor) processSpot(spot TelnetSpot) {
 		srcFlexSpot = nil
 	}
 
+	// Store the spot
 	sp.handleSpotStorage(flexSpot, srcFlexSpot)
+
+	// After creating the spot, if it's in watchlist, track it
+	// We need to find the created spot to get its ID
+	if isInWatchlist && sp.HTTPServer != nil && sp.HTTPServer.Watchlist != nil {
+		// Try to find the spot we just created using CommandNumber
+		createdSpot, err := sp.FlexRepo.FindSpotByCommandNumber(fmt.Sprintf("%d", flexSpot.CommandNumber))
+		if err == nil && createdSpot != nil && createdSpot.ID > 0 {
+			sp.HTTPServer.Watchlist.AddActiveSpot(flexSpot.DX, createdSpot.ID)
+
+			// Send update to websocket clients
+			sp.HTTPServer.broadcast <- WSMessage{
+				Type: "watchlistUpdate",
+				Data: sp.HTTPServer.Watchlist.GetAllWithActiveStatus(),
+			}
+		}
+	}
 
 	if sp.FlexClient != nil && sp.FlexClient.Enabled && sp.FlexClient.IsConnected {
 		sp.sendToFlexRadio(flexSpot, srcFlexSpot)
@@ -197,6 +220,7 @@ func (sp *SpotProcessor) applySpotColors(flexSpot *FlexSpot, spot TelnetSpot) {
 	}
 }
 
+// Keep the original signature since CreateSpot doesn't return an ID
 func (sp *SpotProcessor) handleSpotStorage(flexSpot FlexSpot, srcFlexSpot *FlexSpot) {
 	if srcFlexSpot == nil {
 		sp.FlexRepo.CreateSpot(flexSpot)
@@ -205,6 +229,11 @@ func (sp *SpotProcessor) handleSpotStorage(flexSpot FlexSpot, srcFlexSpot *FlexS
 			sp.HTTPServer.broadcast <- WSMessage{Type: "spots", Data: sp.FlexRepo.GetAllSpots("0")}
 		}
 	} else if srcFlexSpot.Band == flexSpot.Band {
+		// Remove old spot from watchlist tracking before deleting
+		if srcFlexSpot.ID > 0 {
+			sp.RemoveSpotFromWatchlist(srcFlexSpot.ID)
+		}
+
 		sp.FlexRepo.DeleteSpotByFlexSpotNumber(fmt.Sprintf("%d", srcFlexSpot.FlexSpotNumber))
 		sp.FlexRepo.CreateSpot(flexSpot)
 		CommandNumber++
@@ -264,4 +293,105 @@ func (sp *SpotProcessor) sendGotifyNotification(flexSpot FlexSpot) {
 	// Tous les autres cas : pas de notification
 	Log.Debugf("🔇 Gotify notification skipped for %s (InWatchlist=%v, Worked=%v, NewDXCC=%v)",
 		flexSpot.DX, flexSpot.InWatchlist, flexSpot.Worked, flexSpot.NewDXCC)
+}
+
+// RemoveSpotFromWatchlist removes the spot from watchlist tracking when it's deleted
+// This should be called when a spot is deleted from the database
+func (sp *SpotProcessor) RemoveSpotFromWatchlist(spotID int) {
+	if sp.HTTPServer != nil && sp.HTTPServer.Watchlist != nil {
+		sp.HTTPServer.Watchlist.RemoveActiveSpot(spotID)
+
+		// Send update to websocket clients
+		sp.HTTPServer.broadcast <- WSMessage{
+			Type: "watchlistUpdate",
+			Data: sp.HTTPServer.Watchlist.GetAllWithActiveStatus(),
+		}
+	}
+}
+
+// RemoveSpotByFlexNumberFromWatchlist removes a spot by its flex number
+// This should be called when receiving a spot deletion from FlexRadio
+func (sp *SpotProcessor) RemoveSpotByFlexNumberFromWatchlist(flexSpotNumber string) {
+	// Find the spot by flex number to get its ID
+	spot, err := sp.FlexRepo.FindSpotByFlexSpotNumber(flexSpotNumber)
+	if err == nil && spot != nil && spot.ID > 0 {
+		sp.RemoveSpotFromWatchlist(spot.ID)
+	}
+}
+
+// cleanupExpiredSpots runs periodically to remove expired spots from database
+// This ensures spots are cleaned up even if FlexRadio messages are lost
+func (sp *SpotProcessor) cleanupExpiredSpots() {
+	ticker := time.NewTicker(30 * time.Second)
+	defer ticker.Stop()
+
+	Log.Info("Started spot cleanup goroutine (runs every 30 seconds)")
+
+	for {
+		select {
+		case <-sp.ctx.Done():
+			Log.Info("Spot cleanup goroutine shutting down...")
+			return
+		case <-ticker.C:
+			sp.performCleanup()
+		}
+	}
+}
+
+// performCleanup removes spots that have exceeded their lifetime
+func (sp *SpotProcessor) performCleanup() {
+	// Parse the configured spot lifetime (e.g., "900" for 900 seconds)
+	var lifetimeSeconds int64
+	fmt.Sscanf(Cfg.Flex.SpotLife, "%d", &lifetimeSeconds)
+
+	if lifetimeSeconds <= 0 {
+		lifetimeSeconds = 900 // Default to 15 minutes if not configured
+	}
+
+	// Get all spots from database
+	allSpots := sp.FlexRepo.GetAllSpots("0")
+
+	now := time.Now().Unix()
+	removedCount := 0
+
+	for _, spot := range allSpots {
+		// Check if spot has exceeded its lifetime
+		spotAge := now - spot.TimeStamp
+
+		if spotAge > lifetimeSeconds {
+			// Remove from watchlist tracking first
+			if spot.ID > 0 {
+				sp.RemoveSpotFromWatchlist(spot.ID)
+			}
+
+			// Delete from database
+			if spot.FlexSpotNumber > 0 {
+				sp.FlexRepo.DeleteSpotByFlexSpotNumber(fmt.Sprintf("%d", spot.FlexSpotNumber))
+				if err == nil {
+					removedCount++
+					Log.Debugf("Cleaned up expired spot: %s (age: %d seconds, lifetime: %d seconds)",
+						spot.DX, spotAge, lifetimeSeconds)
+
+					// If FlexClient is connected, also remove from FlexRadio panadapter
+					if sp.FlexClient != nil && sp.FlexClient.Enabled && sp.FlexClient.IsConnected {
+						removeCmd := fmt.Sprintf("C%v|spot remove %v", CommandNumber, spot.FlexSpotNumber)
+						sp.FlexClient.SendSpot(removeCmd)
+						CommandNumber++
+					}
+				}
+			}
+		}
+	}
+
+	if removedCount > 0 {
+		Log.Infof("Cleanup: Removed %d expired spots", removedCount)
+
+		// Broadcast updated spots list to WebSocket clients
+		if sp.HTTPServer != nil {
+			sp.HTTPServer.broadcast <- WSMessage{
+				Type: "spots",
+				Data: sp.FlexRepo.GetAllSpots("0"),
+			}
+		}
+	}
 }
