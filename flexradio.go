@@ -69,6 +69,8 @@ type FlexClient struct {
 	maxReconnectAttempts int
 	reconnectDelay       time.Duration
 	Enabled              bool
+	CurrentFrequency     float64 // ✅ NOUVEAU : Fréquence actuelle en MHz
+	CurrentBand          string  // ✅ NOUVEAU : Bande actuelle (20M, 40M, etc.)
 }
 
 func NewFlexClient(repo FlexDXClusterRepository, TCPServer *TCPServer, SpotChanToFlex chan TelnetSpot, httpServer *HTTPServer) *FlexClient {
@@ -238,7 +240,12 @@ func (fc *FlexClient) initializeFlex() {
 	fc.Write(clrSpotAllCmd)
 	CommandNumber++
 
-	Log.Debug("Subscribed to spots on FlexRadio and cleared all spots from panadapter")
+	// ✅ NOUVEAU : Subscribe to slice 0 pour tracker la fréquence
+	subSliceCmd := fmt.Sprintf("C%v|sub slice 0", CommandNumber)
+	fc.Write(subSliceCmd)
+	CommandNumber++
+
+	Log.Debug("Subscribed to spots and slice 0 on FlexRadio, cleared all spots from panadapter")
 }
 
 func (fc *FlexClient) Close() {
@@ -277,6 +284,11 @@ func (fc *FlexClient) ReadLine() {
 			return
 		}
 		fc.Conn.SetReadDeadline(time.Time{})
+
+		// ✅ NOUVEAU : Parser les messages slice pour tracker la fréquence
+		if err := fc.parseSliceMessage(message); err == nil {
+			// Message slice parsé avec succès, continuer
+		}
 
 		regRespSpot := *regexp.MustCompile(`R(\d+)\|0\|(\d+)\n`)
 		respSpot := regRespSpot.FindStringSubmatch(message)
@@ -341,6 +353,74 @@ func (fc *FlexClient) Write(data string) (n int, err error) {
 		err = fc.Writer.Flush()
 	}
 	return
+}
+
+// ✅ NOUVEAU : Parser les messages slice pour extraire la fréquence
+func (fc *FlexClient) parseSliceMessage(message string) error {
+	// Format: S<handle>|slice 0 RF_frequency=14.195000 mode=USB ...
+	regSlice := regexp.MustCompile(`slice 0.*RF_frequency=([\d.]+)`)
+	match := regSlice.FindStringSubmatch(message)
+
+	if len(match) < 2 {
+		return fmt.Errorf("not a slice message")
+	}
+
+	var frequency float64
+	_, err := fmt.Sscanf(match[1], "%f", &frequency)
+	if err != nil {
+		return err
+	}
+
+	// Vérifier si la fréquence a changé
+	if frequency != fc.CurrentFrequency {
+		fc.CurrentFrequency = frequency
+		fc.CurrentBand = frequencyToBand(frequency)
+
+		Log.Debugf("Flex frequency changed: %.6f MHz → Band: %s", frequency, fc.CurrentBand)
+
+		// ✅ Broadcaster la nouvelle bande via WebSocket
+		if fc.HTTPServer != nil {
+			fc.HTTPServer.broadcast <- WSMessage{
+				Type: "flexBandChange",
+				Data: map[string]interface{}{
+					"frequency": frequency,
+					"band":      fc.CurrentBand,
+				},
+			}
+		}
+	}
+
+	return nil
+}
+
+// ✅ NOUVEAU : Convertir une fréquence en MHz vers une bande
+func frequencyToBand(freqMHz float64) string {
+	switch {
+	case freqMHz >= 1.8 && freqMHz < 2.0:
+		return "160M"
+	case freqMHz >= 3.5 && freqMHz < 4.0:
+		return "80M"
+	case freqMHz >= 5.0 && freqMHz < 5.5:
+		return "60M"
+	case freqMHz >= 7.0 && freqMHz < 7.3:
+		return "40M"
+	case freqMHz >= 10.1 && freqMHz < 10.15:
+		return "30M"
+	case freqMHz >= 14.0 && freqMHz < 14.35:
+		return "20M"
+	case freqMHz >= 18.068 && freqMHz < 18.168:
+		return "17M"
+	case freqMHz >= 21.0 && freqMHz < 21.45:
+		return "15M"
+	case freqMHz >= 24.89 && freqMHz < 24.99:
+		return "12M"
+	case freqMHz >= 28.0 && freqMHz < 29.7:
+		return "10M"
+	case freqMHz >= 50.0 && freqMHz < 54.0:
+		return "6M"
+	default:
+		return "ALL"
+	}
 }
 
 func DiscoverFlexRadio() (bool, *Discovery) {

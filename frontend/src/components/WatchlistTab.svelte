@@ -15,9 +15,10 @@
   let watchlistSpots = [];
   let refreshInterval;
   let selectedBand = 'ALL'; // ✅ NOUVEAU : Filtre de bande
+  let showOnlyNotWorked = false; // ✅ NOUVEAU : Filtre "Not Worked Only"
 
   // ✅ Liste des bandes disponibles
-  const bands = ['ALL', '160M', '80M', '60M', '40M', '30M', '20M', 
+  const bands = ['ALL', '80M', '40M', '30M', '20M', 
                '17M', '15M', '12M', '10M'];
   
   // ✅ SIMPLIFIÉ : Utiliser directement la watchlist du backend (qui filtre déjà selon contest mode)
@@ -40,6 +41,9 @@
     }, 10000);
     
     window.addEventListener('watchlistAlert', handleWatchlistAlert);
+    
+    // ✅ NOUVEAU : Écouter les changements de bande du FlexRadio
+    window.addEventListener('flexBandChange', handleFlexBandChange);
   });
   
   onDestroy(() => {
@@ -47,6 +51,7 @@
       clearInterval(refreshInterval);
     }
     window.removeEventListener('watchlistAlert', handleWatchlistAlert);
+    window.removeEventListener('flexBandChange', handleFlexBandChange);
   });
   
   function handleWatchlistAlert(event) {
@@ -60,6 +65,16 @@
       message: `🎯 ${callsign} spotted!`, 
       type: 'success'
     });
+  }
+  
+  // ✅ NOUVEAU : Gérer les changements de bande du FlexRadio
+  function handleFlexBandChange(event) {
+    const { band, frequency } = event.detail;
+    
+    if (band && band !== 'ALL') {
+      selectedBand = band;
+      console.log(`FlexRadio band changed to ${band} (${frequency} MHz) - watchlist filter updated`);
+    }
   }
   
   function getDisplayList(wl, wlSpots, activeOnly) {
@@ -79,6 +94,21 @@
       list = wl.filter(entry => {
         const spots = wlSpots.filter(s => s.dx === entry.callsign || s.dx.startsWith(entry.callsign));
         return spots.length > 0;
+      });
+    }
+    
+    // ✅ NOUVEAU : Filtre "Not Worked Only" - ne montrer que les callsigns avec au moins un spot non contacté
+    if (showOnlyNotWorked) {
+      list = list.filter(entry => {
+        let spots = wlSpots.filter(s => s.dx === entry.callsign || s.dx.startsWith(entry.callsign));
+        
+        // Appliquer le filtre de bande si nécessaire
+        if (selectedBand !== 'ALL') {
+          spots = spots.filter(s => s.band === selectedBand);
+        }
+        
+        // Vérifier s'il y a au moins un spot non contacté (workedBandMode = false)
+        return spots.some(s => !s.workedBandMode);
       });
     }
     
@@ -240,6 +270,10 @@
   function toggleActiveOnly() {
     showOnlyActive = !showOnlyActive;
   }
+  
+  function toggleNotWorked() {
+    showOnlyNotWorked = !showOnlyNotWorked;
+  }
 </script>
 
 <div class="h-full flex flex-col" style="height: 100%; max-height: 100%;">
@@ -263,6 +297,16 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
           </svg>
           {showOnlyActive ? 'Show All' : 'Active Only'}
+        </button>
+        
+        <!-- ✅ NOUVEAU : Bouton Not Worked Only -->
+        <button 
+          on:click={toggleNotWorked}
+          class="px-3 py-1.5 text-xs rounded transition-colors flex items-center gap-2 {showOnlyNotWorked ? 'bg-orange-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+          {showOnlyNotWorked ? 'Show All' : 'Not Worked'}
         </button>
       </div>
     </div>

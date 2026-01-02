@@ -429,6 +429,15 @@ function applyFilters(allSpots, filters, wl) {
           'success'
         );
         break;
+      // ✅ NOUVEAU : Gérer les changements de bande du FlexRadio
+      case 'flexBandChange':
+        // Dispatch custom event pour WatchlistTab
+        const bandEvent = new CustomEvent('flexBandChange', {
+          detail: message.data  // {frequency: 14.195, band: "20M"}
+        });
+        window.dispatchEvent(bandEvent);
+        console.log(`FlexRadio band changed: ${message.data.band} (${message.data.frequency} MHz)`);
+        break;
     }
   }
   
