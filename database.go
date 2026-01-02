@@ -177,96 +177,95 @@ func (r *Log4OMContactsRepository) ListByCountry(countryID string, contactsChan 
 	contactsChan <- contacts
 }
 
+func buildSSBModeCondition(mode string) (condition string, params []interface{}) {
+	modeUpper := strings.ToUpper(mode)
+
+	if modeUpper == "USB" || modeUpper == "LSB" || modeUpper == "SSB" {
+		// Pour SSB/USB/LSB, chercher les 3
+		return "(mode = ? OR mode = ? OR mode = ?)",
+			[]interface{}{"USB", "LSB", "SSB"}
+	}
+
+	// Pour les autres modes, recherche exacte
+	return "mode = ?", []interface{}{modeUpper}
+}
+
 func (r *Log4OMContactsRepository) ListByCountryMode(countryID string, mode string, contactsModeChan chan []Contact, wg *sync.WaitGroup) {
 	defer wg.Done()
 
-	if mode == "USB" || mode == "LSB" || mode == "SSB" {
+	// ✅ Utiliser le helper pour construire la condition
+	modeCondition, modeParams := buildSSBModeCondition(mode)
 
-		rows, err := r.db.Query("SELECT callsign, band, mode, dxcc, stationcallsign, country FROM log WHERE dxcc = ? AND (mode = ? OR mode = ? OR mode = ?)", countryID, "USB", "LSB", "SSB")
-		if err != nil {
-			log.Error("could not query database", err)
-		}
+	// Construire la requête avec la condition
+	query := fmt.Sprintf(
+		"SELECT callsign, band, mode, dxcc, stationcallsign, country FROM log WHERE dxcc = ? AND %s",
+		modeCondition,
+	)
 
-		defer rows.Close()
+	// Construire les paramètres (countryID + mode params)
+	args := []interface{}{countryID}
+	args = append(args, modeParams...)
 
-		contacts := []Contact{}
-		for rows.Next() {
-			c := Contact{}
-			if err := rows.Scan(&c.Callsign, &c.Band, &c.Mode, &c.DXCC, &c.StationCallsign, &c.Country); err != nil {
-				log.Error("could not query database", err)
-
-			}
-			contacts = append(contacts, c)
-		}
-		contactsModeChan <- contacts
-
-	} else {
-
-		rows, err := r.db.Query("SELECT callsign, band, mode, dxcc, stationcallsign, country FROM log WHERE dxcc = ? AND mode = ?", countryID, mode)
-		if err != nil {
-			log.Error("could not query the database", err)
-		}
-
-		defer rows.Close()
-
-		contacts := []Contact{}
-		for rows.Next() {
-			c := Contact{}
-			if err := rows.Scan(&c.Callsign, &c.Band, &c.Mode, &c.DXCC, &c.StationCallsign, &c.Country); err != nil {
-				r.Log.Println(err)
-
-			}
-			contacts = append(contacts, c)
-		}
-		contactsModeChan <- contacts
-
+	// Exécuter la requête
+	rows, err := r.db.Query(query, args...)
+	if err != nil {
+		log.Error("could not query database", err)
+		contactsModeChan <- []Contact{}
+		return
 	}
+	defer rows.Close()
+
+	// Scanner les résultats
+	contacts := []Contact{}
+	for rows.Next() {
+		c := Contact{}
+		if err := rows.Scan(&c.Callsign, &c.Band, &c.Mode, &c.DXCC, &c.StationCallsign, &c.Country); err != nil {
+			log.Error("could not scan row", err)
+			continue
+		}
+		contacts = append(contacts, c)
+	}
+
+	contactsModeChan <- contacts
 }
 
 func (r *Log4OMContactsRepository) ListByCountryModeBand(countryID string, band string, mode string, contactsModeBandChan chan []Contact, wg *sync.WaitGroup) {
 	defer wg.Done()
 
-	if mode == "USB" || mode == "LSB" {
+	// ✅ Utiliser le helper pour construire la condition
+	modeCondition, modeParams := buildSSBModeCondition(mode)
 
-		rows, err := r.db.Query("SELECT callsign, band, mode, dxcc, stationcallsign, country FROM log WHERE dxcc = ? AND (mode = ? OR mode = ?) AND band = ?", countryID, "USB", "LSB", band)
-		if err != nil {
-			log.Error("could not query database", err)
-		}
+	// Construire la requête avec la condition
+	query := fmt.Sprintf(
+		"SELECT callsign, band, mode, dxcc, stationcallsign, country FROM log WHERE dxcc = ? AND band = ? AND %s",
+		modeCondition,
+	)
 
-		defer rows.Close()
+	// Construire les paramètres (countryID + band + mode params)
+	args := []interface{}{countryID, band}
+	args = append(args, modeParams...)
 
-		contacts := []Contact{}
-		for rows.Next() {
-			c := Contact{}
-			if err := rows.Scan(&c.Callsign, &c.Band, &c.Mode, &c.DXCC, &c.StationCallsign, &c.Country); err != nil {
-				log.Error("could not query database", err)
-
-			}
-			contacts = append(contacts, c)
-		}
-		contactsModeBandChan <- contacts
-
-	} else {
-
-		rows, err := r.db.Query("SELECT callsign, band, mode, dxcc, stationcallsign, country FROM log WHERE dxcc = ? AND mode = ? AND band = ?", countryID, mode, band)
-		if err != nil {
-			r.Log.Error("could not query the database", err)
-		}
-
-		defer rows.Close()
-
-		contacts := []Contact{}
-		for rows.Next() {
-			c := Contact{}
-			if err := rows.Scan(&c.Callsign, &c.Band, &c.Mode, &c.DXCC, &c.StationCallsign, &c.Country); err != nil {
-				r.Log.Error(err)
-
-			}
-			contacts = append(contacts, c)
-		}
-		contactsModeBandChan <- contacts
-
+	// Exécuter la requête
+	rows, err := r.db.Query(query, args...)
+	if err != nil {
+		r.Log.Error("could not query database", err)
+		contactsModeBandChan <- []Contact{}
+		return
 	}
+	defer rows.Close()
+
+	// Scanner les résultats
+	contacts := []Contact{}
+	for rows.Next() {
+		c := Contact{}
+		if err := rows.Scan(&c.Callsign, &c.Band, &c.Mode, &c.DXCC, &c.StationCallsign, &c.Country); err != nil {
+			r.Log.Error("could not scan row", err)
+			continue
+		}
+		contacts = append(contacts, c)
+	}
+
+	contactsModeBandChan <- contacts
 }
 
 func (r *Log4OMContactsRepository) ListByCountryBand(countryID string, band string, contactsBandChan chan []Contact, wg *sync.WaitGroup) {
@@ -371,7 +370,6 @@ func (r *Log4OMContactsRepository) GetDXCCCount() int {
 	return count
 }
 
-// Nouvelle méthode optimisée - remplacer HasWorkedCallsignBandMode par celle-ci
 func (r *Log4OMContactsRepository) GetWorkedCallsignsBandMode(callsigns []string, band string, mode string) map[string]bool {
 	if len(callsigns) == 0 {
 		return make(map[string]bool)
@@ -381,31 +379,28 @@ func (r *Log4OMContactsRepository) GetWorkedCallsignsBandMode(callsigns []string
 
 	// Construire les placeholders pour la requête IN
 	placeholders := make([]string, len(callsigns))
-	args := make([]interface{}, 0, len(callsigns)+2)
+	args := make([]interface{}, 0, len(callsigns)+3) // +3 pour band et mode params
 
 	for i, callsign := range callsigns {
 		placeholders[i] = "?"
 		args = append(args, callsign)
 	}
 
+	// Ajouter la bande
 	args = append(args, band)
 
-	var query string
+	// ✅ Utiliser le helper pour la condition de mode
+	modeCondition, modeParams := buildSSBModeCondition(mode)
+	args = append(args, modeParams...)
 
-	// Gérer les cas SSB/USB/LSB
-	if mode == "USB" || mode == "LSB" || mode == "SSB" {
-		query = fmt.Sprintf(
-			"SELECT DISTINCT callsign FROM log WHERE callsign IN (%s) AND band = ? AND (mode = 'USB' OR mode = 'LSB' OR mode = 'SSB')",
-			strings.Join(placeholders, ","),
-		)
-	} else {
-		query = fmt.Sprintf(
-			"SELECT DISTINCT callsign FROM log WHERE callsign IN (%s) AND band = ? AND mode = ?",
-			strings.Join(placeholders, ","),
-		)
-		args = append(args, mode)
-	}
+	// Construire la requête
+	query := fmt.Sprintf(
+		"SELECT DISTINCT callsign FROM log WHERE callsign IN (%s) AND band = ? AND %s",
+		strings.Join(placeholders, ","),
+		modeCondition,
+	)
 
+	// Exécuter la requête
 	rows, err := r.db.Query(query, args...)
 	if err != nil {
 		log.Error("could not check worked band/mode status:", err)
@@ -413,6 +408,7 @@ func (r *Log4OMContactsRepository) GetWorkedCallsignsBandMode(callsigns []string
 	}
 	defer rows.Close()
 
+	// Scanner les résultats
 	for rows.Next() {
 		var callsign string
 		if err := rows.Scan(&callsign); err != nil {
@@ -428,41 +424,33 @@ func (r *Log4OMContactsRepository) GetWorkedCallsignsBandMode(callsigns []string
 func (r *Log4OMContactsRepository) HasWorkedCallsignToday(callsign, band, mode string) bool {
 	var count int
 
-	// Gérer les modes SSB/USB/LSB
-	if mode == "USB" || mode == "LSB" || mode == "SSB" {
-		err := r.db.QueryRow(
-			`SELECT COUNT(*) FROM log 
-			WHERE callsign = ? 
-			AND band = ? 
-			AND (mode = 'USB' OR mode = 'LSB' OR mode = 'SSB')
-			AND qsodate >= DATE('now')`,
-			callsign, band,
-		).Scan(&count)
+	// ✅ Utiliser le helper pour la condition de mode
+	modeCondition, modeParams := buildSSBModeCondition(mode)
 
-		if err != nil {
-			log.Error("could not check today's contact:", err)
-			return false
-		}
-	} else {
-		err := r.db.QueryRow(
-			`SELECT COUNT(*) FROM log 
-			WHERE callsign = ? 
-			AND band = ? 
-			AND mode = ?
-			AND qsodate >= DATE('now')`,
-			callsign, band, mode,
-		).Scan(&count)
+	// Construire la requête
+	query := fmt.Sprintf(
+		`SELECT COUNT(*) FROM log 
+		WHERE callsign = ? 
+		AND band = ? 
+		AND %s
+		AND qsodate >= DATE('now')`,
+		modeCondition,
+	)
 
-		if err != nil {
-			log.Error("could not check today's contact:", err)
-			return false
-		}
+	// Construire les paramètres
+	args := []interface{}{callsign, band}
+	args = append(args, modeParams...)
+
+	// Exécuter la requête
+	err := r.db.QueryRow(query, args...).Scan(&count)
+	if err != nil {
+		log.Error("could not check today's contact:", err)
+		return false
 	}
 
 	return count > 0
 }
 
-// GetWorkedCallsignsBandModeToday - version optimisée pour plusieurs callsigns (aujourd'hui uniquement)
 func (r *Log4OMContactsRepository) GetWorkedCallsignsBandModeToday(callsigns []string, band string, mode string) map[string]bool {
 	if len(callsigns) == 0 {
 		return make(map[string]bool)
@@ -470,39 +458,34 @@ func (r *Log4OMContactsRepository) GetWorkedCallsignsBandModeToday(callsigns []s
 
 	result := make(map[string]bool)
 
+	// Construire les placeholders pour la requête IN
 	placeholders := make([]string, len(callsigns))
-	args := make([]interface{}, 0, len(callsigns)+2)
+	args := make([]interface{}, 0, len(callsigns)+3)
 
 	for i, callsign := range callsigns {
 		placeholders[i] = "?"
 		args = append(args, callsign)
 	}
 
+	// Ajouter la bande
 	args = append(args, band)
 
-	var query string
+	// ✅ Utiliser le helper pour la condition de mode
+	modeCondition, modeParams := buildSSBModeCondition(mode)
+	args = append(args, modeParams...)
 
-	if mode == "USB" || mode == "LSB" || mode == "SSB" {
-		query = fmt.Sprintf(
-			`SELECT DISTINCT callsign FROM log 
-			WHERE callsign IN (%s) 
-			AND band = ? 
-			AND (mode = 'USB' OR mode = 'LSB' OR mode = 'SSB')
-			AND qsodate >= DATE('now')`,
-			strings.Join(placeholders, ","),
-		)
-	} else {
-		query = fmt.Sprintf(
-			`SELECT DISTINCT callsign FROM log 
-			WHERE callsign IN (%s) 
-			AND band = ? 
-			AND mode = ?
-			AND qsodate >= DATE('now')`,
-			strings.Join(placeholders, ","),
-		)
-		args = append(args, mode)
-	}
+	// Construire la requête
+	query := fmt.Sprintf(
+		`SELECT DISTINCT callsign FROM log 
+		WHERE callsign IN (%s) 
+		AND band = ? 
+		AND %s
+		AND qsodate >= DATE('now')`,
+		strings.Join(placeholders, ","),
+		modeCondition,
+	)
 
+	// Exécuter la requête
 	rows, err := r.db.Query(query, args...)
 	if err != nil {
 		log.Error("could not check today's worked band/mode status:", err)
@@ -510,6 +493,7 @@ func (r *Log4OMContactsRepository) GetWorkedCallsignsBandModeToday(callsigns []s
 	}
 	defer rows.Close()
 
+	// Scanner les résultats
 	for rows.Next() {
 		var callsign string
 		if err := rows.Scan(&callsign); err != nil {

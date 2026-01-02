@@ -374,7 +374,10 @@ func (fc *FlexClient) parseSliceMessage(message string) error {
 	// Vérifier si la fréquence a changé
 	if frequency != fc.CurrentFrequency {
 		fc.CurrentFrequency = frequency
-		fc.CurrentBand = frequencyToBand(frequency)
+		fc.CurrentBand = FrequencyToBand(frequency)
+		if fc.CurrentBand == "N/A" {
+			fc.CurrentBand = "ALL"
+		}
 
 		Log.Debugf("Flex frequency changed: %.6f MHz → Band: %s", frequency, fc.CurrentBand)
 
@@ -391,36 +394,6 @@ func (fc *FlexClient) parseSliceMessage(message string) error {
 	}
 
 	return nil
-}
-
-// ✅ NOUVEAU : Convertir une fréquence en MHz vers une bande
-func frequencyToBand(freqMHz float64) string {
-	switch {
-	case freqMHz >= 1.8 && freqMHz < 2.0:
-		return "160M"
-	case freqMHz >= 3.5 && freqMHz < 4.0:
-		return "80M"
-	case freqMHz >= 5.0 && freqMHz < 5.5:
-		return "60M"
-	case freqMHz >= 7.0 && freqMHz < 7.3:
-		return "40M"
-	case freqMHz >= 10.1 && freqMHz < 10.15:
-		return "30M"
-	case freqMHz >= 14.0 && freqMHz < 14.35:
-		return "20M"
-	case freqMHz >= 18.068 && freqMHz < 18.168:
-		return "17M"
-	case freqMHz >= 21.0 && freqMHz < 21.45:
-		return "15M"
-	case freqMHz >= 24.89 && freqMHz < 24.99:
-		return "12M"
-	case freqMHz >= 28.0 && freqMHz < 29.7:
-		return "10M"
-	case freqMHz >= 50.0 && freqMHz < 54.0:
-		return "6M"
-	default:
-		return "ALL"
-	}
 }
 
 func DiscoverFlexRadio() (bool, *Discovery) {

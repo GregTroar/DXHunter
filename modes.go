@@ -25,7 +25,7 @@ var BandModeRanges = map[string][]ModeRange{
 		{MinFreqMHz: 3.560, MaxFreqMHz: 3.575, Mode: "FT8"},
 		{MinFreqMHz: 3.575, MaxFreqMHz: 3.578, Mode: "FT4"},
 		{MinFreqMHz: 3.578, MaxFreqMHz: 3.590, Mode: "RTTY"},
-		{MinFreqMHz: 3.590, MaxFreqMHz: 4.000, Mode: "LSB"},
+		{MinFreqMHz: 3.590, MaxFreqMHz: 3.800, Mode: "LSB"},
 	},
 	"60M": {
 		{MinFreqMHz: 5.330, MaxFreqMHz: 5.357, Mode: "CW"},
@@ -38,7 +38,7 @@ var BandModeRanges = map[string][]ModeRange{
 		{MinFreqMHz: 7.047, MaxFreqMHz: 7.050, Mode: "FT4"},
 		{MinFreqMHz: 7.050, MaxFreqMHz: 7.080, Mode: "FT8"},
 		{MinFreqMHz: 7.080, MaxFreqMHz: 7.125, Mode: "RTTY"},
-		{MinFreqMHz: 7.125, MaxFreqMHz: 7.300, Mode: "LSB"},
+		{MinFreqMHz: 7.125, MaxFreqMHz: 7.200, Mode: "LSB"},
 	},
 	"30M": {
 		{MinFreqMHz: 10.100, MaxFreqMHz: 10.130, Mode: "CW"},
@@ -159,7 +159,7 @@ func ExtractModeFromComment(comment string) string {
 	}
 
 	// 3. Autres modes digitaux
-	digitalModes := []string{"RTTY", "PSK31", "PSK63", "PSK", "MFSK", "OLIVIA", "CONTESTIA", "JT65", "JT9"}
+	digitalModes := []string{"RTTY", "PSK31", "PSK63", "PSK", "MFSK", "OLIVIA", "JT65", "JT9"}
 	for _, mode := range digitalModes {
 		if strings.Contains(commentUpper, mode) {
 			return mode
@@ -187,12 +187,12 @@ func DetermineMode(explicitMode string, comment string, freqMHz float64) string 
 	// 1. Si un mode explicite est fourni, le normaliser
 	if explicitMode != "" {
 		explicitMode = strings.ToUpper(explicitMode)
-		
+
 		// Normaliser SSB si nécessaire
 		if explicitMode == "SSB" {
 			return NormalizeSSBModeByFrequency(explicitMode, freqMHz)
 		}
-		
+
 		return explicitMode
 	}
 
@@ -219,7 +219,7 @@ func IsCWMode(mode string) bool {
 func IsDigitalMode(mode string) bool {
 	modeUpper := strings.ToUpper(mode)
 	digitalModes := []string{"FT8", "FT4", "RTTY", "PSK31", "PSK63", "PSK", "MFSK", "OLIVIA", "CONTESTIA", "JT65", "JT9"}
-	
+
 	for _, dm := range digitalModes {
 		if modeUpper == dm {
 			return true
@@ -232,7 +232,7 @@ func IsDigitalMode(mode string) bool {
 func IsPhoneMode(mode string) bool {
 	modeUpper := strings.ToUpper(mode)
 	phoneModes := []string{"SSB", "USB", "LSB", "FM", "AM"}
-	
+
 	for _, pm := range phoneModes {
 		if modeUpper == pm {
 			return true
@@ -260,7 +260,7 @@ func ValidateModeForBand(mode string, band string) bool {
 		// 30M = CW et digital uniquement (pas de phone)
 		return IsCWMode(mode) || IsDigitalMode(mode)
 	}
-	
+
 	// Les autres bandes acceptent généralement tous les modes
 	return true
 }
@@ -268,7 +268,7 @@ func ValidateModeForBand(mode string, band string) bool {
 // GetModeColor retourne une couleur CSS pour un mode (pour l'UI)
 func GetModeColor(mode string) string {
 	modeUpper := strings.ToUpper(mode)
-	
+
 	switch {
 	case modeUpper == "CW":
 		return "#10b981" // Green
@@ -291,11 +291,11 @@ func ParseModeFromRawSpot(rawSpot string) string {
 	// Pattern pour détecter les modes dans les spots
 	// Ex: "DX de F4BPO:     14.074  VK9DWX       FT8  1234 Hz"
 	modeRegex := regexp.MustCompile(`\b(CW|SSB|USB|LSB|FM|AM|FT8|FT4|RTTY|PSK\d*)\b`)
-	
+
 	match := modeRegex.FindString(strings.ToUpper(rawSpot))
 	if match != "" {
 		return match
 	}
-	
+
 	return ""
 }
