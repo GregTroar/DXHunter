@@ -14,27 +14,30 @@ var Cfg *Config
 
 type Config struct {
 	General struct {
-		DeleteLogFileAtStart       bool   `yaml:"delete_log_file_at_start"`
-		LogToFile                  bool   `yaml:"log_to_file"`
-		Callsign                   string `yaml:"callsign"`
-		LogLevel                   string `yaml:"log_level"`
-		TelnetServer               bool   `yaml:"telnetserver"`
-		FlexRadioSpot              bool   `yaml:"flexradiospot"`
-		SendFreqModeToLog          bool   `yaml:"sendFreqModeToLog4OM"`
-		SpotColorNewEntity         string `yaml:"spot_color_new_entity"`
-		BackgroundColorNewEntity   string `yaml:"background_color_new_entity"`
-		SpotColorNewBand           string `yaml:"spot_color_new_band"`
-		BackgroundColorNewBand     string `yaml:"background_color_new_band"`
-		SpotColorNewMode           string `yaml:"spot_color_new_mode"`
-		BackgroundColorNewMode     string `yaml:"background_color_new_mode"`
-		SpotColorNewBandMode       string `yaml:"spot_color_new_band_mode"`
-		BackgroundColorNewBandMode string `yaml:"background_color_new_band_mode"`
-		SpotColorNewSlot           string `yaml:"spot_color_new_slot"`
-		BackgroundColorNewSlot     string `yaml:"background_color_new_slot"`
-		SpotColorMyCallsign        string `yaml:"spot_color_my_callsign"`
-		BackgroundColorMyCallsign  string `yaml:"background_color_my_callsign"`
-		SpotColorWorked            string `yaml:"spot_color_worked"`
-		BackgroundColorWorked      string `yaml:"background_color_worked"`
+		ContestMode                bool     `yaml:"contest_mode"`
+		ContestPrefix              string   `yaml:"contest_prefix"`
+		ContestCallsigns           []string `yaml:"contest_callsigns"`
+		DeleteLogFileAtStart       bool     `yaml:"delete_log_file_at_start"`
+		LogToFile                  bool     `yaml:"log_to_file"`
+		Callsign                   string   `yaml:"callsign"`
+		LogLevel                   string   `yaml:"log_level"`
+		TelnetServer               bool     `yaml:"telnetserver"`
+		FlexRadioSpot              bool     `yaml:"flexradiospot"`
+		SendFreqModeToLog          bool     `yaml:"sendFreqModeToLog4OM"`
+		SpotColorNewEntity         string   `yaml:"spot_color_new_entity"`
+		BackgroundColorNewEntity   string   `yaml:"background_color_new_entity"`
+		SpotColorNewBand           string   `yaml:"spot_color_new_band"`
+		BackgroundColorNewBand     string   `yaml:"background_color_new_band"`
+		SpotColorNewMode           string   `yaml:"spot_color_new_mode"`
+		BackgroundColorNewMode     string   `yaml:"background_color_new_mode"`
+		SpotColorNewBandMode       string   `yaml:"spot_color_new_band_mode"`
+		BackgroundColorNewBandMode string   `yaml:"background_color_new_band_mode"`
+		SpotColorNewSlot           string   `yaml:"spot_color_new_slot"`
+		BackgroundColorNewSlot     string   `yaml:"background_color_new_slot"`
+		SpotColorMyCallsign        string   `yaml:"spot_color_my_callsign"`
+		BackgroundColorMyCallsign  string   `yaml:"background_color_my_callsign"`
+		SpotColorWorked            string   `yaml:"spot_color_worked"`
+		BackgroundColorWorked      string   `yaml:"background_color_worked"`
 	} `yaml:"general"`
 
 	Database struct {

@@ -5,6 +5,9 @@
   export let watchlist;
   export let spots;
   export let showOnlyActive = false;
+  export let contestMode = false;
+  export let contestPrefix = "";
+  export let contestCallsigns = [];
   
   const dispatch = createEventDispatcher();
   
@@ -12,20 +15,65 @@
   let watchlistSpots = [];
   let refreshInterval;
   
-  $: matchingSpots = countWatchlistSpots(spots, watchlist);
-  $: displayList = getDisplayList(watchlist, watchlistSpots, showOnlyActive);
+  // ✅ NOUVEAU : Combiner watchlist manuelle + spots contest auto
+  $: combinedWatchlist = getCombinedWatchlist(watchlist, spots, contestMode, contestPrefix, contestCallsigns);
+  $: matchingSpots = countWatchlistSpots(spots, combinedWatchlist);
+  $: displayList = getDisplayList(combinedWatchlist, watchlistSpots, showOnlyActive);
   
-  $: if (watchlist.length > 0) {
+  $: if (combinedWatchlist.length > 0) {
     fetchWatchlistSpots();
   }
   
-  $: if (spots.length > 0 && watchlist.length > 0) {
+  $: if (spots.length > 0 && combinedWatchlist.length > 0) {
     fetchWatchlistSpots();
+  }
+  
+  // ✅ NOUVELLE FONCTION : Combiner watchlist + contest spots
+  function getCombinedWatchlist(manualWatchlist, allSpots, isContestMode, prefix, callsigns) {
+    if (!isContestMode) {
+      return manualWatchlist;
+    }
+    
+    // Extraire les callsigns uniques des spots contest
+    const contestSpotCallsigns = new Set();
+    
+    allSpots.forEach(spot => {
+      // Vérifier prefix (ex: WWA)
+      if (prefix && spot.DX.includes(prefix)) {
+        contestSpotCallsigns.add(spot.DX);
+      }
+      
+      // Vérifier liste spécifique (ex: W4I, N1W)
+      if (callsigns && callsigns.length > 0) {
+        callsigns.forEach(cc => {
+          if (spot.DX === cc || spot.DX.startsWith(cc + '/')) {
+            contestSpotCallsigns.add(spot.DX);
+          }
+        });
+      }
+    });
+    
+    // Créer des entrées pour les spots contest qui ne sont pas déjà dans la watchlist
+    const manualCallsigns = new Set(manualWatchlist.map(e => e.callsign));
+    const autoContestEntries = Array.from(contestSpotCallsigns)
+      .filter(callsign => !manualCallsigns.has(callsign))
+      .map(callsign => ({
+        callsign: callsign,
+        playSound: false,
+        lastSeen: new Date().toISOString(),
+        lastSeenStr: "Just now",
+        addedAt: new Date().toISOString(),
+        spotCount: 0,
+        isAuto: true  // ✅ Marquer comme auto-généré
+      }));
+    
+    // Combiner watchlist manuelle + auto contest
+    return [...manualWatchlist, ...autoContestEntries];
   }
   
   onMount(() => {
     refreshInterval = setInterval(() => {
-      if (watchlist.length > 0) {
+      if (combinedWatchlist.length > 0) {
         fetchWatchlistSpots();
       }
     }, 10000);
@@ -92,22 +140,18 @@
     const modeOrder = { 'CW': 0, 'SSB': 1, 'USB': 1, 'LSB': 1, 'RTTY': 2, 'FT4': 3, 'FT8': 4, 'FM': 5 };
     
     return spots.sort((a, b) => {
-      // D'abord trier par bande
       const bandA = bandOrder[a.band] ?? 99;
       const bandB = bandOrder[b.band] ?? 99;
       if (bandA !== bandB) return bandA - bandB;
       
-      // Ensuite trier par mode pour éviter les sauts entre modes
       const modeA = modeOrder[a.mode] ?? 99;
       const modeB = modeOrder[b.mode] ?? 99;
       if (modeA !== modeB) return modeA - modeB;
       
-      // Puis trier par fréquence pour un tri stable dans le même mode
       const freqA = parseFloat(a.frequencyMhz) || 0;
       const freqB = parseFloat(b.frequencyMhz) || 0;
       if (freqA !== freqB) return freqA - freqB;
       
-      // Finalement, trier par heure (le plus récent en premier)
       const timeA = a.utcTime || "00:00";
       const timeB = b.utcTime || "00:00";
       return timeB.localeCompare(timeA);
@@ -199,6 +243,24 @@
     window.dispatchEvent(event);
   }
   
+  function isContestCallsign(callsign) {
+    if (!contestMode) return false;
+    
+    if (contestPrefix && callsign.includes(contestPrefix)) {
+      return true;
+    }
+    
+    if (contestCallsigns && contestCallsigns.length > 0) {
+      for (const contestCall of contestCallsigns) {
+        if (callsign === contestCall || callsign.startsWith(contestCall + '/')) {
+          return true;
+        }
+      }
+    }
+    
+    return false;
+  }
+  
   function toggleActiveOnly() {
     showOnlyActive = !showOnlyActive;
   }
@@ -208,14 +270,25 @@
   <div class="p-3 border-b border-slate-700/50 flex-shrink-0">
     <div class="flex items-center justify-between mb-2">
       <h2 class="text-lg font-bold">Watchlist</h2>
-      <button 
-        on:click={toggleActiveOnly}
-        class="px-3 py-1.5 text-xs rounded transition-colors flex items-center gap-2 {showOnlyActive ? 'bg-blue-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
-        </svg>
-        {showOnlyActive ? 'Show All' : 'Active Only'}
-      </button>
+      <div class="flex gap-2">
+        {#if contestMode && (contestPrefix || (contestCallsigns && contestCallsigns.length > 0))}
+          <span class="px-2 py-1 bg-yellow-600/20 text-yellow-400 rounded text-xs font-semibold flex items-center gap-1">
+            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+            </svg>
+            {contestPrefix || 'Contest'}
+          </span>
+        {/if}
+        
+        <button 
+          on:click={toggleActiveOnly}
+          class="px-3 py-1.5 text-xs rounded transition-colors flex items-center gap-2 {showOnlyActive ? 'bg-blue-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+          </svg>
+          {showOnlyActive ? 'Show All' : 'Active Only'}
+        </button>
+      </div>
     </div>
     <p class="text-xs text-slate-400 mb-3">{matchingSpots} matching spots</p>
     
@@ -251,6 +324,7 @@
         {@const count = matchingSpots.length}
         {@const neededCount = matchingSpots.filter(s => !s.workedBandMode).length}
         {@const borderClass = neededCount > 0 ? 'border-orange-500/30' : 'border-slate-700/50'}
+        {@const isContest = isContestCallsign(entry.callsign)}
         
         <div class="mb-3 p-3 bg-slate-900/30 rounded hover:bg-slate-700/30 transition-colors border {borderClass}">
           <div class="flex items-center justify-between mb-2">
@@ -258,45 +332,65 @@
               <div class="flex items-center gap-2 flex-wrap">
                 <div class="font-bold text-pink-400 text-lg">{entry.callsign}</div>
                 
-                {#if entry.playSound}
+                {#if isContest}
+                  <span class="px-1.5 py-0.5 bg-yellow-600/20 text-yellow-400 rounded text-xs font-semibold" title="Contest station - daily contacts allowed">
+                    🏆 Contest
+                  </span>
+                {/if}
+                
+                <!-- ✅ NOUVEAU : Badge auto si généré automatiquement -->
+                {#if entry.isAuto}
+                  <span class="px-1.5 py-0.5 bg-blue-600/20 text-blue-400 rounded text-xs font-semibold" title="Auto-detected from active spots">
+                    🤖 Auto
+                  </span>
+                {/if}
+                
+                {#if entry.playSound && !entry.isAuto}
                   <span class="text-xs" title="Sound enabled">🔊</span>
                 {/if}
                 
                 {#if count > 0}
                   <span class="text-xs text-slate-400">{count} active spot{count !== 1 ? 's' : ''}</span>
                   {#if neededCount > 0}
-                    <span class="px-1.5 py-0.5 bg-orange-500/20 text-orange-400 rounded text-xs font-semibold">{neededCount} needed</span>
+                    <span class="px-1.5 py-0.5 bg-orange-500/20 text-orange-400 rounded text-xs font-semibold">
+                      {isContest ? `${neededCount} today` : `${neededCount} needed`}
+                    </span>
                   {:else}
-                    <span class="px-1.5 py-0.5 bg-green-500/20 text-green-400 rounded text-xs font-semibold">All worked</span>
+                    <span class="px-1.5 py-0.5 bg-green-500/20 text-green-400 rounded text-xs font-semibold">
+                      {isContest ? 'Worked today' : 'All worked'}
+                    </span>
                   {/if}
                 {:else}
                   <span class="text-xs text-slate-500">No active spots</span>
                 {/if}
                 
-                {#if entry.lastSeenStr && entry.lastSeenStr !== 'Never'}
+                {#if entry.lastSeenStr && entry.lastSeenStr !== 'Never' && !entry.isAuto}
                   <span class="text-xs text-slate-500">• {entry.lastSeenStr}</span>
                 {/if}
                 
-                {#if entry.spotCount > 0}
+                {#if entry.spotCount > 0 && !entry.isAuto}
                   <span class="text-xs text-slate-600">• {entry.spotCount} total spot{entry.spotCount !== 1 ? 's' : ''}</span>
                 {/if}
               </div>
             </div>
             
             <div class="flex gap-1">
-              <button
-                on:click={() => updateSound(entry.callsign, !entry.playSound)}
-                class="px-2 py-1 text-xs rounded transition-colors {entry.playSound ? 'bg-blue-600/20 text-blue-400' : 'bg-slate-700/50 text-slate-400'}"
-                title="{entry.playSound ? 'Disable' : 'Enable'} sound">
-                {entry.playSound ? '🔊' : '🔇'}
-              </button>
-              
-              <button 
-                on:click={() => removeFromWatchlist(entry.callsign)}
-                title="Remove from watchlist"
-                class="px-2 py-1 text-xs bg-red-600/20 hover:bg-red-600/40 text-red-400 rounded transition-colors">
-                Remove
-              </button>
+              <!-- ✅ Masquer les boutons pour les entrées auto -->
+              {#if !entry.isAuto}
+                <button
+                  on:click={() => updateSound(entry.callsign, !entry.playSound)}
+                  class="px-2 py-1 text-xs rounded transition-colors {entry.playSound ? 'bg-blue-600/20 text-blue-400' : 'bg-slate-700/50 text-slate-400'}"
+                  title="{entry.playSound ? 'Disable' : 'Enable'} sound">
+                  {entry.playSound ? '🔊' : '🔇'}
+                </button>
+                
+                <button 
+                  on:click={() => removeFromWatchlist(entry.callsign)}
+                  title="Remove from watchlist"
+                  class="px-2 py-1 text-xs bg-red-600/20 hover:bg-red-600/40 text-red-400 rounded transition-colors">
+                  Remove
+                </button>
+              {/if}
             </div>
           </div>
           
@@ -325,7 +419,9 @@
                   </div>
                   <div class="flex items-center gap-2 flex-shrink-0 ml-2">
                     {#if spot.workedBandMode}
-                      <span class="px-1.5 py-0.5 bg-green-500/20 text-green-400 rounded text-xs font-semibold">Worked</span>
+                      <span class="px-1.5 py-0.5 bg-green-500/20 text-green-400 rounded text-xs font-semibold">
+                        {isContest ? 'Today ✓' : 'Worked'}
+                      </span>
                     {:else if spot.newDXCC}
                       <span class="px-1.5 py-0.5 bg-green-500/20 text-green-400 rounded text-xs font-semibold">New DXCC!</span>
                     {:else if spot.newBand && spot.newMode}
@@ -335,7 +431,9 @@
                     {:else if spot.newMode}
                       <span class="px-1.5 py-0.5 bg-orange-500/20 text-orange-400 rounded text-xs font-semibold">New Mode!</span>
                     {:else}
-                      <span class="px-1.5 py-0.5 bg-orange-500/20 text-orange-400 rounded text-xs font-semibold">Needed!</span>
+                      <span class="px-1.5 py-0.5 bg-orange-500/20 text-orange-400 rounded text-xs font-semibold">
+                        {isContest ? 'Work Today!' : 'Needed!'}
+                      </span>
                     {/if}
                     <span class="text-slate-500">{spot.utcTime}</span>
                   </div>

@@ -10,14 +10,13 @@ import (
 )
 
 type WatchlistEntry struct {
-	Callsign    string    `json:"callsign"`
-	LastSeen    time.Time `json:"lastSeen"`
-	LastSeenStr string    `json:"lastSeenStr"`
-	AddedAt     time.Time `json:"addedAt"`
-	SpotCount   int       `json:"spotCount"`
-	PlaySound   bool      `json:"playSound"`
-	// ActiveSpotIDs tracks the IDs of currently active spots for this callsign
-	// This is not persisted to JSON, only kept in memory
+	Callsign      string       `json:"callsign"`
+	LastSeen      time.Time    `json:"lastSeen"`
+	LastSeenStr   string       `json:"lastSeenStr"`
+	AddedAt       time.Time    `json:"addedAt"`
+	SpotCount     int          `json:"spotCount"`
+	PlaySound     bool         `json:"playSound"`
+	IsContest     bool         `json:"isContest"`
 	ActiveSpotIDs map[int]bool `json:"-"`
 }
 
@@ -99,12 +98,20 @@ func (w *Watchlist) save() error {
 }
 
 func (w *Watchlist) Add(callsign string) error {
+	return w.addWithContestFlag(callsign, false)
+}
+
+func (w *Watchlist) AddContest(callsign string) error {
+	return w.addWithContestFlag(callsign, true)
+}
+
+func (w *Watchlist) addWithContestFlag(callsign string, isContest bool) error {
 	w.mutex.Lock()
 	defer w.mutex.Unlock()
 
 	callsign = strings.ToUpper(strings.TrimSpace(callsign))
 
-	Log.Debugf("Attempting to add callsign: %s", callsign)
+	Log.Debugf("Attempting to add callsign: %s (contest: %v)", callsign, isContest)
 
 	if callsign == "" {
 		Log.Warn("Attempted to add empty callsign")
@@ -123,10 +130,11 @@ func (w *Watchlist) Add(callsign string) error {
 		LastSeenStr:   "Never",
 		SpotCount:     0,
 		PlaySound:     true,
+		IsContest:     isContest,
 		ActiveSpotIDs: make(map[int]bool),
 	}
 
-	Log.Infof("Added %s to watchlist", callsign)
+	Log.Infof("Added %s to watchlist (contest: %v)", callsign, isContest)
 
 	if err := w.saveUnsafe(); err != nil {
 		Log.Errorf("Failed to save watchlist after adding %s: %v", callsign, err)

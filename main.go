@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -73,6 +74,12 @@ func main() {
 
 	NewConfig(cfgPath)
 
+	fmt.Printf("\n=== CONTEST MODE CONFIG ===\n")
+	fmt.Printf("Contest Mode: %v\n", Cfg.General.ContestMode)
+	fmt.Printf("Contest Prefix: %s\n", Cfg.General.ContestPrefix)
+	fmt.Printf("Contest Callsigns: %v\n", Cfg.General.ContestCallsigns)
+	fmt.Printf("===========================\n\n")
+
 	configWatcher, err := NewConfigWatcher(cfgPath)
 	if err != nil {
 		log.Fatalf("Could not create config watcher: %v", err)
@@ -85,16 +92,8 @@ func main() {
 
 	log := NewLog()
 	defer CloseLog()
-	log.Info("Running FlexDXCluster version 2.1")
-	log.Infof("Callsign: %s", Cfg.General.Callsign)
-	log.Info("Config hot reload enabled")
 
 	DeleteDatabase("./flex.sqlite", log)
-
-	log.Debugf("Gotify Push Enabled: %v", Cfg.Gotify.Enable)
-	if Cfg.Gotify.Enable {
-		log.Debugf("Gotify Push NewDXCC: %v - NewBand: %v - NewMode: %v - NewBandAndMode: %v", Cfg.Gotify.NewDXCC, Cfg.Gotify.NewBand, Cfg.Gotify.NewMode, Cfg.Gotify.NewBandAndMode)
-	}
 
 	// Load country.xml to get all the DXCC number
 	Countries := LoadCountryFile()
@@ -121,6 +120,44 @@ func main() {
 	// Initialize HTTP Server for Dashboard
 	HTTPServer := NewHTTPServer(fRepo, cRepo, TCPServer, TCPClient, FlexClient, "8080")
 	InitLogHook()
+
+	log.Info("Running FlexDXCluster version 2.1")
+	log.Infof("Callsign: %s", Cfg.General.Callsign)
+	log.Info("Config hot reload enabled")
+
+	if Cfg.General.ContestMode {
+		log.Infof("🏆 Contest Mode: ENABLED")
+		log.Infof("🏆 Contest Prefix: %s", Cfg.General.ContestPrefix)
+		if len(Cfg.General.ContestCallsigns) > 0 {
+			log.Infof("🏆 Contest Special Callsigns: %v", Cfg.General.ContestCallsigns)
+		} else {
+			log.Info("🏆 No special contest callsigns configured")
+		}
+
+		// ✅ AUTO-ADD contest callsigns to watchlist at startup
+		if len(Cfg.General.ContestCallsigns) > 0 {
+			log.Info("📋 Adding contest callsigns to watchlist...")
+			addedCount := 0
+			for _, callsign := range Cfg.General.ContestCallsigns {
+				if err := HTTPServer.Watchlist.AddContest(callsign); err != nil {
+					log.Debugf("Contest callsign %s already in watchlist or error: %v", callsign, err)
+				} else {
+					log.Infof("✅ Added contest callsign %s to watchlist", callsign)
+					addedCount++
+				}
+			}
+			if addedCount > 0 {
+				log.Infof("📋 Added %d contest callsigns to watchlist", addedCount)
+			}
+		}
+	} else {
+		log.Info("Contest Mode: DISABLED")
+	}
+
+	log.Debugf("Gotify Push Enabled: %v", Cfg.Gotify.Enable)
+	if Cfg.Gotify.Enable {
+		log.Debugf("Gotify Push NewDXCC: %v - NewBand: %v - NewMode: %v - NewBandAndMode: %v", Cfg.Gotify.NewDXCC, Cfg.Gotify.NewBand, Cfg.Gotify.NewMode, Cfg.Gotify.NewBandAndMode)
+	}
 
 	FlexClient.HTTPServer = HTTPServer
 

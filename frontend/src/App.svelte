@@ -41,6 +41,10 @@
   let toastMessage = '';
   let toastType = 'info';
   let logs = [];
+
+  let contestMode = false;
+  let contestPrefix = "";
+  let contestCallsigns = [];
   
   let spotFilters = {
     showAll: true,
@@ -51,6 +55,7 @@
     showNewSlot: false,
     showWorked: false,
     showWatchlist: false,
+    showContest: false,
     showDigital: false,
     showSSB: false,
     showCW: false,
@@ -94,7 +99,15 @@
       filterTimeout = setTimeout(async () => {
         isFiltering = true;
         try {
-          filteredSpots = await spotWorker.filterSpots(spots, spotFilters, watchlist);
+          // ✅ SI filtre Contest actif, ne PAS utiliser le worker
+          if (spotFilters.showContest) {
+            console.log("🏆 Using direct filter (Contest mode)");
+            filteredSpots = applyFilters(spots, spotFilters, watchlist);
+          } else {
+            // Autres filtres : utiliser le worker
+            console.log("⚙️ Using worker filter");
+            filteredSpots = await spotWorker.filterSpots(spots, spotFilters, watchlist);
+          }
         } catch (error) {
           console.error('Filter error:', error);
           filteredSpots = spots;
@@ -106,80 +119,112 @@
     }
   }
   
-  function applyFilters(allSpots, filters, wl) {
-    const bandFiltersActive = filters.band160M || filters.band80M || filters.band60M || 
-      filters.band40M || filters.band30M || filters.band20M || filters.band17M || 
-      filters.band15M || filters.band12M || filters.band10M || filters.band6M;
+function applyFilters(allSpots, filters, wl) {
+  const bandFiltersActive = filters.band160M || filters.band80M || filters.band60M || 
+    filters.band40M || filters.band30M || filters.band20M || filters.band17M || 
+    filters.band15M || filters.band12M || filters.band10M || filters.band6M;
+  
+  const typeFiltersActive = filters.showNewDXCC || filters.showNewBand || 
+    filters.showNewMode || filters.showNewBandMode || filters.showNewSlot || 
+    filters.showWorked || filters.showWatchlist || filters.showContest;
+  
+  const modeFiltersActive = filters.showDigital || filters.showSSB || filters.showCW;
+  
+  return allSpots.filter(spot => {
+    let matchesBand = false;
+    let matchesType = false;
+    let matchesMode = false;
     
-    const typeFiltersActive = filters.showNewDXCC || filters.showNewBand || 
-      filters.showNewMode || filters.showNewBandMode || filters.showNewSlot || 
-      filters.showWorked || filters.showWatchlist;
+    if (bandFiltersActive) {
+      matchesBand = (
+        (filters.band160M && spot.Band === '160M') ||
+        (filters.band80M && spot.Band === '80M') ||
+        (filters.band60M && spot.Band === '60M') ||
+        (filters.band40M && spot.Band === '40M') ||
+        (filters.band30M && spot.Band === '30M') ||
+        (filters.band20M && spot.Band === '20M') ||
+        (filters.band17M && spot.Band === '17M') ||
+        (filters.band15M && spot.Band === '15M') ||
+        (filters.band12M && spot.Band === '12M') ||
+        (filters.band10M && spot.Band === '10M') ||
+        (filters.band6M && spot.Band === '6M')
+      );
+    }
     
-    const modeFiltersActive = filters.showDigital || filters.showSSB || filters.showCW;
-    
-    return allSpots.filter(spot => {
-      let matchesBand = false;
-      let matchesType = false;
-      let matchesMode = false;
+    if (typeFiltersActive) {
+      // ✅ CORRECTION : Utiliser des IF séparés au lieu de ELSE IF
       
-      if (bandFiltersActive) {
-        matchesBand = (
-          (filters.band160M && spot.Band === '160M') ||
-          (filters.band80M && spot.Band === '80M') ||
-          (filters.band60M && spot.Band === '60M') ||
-          (filters.band40M && spot.Band === '40M') ||
-          (filters.band30M && spot.Band === '30M') ||
-          (filters.band20M && spot.Band === '20M') ||
-          (filters.band17M && spot.Band === '17M') ||
-          (filters.band15M && spot.Band === '15M') ||
-          (filters.band12M && spot.Band === '12M') ||
-          (filters.band10M && spot.Band === '10M') ||
-          (filters.band6M && spot.Band === '6M')
-        );
-      }
-      
-      if (typeFiltersActive) {
-        if (filters.showWatchlist) {
-          const inWatchlist = wl.some(pattern => 
-            spot.DX === pattern || spot.DX.startsWith(pattern)
+      if (filters.showContest) {
+        // Vérifier si le spot match le contest
+        if (contestPrefix && spot.DX.includes(contestPrefix)) {
+          matchesType = true;
+        } else if (contestCallsigns && contestCallsigns.length > 0) {
+          const isContestCall = contestCallsigns.some(cc => 
+            spot.DX === cc || spot.DX.startsWith(cc + '/')
           );
-          if (inWatchlist) matchesType = true;
+          if (isContestCall) matchesType = true;
         }
-        if (filters.showNewDXCC && spot.NewDXCC) matchesType = true;
-        else if (filters.showNewBandMode && spot.NewBand && spot.NewMode && !spot.NewDXCC) matchesType = true;
-        else if (filters.showNewBand && spot.NewBand && !spot.NewMode && !spot.NewDXCC) matchesType = true;
-        else if (filters.showNewMode && spot.NewMode && !spot.NewBand && !spot.NewDXCC) matchesType = true;
-        else if (filters.showNewSlot && spot.NewSlot && !spot.NewDXCC && !spot.NewBand && !spot.NewMode) matchesType = true;
-        else if (filters.showWorked && spot.Worked) matchesType = true;
       }
       
-      if (modeFiltersActive) {
-        const mode = spot.Mode || '';
-        if (filters.showDigital && ['FT8', 'FT4', 'RTTY'].includes(mode)) matchesMode = true;
-        if (filters.showSSB && ['SSB', 'USB', 'LSB'].includes(mode)) matchesMode = true;
-        if (filters.showCW && mode === 'CW') matchesMode = true;
+      if (filters.showWatchlist) {
+        const inWatchlist = wl.some(entry => 
+          spot.DX === entry.callsign || spot.DX.startsWith(entry.callsign)
+        );
+        if (inWatchlist) matchesType = true;
       }
       
-      const numActiveFilterTypes = [bandFiltersActive, typeFiltersActive, modeFiltersActive].filter(Boolean).length;
-      
-      if (numActiveFilterTypes === 0) return false;
-      if (numActiveFilterTypes === 1) {
-        if (bandFiltersActive) return matchesBand;
-        if (typeFiltersActive) return matchesType;
-        if (modeFiltersActive) return matchesMode;
-      }
-      if (numActiveFilterTypes === 2) {
-        if (bandFiltersActive && typeFiltersActive) return matchesBand && matchesType;
-        if (bandFiltersActive && modeFiltersActive) return matchesBand && matchesMode;
-        if (typeFiltersActive && modeFiltersActive) return matchesType && matchesMode;
-      }
-      if (numActiveFilterTypes === 3) {
-        return matchesBand && matchesType && matchesMode;
+      if (filters.showNewDXCC && spot.NewDXCC) {
+        matchesType = true;
       }
       
-      return false;
-    });
-  }
+      if (filters.showNewBandMode && spot.NewBand && spot.NewMode && !spot.NewDXCC) {
+        matchesType = true;
+      }
+      
+      if (filters.showNewBand && spot.NewBand && !spot.NewMode && !spot.NewDXCC) {
+        matchesType = true;
+      }
+      
+      if (filters.showNewMode && spot.NewMode && !spot.NewBand && !spot.NewDXCC) {
+        matchesType = true;
+      }
+      
+      if (filters.showNewSlot && spot.NewSlot && !spot.NewDXCC && !spot.NewBand && !spot.NewMode) {
+        matchesType = true;
+      }
+      
+      if (filters.showWorked && spot.Worked) {
+        matchesType = true;
+      }
+    }
+    
+    if (modeFiltersActive) {
+      const mode = spot.Mode || '';
+      if (filters.showDigital && ['FT8', 'FT4', 'RTTY'].includes(mode)) matchesMode = true;
+      if (filters.showSSB && ['SSB', 'USB', 'LSB'].includes(mode)) matchesMode = true;
+      if (filters.showCW && mode === 'CW') matchesMode = true;
+    }
+    
+    const numActiveFilterTypes = [bandFiltersActive, typeFiltersActive, modeFiltersActive].filter(Boolean).length;
+    
+    if (numActiveFilterTypes === 0) return false;
+    if (numActiveFilterTypes === 1) {
+      if (bandFiltersActive) return matchesBand;
+      if (typeFiltersActive) return matchesType;
+      if (modeFiltersActive) return matchesMode;
+    }
+    if (numActiveFilterTypes === 2) {
+      if (bandFiltersActive && typeFiltersActive) return matchesBand && matchesType;
+      if (bandFiltersActive && modeFiltersActive) return matchesBand && matchesMode;
+      if (typeFiltersActive && modeFiltersActive) return matchesType && matchesMode;
+    }
+    if (numActiveFilterTypes === 3) {
+      return matchesBand && matchesType && matchesMode;
+    }
+    
+    return false;
+  });
+}
   
   function toggleFilter(filterName) {
     if (filterName === 'showAll') {
@@ -283,10 +328,20 @@
   
   function handleWebSocketMessage(message) {
     switch (message.type) {
-      case 'stats':
-        stats = message.data;
-        spotCache.saveMetadata('stats', stats).catch(err => console.error('Cache save error:', err));
-        break;
+    case 'stats':
+      stats = message.data;
+
+      if (message.data.contestMode !== undefined) {
+        contestMode = message.data.contestMode;
+      }
+      if (message.data.contestPrefix !== undefined) {
+        contestPrefix = message.data.contestPrefix;
+      }
+      if (message.data.contestCallsigns !== undefined) {
+        contestCallsigns = message.data.contestCallsigns || [];
+      }
+      spotCache.saveMetadata('stats', stats).catch(err => console.error('Cache save error:', err));
+      break;
       case 'spots':
         const newSpots = message.data || [];
         
@@ -604,6 +659,9 @@ async function shutdownApp() {
     {spots}
     {watchlist}
     {isFiltering}
+    {contestMode}
+    {contestPrefix}
+    {contestCallsigns}
     on:toggleFilter={(e) => toggleFilter(e.detail)} 
   />
   
@@ -628,6 +686,9 @@ async function shutdownApp() {
         {logStats}
         {dxccProgress}
         {logs}
+        {contestMode}
+        {contestPrefix}
+        {contestCallsigns}
         on:toast={(e) => showToast(e.detail.message, e.detail.type)}
         on:clearLogs={() => logs = []}
       />

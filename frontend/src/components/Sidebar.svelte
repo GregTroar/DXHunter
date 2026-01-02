@@ -14,15 +14,16 @@
   export let dxccProgress;
   export let showOnlyActive = false;
   export let logs = [];
+  export let contestMode = false;
+  export let contestPrefix = "";
+  export let contestCallsigns = [];
   
   const dispatch = createEventDispatcher();
   
-  // ✅ Propagation des événements vers le parent
   function handleToast(event) {
     dispatch('toast', event.detail);
   }
   
-  // ✅ Propager clearLogs vers App.svelte
   function handleClearLogs() {
     dispatch('clearLogs');
   }
@@ -79,6 +80,9 @@
         {watchlist}
         {spots}
         bind:showOnlyActive
+        {contestMode}
+        {contestPrefix}
+        {contestCallsigns}
         on:toast={handleToast}
       />
     {:else if activeTab === 'log'}

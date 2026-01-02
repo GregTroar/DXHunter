@@ -52,6 +52,25 @@ func (sp *SpotProcessor) Stop() {
 }
 
 func (sp *SpotProcessor) processSpot(spot TelnetSpot) {
+	// ✅ AUTO-ADD contest callsigns with prefix to watchlist
+	if Cfg.General.ContestMode && Cfg.General.ContestPrefix != "" && sp.HTTPServer != nil && sp.HTTPServer.Watchlist != nil {
+		if strings.Contains(spot.DX, Cfg.General.ContestPrefix) {
+			// Check if not already in watchlist
+			if !sp.HTTPServer.Watchlist.Matches(spot.DX) {
+				if err := sp.HTTPServer.Watchlist.AddContest(spot.DX); err == nil {
+					Log.Infof("🏆 Auto-added contest callsign %s to watchlist (contains prefix '%s')",
+						spot.DX, Cfg.General.ContestPrefix)
+
+					// Broadcast updated watchlist to all WebSocket clients
+					sp.HTTPServer.broadcast <- WSMessage{
+						Type: "watchlist",
+						Data: sp.HTTPServer.Watchlist.GetAll(),
+					}
+				}
+			}
+		}
+	}
+
 	freq := FreqMhztoHz(spot.Frequency)
 
 	flexSpot := FlexSpot{
@@ -279,14 +298,14 @@ func (sp *SpotProcessor) sendGotifyNotification(flexSpot FlexSpot) {
 	// Cas 1 : Nouveau DXCC - toujours notifier si activé dans la config
 	if flexSpot.NewDXCC && Cfg.Gotify.NewDXCC {
 		Gotify(flexSpot)
-		Log.Debugf("📢 Gotify notification sent: New DXCC - %s", flexSpot.DX)
+		Log.Debugf("🔔 Gotify notification sent: New DXCC - %s", flexSpot.DX)
 		return
 	}
 
 	// Cas 2 : Callsign dans la watchlist ET non contacté
 	if flexSpot.InWatchlist && !flexSpot.Worked && Cfg.Gotify.WatchList {
 		Gotify(flexSpot)
-		Log.Debugf("📢 Gotify notification sent: Watchlist match (not worked) - %s", flexSpot.DX)
+		Log.Debugf("🔔 Gotify notification sent: Watchlist match (not worked) - %s", flexSpot.DX)
 		return
 	}
 

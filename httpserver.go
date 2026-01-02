@@ -44,19 +44,22 @@ type HTTPServer struct {
 }
 
 type Stats struct {
-	TotalSpots       int     `json:"totalSpots"`
-	NewDXCC          int     `json:"newDXCC"`
-	ConnectedClients int     `json:"connectedClients"`
-	TotalContacts    int     `json:"totalContacts"`
-	ClusterStatus    string  `json:"clusterStatus"`
-	FlexStatus       string  `json:"flexStatus"`
-	MyCallsign       string  `json:"myCallsign"`
-	Mode             string  `json:"mode"`
-	Filters          Filters `json:"filters"`
-	SpotsReceived    int64   `json:"spotsReceived"`
-	SpotsProcessed   int64   `json:"spotsProcessed"`
-	SpotsRejected    int64   `json:"spotsRejected"`
-	SpotSuccessRate  float64 `json:"spotSuccessRate"`
+	TotalSpots       int      `json:"totalSpots"`
+	NewDXCC          int      `json:"newDXCC"`
+	ConnectedClients int      `json:"connectedClients"`
+	TotalContacts    int      `json:"totalContacts"`
+	ClusterStatus    string   `json:"clusterStatus"`
+	FlexStatus       string   `json:"flexStatus"`
+	MyCallsign       string   `json:"myCallsign"`
+	Mode             string   `json:"mode"`
+	Filters          Filters  `json:"filters"`
+	SpotsReceived    int64    `json:"spotsReceived"`
+	SpotsProcessed   int64    `json:"spotsProcessed"`
+	SpotsRejected    int64    `json:"spotsRejected"`
+	SpotSuccessRate  float64  `json:"spotSuccessRate"`
+	ContestMode      bool     `json:"contestMode"`
+	ContestPrefix    string   `json:"contestPrefix"`
+	ContestCallsigns []string `json:"contestCallsigns"`
 }
 
 type Filters struct {
@@ -500,7 +503,6 @@ func (s *HTTPServer) calculateStats() Stats {
 		flexStatus = "connected"
 	}
 
-	// Récupérer les stats de traitement des spots
 	received, processed, rejected := GetSpotStats()
 	successRate := GetSpotSuccessRate()
 
@@ -518,10 +520,13 @@ func (s *HTTPServer) calculateStats() Stats {
 			FT4:     Cfg.Cluster.FT4,
 			Beacon:  Cfg.Cluster.Beacon,
 		},
-		SpotsReceived:   received,
-		SpotsProcessed:  processed,
-		SpotsRejected:   rejected,
-		SpotSuccessRate: successRate,
+		SpotsReceived:    received,
+		SpotsProcessed:   processed,
+		SpotsRejected:    rejected,
+		SpotSuccessRate:  successRate,
+		ContestMode:      Cfg.General.ContestMode,
+		ContestPrefix:    Cfg.General.ContestPrefix,
+		ContestCallsigns: Cfg.General.ContestCallsigns,
 	}
 }
 
@@ -638,8 +643,21 @@ func (s *HTTPServer) updateFilters(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *HTTPServer) getWatchlist(w http.ResponseWriter, r *http.Request) {
-	callsigns := s.Watchlist.GetAll()
-	s.sendJSON(w, APIResponse{Success: true, Data: callsigns})
+	allCallsigns := s.Watchlist.GetAll()
+
+	// ✅ Si contest mode actif, ne montrer que les callsigns contest
+	if Cfg.General.ContestMode {
+		contestCallsigns := make([]WatchlistEntry, 0)
+		for _, entry := range allCallsigns {
+			if entry.IsContest {
+				contestCallsigns = append(contestCallsigns, entry)
+			}
+		}
+		s.sendJSON(w, APIResponse{Success: true, Data: contestCallsigns})
+	} else {
+		// Mode normal : montrer tous les callsigns
+		s.sendJSON(w, APIResponse{Success: true, Data: allCallsigns})
+	}
 }
 
 func (s *HTTPServer) addToWatchlist(w http.ResponseWriter, r *http.Request) {
@@ -752,19 +770,25 @@ func (s *HTTPServer) updateWatchlistSound(w http.ResponseWriter, r *http.Request
 }
 
 func (s *HTTPServer) getWatchlistSpotsWithStatus(w http.ResponseWriter, r *http.Request) {
-	// Récupérer tous les spots
 	allSpots := s.FlexRepo.GetAllSpots("0")
-
-	// Récupérer la watchlist (maintenant ce sont des WatchlistEntry)
 	watchlistEntries := s.Watchlist.GetAll()
 
-	// Extraire juste les callsigns pour la comparaison
+	// ✅ Si contest mode actif, filtrer pour ne garder que les entrées contest
+	if Cfg.General.ContestMode {
+		contestEntries := make([]WatchlistEntry, 0)
+		for _, entry := range watchlistEntries {
+			if entry.IsContest {
+				contestEntries = append(contestEntries, entry)
+			}
+		}
+		watchlistEntries = contestEntries
+	}
+
 	watchlistCallsigns := make([]string, len(watchlistEntries))
 	for i, entry := range watchlistEntries {
 		watchlistCallsigns[i] = entry.Callsign
 	}
 
-	// Filtrer les spots de la watchlist
 	var relevantSpots []FlexSpot
 
 	for _, spot := range allSpots {
@@ -797,7 +821,6 @@ func (s *HTTPServer) getWatchlistSpotsWithStatus(w http.ResponseWriter, r *http.
 	var watchlistSpots []WatchlistSpot
 
 	for key, spots := range spotsByBandMode {
-		// Extraire les callsigns uniques
 		callsignSet := make(map[string]bool)
 		for _, spot := range spots {
 			callsignSet[spot.DX] = true
@@ -808,9 +831,40 @@ func (s *HTTPServer) getWatchlistSpotsWithStatus(w http.ResponseWriter, r *http.
 			callsigns = append(callsigns, callsign)
 		}
 
-		workedMap := s.ContactRepo.GetWorkedCallsignsBandMode(callsigns, key.Band, key.Mode)
+		// ✅ NOUVELLE LOGIQUE : Séparer les callsigns contest des callsigns normaux
+		// en vérifiant le flag IsContest de chaque entrée dans la watchlist
+		contestCallsigns := make([]string, 0)
+		normalCallsigns := make([]string, 0)
 
-		// Construire les résultats
+		for _, callsign := range callsigns {
+			entry := s.Watchlist.GetEntry(callsign)
+			if entry != nil && entry.IsContest {
+				contestCallsigns = append(contestCallsigns, callsign)
+			} else {
+				normalCallsigns = append(normalCallsigns, callsign)
+			}
+		}
+
+		// Créer une map combinée des statuts worked
+		workedMap := make(map[string]bool)
+
+		// Pour les callsigns contest : vérifier uniquement aujourd'hui
+		if len(contestCallsigns) > 0 {
+			contestWorkedMap := s.ContactRepo.GetWorkedCallsignsBandModeToday(contestCallsigns, key.Band, key.Mode)
+			for callsign, worked := range contestWorkedMap {
+				workedMap[callsign] = worked
+			}
+			Log.Debugf("Contest callsigns in watchlist (%d): checking today only", len(contestCallsigns))
+		}
+
+		// Pour les callsigns normaux : vérifier tout l'historique
+		if len(normalCallsigns) > 0 {
+			normalWorkedMap := s.ContactRepo.GetWorkedCallsignsBandMode(normalCallsigns, key.Band, key.Mode)
+			for callsign, worked := range normalWorkedMap {
+				workedMap[callsign] = worked
+			}
+		}
+
 		for _, spot := range spots {
 			watchlistSpots = append(watchlistSpots, WatchlistSpot{
 				DX:              spot.DX,

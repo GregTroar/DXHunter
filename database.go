@@ -425,6 +425,103 @@ func (r *Log4OMContactsRepository) GetWorkedCallsignsBandMode(callsigns []string
 	return result
 }
 
+func (r *Log4OMContactsRepository) HasWorkedCallsignToday(callsign, band, mode string) bool {
+	var count int
+
+	// Gérer les modes SSB/USB/LSB
+	if mode == "USB" || mode == "LSB" || mode == "SSB" {
+		err := r.db.QueryRow(
+			`SELECT COUNT(*) FROM log 
+			WHERE callsign = ? 
+			AND band = ? 
+			AND (mode = 'USB' OR mode = 'LSB' OR mode = 'SSB')
+			AND qsodate >= DATE('now')`,
+			callsign, band,
+		).Scan(&count)
+
+		if err != nil {
+			log.Error("could not check today's contact:", err)
+			return false
+		}
+	} else {
+		err := r.db.QueryRow(
+			`SELECT COUNT(*) FROM log 
+			WHERE callsign = ? 
+			AND band = ? 
+			AND mode = ?
+			AND qsodate >= DATE('now')`,
+			callsign, band, mode,
+		).Scan(&count)
+
+		if err != nil {
+			log.Error("could not check today's contact:", err)
+			return false
+		}
+	}
+
+	return count > 0
+}
+
+// GetWorkedCallsignsBandModeToday - version optimisée pour plusieurs callsigns (aujourd'hui uniquement)
+func (r *Log4OMContactsRepository) GetWorkedCallsignsBandModeToday(callsigns []string, band string, mode string) map[string]bool {
+	if len(callsigns) == 0 {
+		return make(map[string]bool)
+	}
+
+	result := make(map[string]bool)
+
+	placeholders := make([]string, len(callsigns))
+	args := make([]interface{}, 0, len(callsigns)+2)
+
+	for i, callsign := range callsigns {
+		placeholders[i] = "?"
+		args = append(args, callsign)
+	}
+
+	args = append(args, band)
+
+	var query string
+
+	if mode == "USB" || mode == "LSB" || mode == "SSB" {
+		query = fmt.Sprintf(
+			`SELECT DISTINCT callsign FROM log 
+			WHERE callsign IN (%s) 
+			AND band = ? 
+			AND (mode = 'USB' OR mode = 'LSB' OR mode = 'SSB')
+			AND qsodate >= DATE('now')`,
+			strings.Join(placeholders, ","),
+		)
+	} else {
+		query = fmt.Sprintf(
+			`SELECT DISTINCT callsign FROM log 
+			WHERE callsign IN (%s) 
+			AND band = ? 
+			AND mode = ?
+			AND qsodate >= DATE('now')`,
+			strings.Join(placeholders, ","),
+		)
+		args = append(args, mode)
+	}
+
+	rows, err := r.db.Query(query, args...)
+	if err != nil {
+		log.Error("could not check today's worked band/mode status:", err)
+		return result
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var callsign string
+		if err := rows.Scan(&callsign); err != nil {
+			log.Error("error scanning callsign:", err)
+			continue
+		}
+		result[callsign] = true
+	}
+
+	return result
+}
+
 // Garder aussi l'ancienne méthode pour compatibilité (optionnel)
 func (r *Log4OMContactsRepository) HasWorkedCallsignBandMode(callsign, band, mode string) bool {
 	result := r.GetWorkedCallsignsBandMode([]string{callsign}, band, mode)
