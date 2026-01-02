@@ -14,66 +14,27 @@
   let newCallsign = '';
   let watchlistSpots = [];
   let refreshInterval;
+  let selectedBand = 'ALL'; // ✅ NOUVEAU : Filtre de bande
+
+  // ✅ Liste des bandes disponibles
+  const bands = ['ALL', '160M', '80M', '60M', '40M', '30M', '20M', 
+               '17M', '15M', '12M', '10M'];
   
-  // ✅ NOUVEAU : Combiner watchlist manuelle + spots contest auto
-  $: combinedWatchlist = getCombinedWatchlist(watchlist, spots, contestMode, contestPrefix, contestCallsigns);
-  $: matchingSpots = countWatchlistSpots(spots, combinedWatchlist);
-  $: displayList = getDisplayList(combinedWatchlist, watchlistSpots, showOnlyActive);
+  // ✅ SIMPLIFIÉ : Utiliser directement la watchlist du backend (qui filtre déjà selon contest mode)
+  $: displayList = getDisplayList(watchlist, watchlistSpots, showOnlyActive);
+  $: matchingSpots = countWatchlistSpots(spots, watchlist);
   
-  $: if (combinedWatchlist.length > 0) {
+  $: if (watchlist.length > 0) {
     fetchWatchlistSpots();
   }
   
-  $: if (spots.length > 0 && combinedWatchlist.length > 0) {
+  $: if (spots.length > 0 && watchlist.length > 0) {
     fetchWatchlistSpots();
-  }
-  
-  // ✅ NOUVELLE FONCTION : Combiner watchlist + contest spots
-  function getCombinedWatchlist(manualWatchlist, allSpots, isContestMode, prefix, callsigns) {
-    if (!isContestMode) {
-      return manualWatchlist;
-    }
-    
-    // Extraire les callsigns uniques des spots contest
-    const contestSpotCallsigns = new Set();
-    
-    allSpots.forEach(spot => {
-      // Vérifier prefix (ex: WWA)
-      if (prefix && spot.DX.includes(prefix)) {
-        contestSpotCallsigns.add(spot.DX);
-      }
-      
-      // Vérifier liste spécifique (ex: W4I, N1W)
-      if (callsigns && callsigns.length > 0) {
-        callsigns.forEach(cc => {
-          if (spot.DX === cc || spot.DX.startsWith(cc + '/')) {
-            contestSpotCallsigns.add(spot.DX);
-          }
-        });
-      }
-    });
-    
-    // Créer des entrées pour les spots contest qui ne sont pas déjà dans la watchlist
-    const manualCallsigns = new Set(manualWatchlist.map(e => e.callsign));
-    const autoContestEntries = Array.from(contestSpotCallsigns)
-      .filter(callsign => !manualCallsigns.has(callsign))
-      .map(callsign => ({
-        callsign: callsign,
-        playSound: false,
-        lastSeen: new Date().toISOString(),
-        lastSeenStr: "Just now",
-        addedAt: new Date().toISOString(),
-        spotCount: 0,
-        isAuto: true  // ✅ Marquer comme auto-généré
-      }));
-    
-    // Combiner watchlist manuelle + auto contest
-    return [...manualWatchlist, ...autoContestEntries];
   }
   
   onMount(() => {
     refreshInterval = setInterval(() => {
-      if (combinedWatchlist.length > 0) {
+      if (watchlist.length > 0) {
         fetchWatchlistSpots();
       }
     }, 10000);
@@ -104,7 +65,17 @@
   function getDisplayList(wl, wlSpots, activeOnly) {
     let list = wl;
     
-    if (activeOnly) {
+    // ✅ NOUVEAU : Si une bande spécifique est sélectionnée, ne montrer que les callsigns avec des spots sur cette bande
+    if (selectedBand !== 'ALL') {
+      list = wl.filter(entry => {
+        const spots = wlSpots.filter(s => 
+          (s.dx === entry.callsign || s.dx.startsWith(entry.callsign)) &&
+          s.band === selectedBand
+        );
+        return spots.length > 0;
+      });
+    } else if (activeOnly) {
+      // Sinon, appliquer le filtre "Active Only" normal
       list = wl.filter(entry => {
         const spots = wlSpots.filter(s => s.dx === entry.callsign || s.dx.startsWith(entry.callsign));
         return spots.length > 0;
@@ -134,7 +105,12 @@
   }
 
   function getMatchingSpotsForCallsign(callsign) {
-    const spots = watchlistSpots.filter(s => s.dx === callsign || s.dx.startsWith(callsign));
+    let spots = watchlistSpots.filter(s => s.dx === callsign || s.dx.startsWith(callsign));
+    
+    // ✅ NOUVEAU : Filtrer par bande sélectionnée
+    if (selectedBand !== 'ALL') {
+      spots = spots.filter(s => s.band === selectedBand);
+    }
     
     const bandOrder = { '160M': 0, '80M': 1, '60M': 2, '40M': 3, '30M': 4, '20M': 5, '17M': 6, '15M': 7, '12M': 8, '10M': 9, '6M': 10 };
     const modeOrder = { 'CW': 0, 'SSB': 1, 'USB': 1, 'LSB': 1, 'RTTY': 2, 'FT4': 3, 'FT8': 4, 'FM': 5 };
@@ -292,6 +268,18 @@
     </div>
     <p class="text-xs text-slate-400 mb-3">{matchingSpots} matching spots</p>
     
+    <!-- ✅ NOUVEAU : Filtre de bande -->
+    <div class="mb-3">
+      <label class="text-xs text-slate-400 mb-1 block">Filter by Band</label>
+      <select 
+        bind:value={selectedBand}
+        class="w-full px-3 py-2 bg-slate-700/50 border border-slate-600 rounded text-sm text-white focus:outline-none focus:border-blue-500">
+        {#each bands as band}
+          <option value={band}>{band === 'ALL' ? 'All Bands' : band}</option>
+        {/each}
+      </select>
+    </div>
+    
     <div class="flex gap-2">
       <input 
         type="text" 
@@ -324,7 +312,7 @@
         {@const count = matchingSpots.length}
         {@const neededCount = matchingSpots.filter(s => !s.workedBandMode).length}
         {@const borderClass = neededCount > 0 ? 'border-orange-500/30' : 'border-slate-700/50'}
-        {@const isContest = isContestCallsign(entry.callsign)}
+        {@const isContest = entry.isContest || false}
         
         <div class="mb-3 p-3 bg-slate-900/30 rounded hover:bg-slate-700/30 transition-colors border {borderClass}">
           <div class="flex items-center justify-between mb-2">
@@ -338,14 +326,7 @@
                   </span>
                 {/if}
                 
-                <!-- ✅ NOUVEAU : Badge auto si généré automatiquement -->
-                {#if entry.isAuto}
-                  <span class="px-1.5 py-0.5 bg-blue-600/20 text-blue-400 rounded text-xs font-semibold" title="Auto-detected from active spots">
-                    🤖 Auto
-                  </span>
-                {/if}
-                
-                {#if entry.playSound && !entry.isAuto}
+                {#if entry.playSound}
                   <span class="text-xs" title="Sound enabled">🔊</span>
                 {/if}
                 
@@ -364,33 +345,30 @@
                   <span class="text-xs text-slate-500">No active spots</span>
                 {/if}
                 
-                {#if entry.lastSeenStr && entry.lastSeenStr !== 'Never' && !entry.isAuto}
+                {#if entry.lastSeenStr && entry.lastSeenStr !== 'Never'}
                   <span class="text-xs text-slate-500">• {entry.lastSeenStr}</span>
                 {/if}
                 
-                {#if entry.spotCount > 0 && !entry.isAuto}
+                {#if entry.spotCount > 0}
                   <span class="text-xs text-slate-600">• {entry.spotCount} total spot{entry.spotCount !== 1 ? 's' : ''}</span>
                 {/if}
               </div>
             </div>
             
             <div class="flex gap-1">
-              <!-- ✅ Masquer les boutons pour les entrées auto -->
-              {#if !entry.isAuto}
-                <button
-                  on:click={() => updateSound(entry.callsign, !entry.playSound)}
-                  class="px-2 py-1 text-xs rounded transition-colors {entry.playSound ? 'bg-blue-600/20 text-blue-400' : 'bg-slate-700/50 text-slate-400'}"
-                  title="{entry.playSound ? 'Disable' : 'Enable'} sound">
-                  {entry.playSound ? '🔊' : '🔇'}
-                </button>
-                
-                <button 
-                  on:click={() => removeFromWatchlist(entry.callsign)}
-                  title="Remove from watchlist"
-                  class="px-2 py-1 text-xs bg-red-600/20 hover:bg-red-600/40 text-red-400 rounded transition-colors">
-                  Remove
-                </button>
-              {/if}
+              <button
+                on:click={() => updateSound(entry.callsign, !entry.playSound)}
+                class="px-2 py-1 text-xs rounded transition-colors {entry.playSound ? 'bg-blue-600/20 text-blue-400' : 'bg-slate-700/50 text-slate-400'}"
+                title="{entry.playSound ? 'Disable' : 'Enable'} sound">
+                {entry.playSound ? '🔊' : '🔇'}
+              </button>
+              
+              <button 
+                on:click={() => removeFromWatchlist(entry.callsign)}
+                title="Remove from watchlist"
+                class="px-2 py-1 text-xs bg-red-600/20 hover:bg-red-600/40 text-red-400 rounded transition-colors">
+                Remove
+              </button>
             </div>
           </div>
           

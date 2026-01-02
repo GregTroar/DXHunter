@@ -415,6 +415,15 @@ func (spot *TelnetSpot) GuessMode(rawSpot string) {
 	} else {
 		spot.Mode = strings.ToUpper(spot.Mode)
 	}
+
+	if spot.Mode == "SSB" {
+		if spot.Band == "10M" || spot.Band == "12M" || spot.Band == "6M" || spot.Band == "15M" || spot.Band == "17M" || spot.Band == "20M" {
+			spot.Mode = "USB"
+		} else {
+			spot.Mode = "LSB"
+		}
+		Log.Debugf("🔧 Final SSB normalization to %s for band %s", spot.Mode, spot.Band)
+	}
 }
 
 // ✅ Extraire le mode depuis le commentaire
