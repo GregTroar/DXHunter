@@ -24,7 +24,10 @@
   // ✅ SIMPLIFIÉ : Utiliser directement la watchlist du backend (qui filtre déjà selon contest mode)
   $: displayList = getDisplayList(watchlist, watchlistSpots, showOnlyActive);
   $: matchingSpots = countWatchlistSpots(spots, watchlist);
-  
+  $: filteredSpots = selectedBand === 'ALL' 
+    ? matchingSpots 
+    : countWatchlistSpotsByBand(watchlistSpots, selectedBand, showOnlyNotWorked);
+
   $: if (watchlist.length > 0) {
     fetchWatchlistSpots();
   }
@@ -133,6 +136,17 @@
       wl.some(entry => spot.DX === entry.callsign || spot.DX.startsWith(entry.callsign))
     ).length;
   }
+
+function countWatchlistSpotsByBand(wlSpots, band, onlyNotWorked) {
+  let spots = wlSpots.filter(s => s.band === band);
+  
+  // ✅ Si "Not Worked" activé, ne compter que les non contactés
+  if (onlyNotWorked) {
+    spots = spots.filter(s => !s.workedBandMode);
+  }
+  
+  return spots.length;
+}
 
   function getMatchingSpotsForCallsign(callsign) {
     let spots = watchlistSpots.filter(s => s.dx === callsign || s.dx.startsWith(callsign));
@@ -310,12 +324,26 @@
         </button>
       </div>
     </div>
-    <p class="text-xs text-slate-400 mb-3">{matchingSpots} matching spots</p>
+    <div class="flex items-center gap-2 mb-3">
+      <div class="flex items-center gap-1.5 text-xs">
+        <span class="text-slate-400">Spots:</span>
+        <span class="px-2 py-0.5 bg-slate-700/50 text-white rounded font-semibold">
+          {matchingSpots}
+        </span>
+        {#if selectedBand !== 'ALL' && filteredSpots !== matchingSpots}
+          <span class="text-slate-500">•</span>
+          <span class="text-slate-400">{selectedBand}:</span>
+          <span class="px-2 py-0.5 bg-blue-600/20 text-blue-400 rounded font-semibold border border-blue-500/30">
+            {filteredSpots}
+        </span>
+        {/if}
+      </div>
+    </div>
     
-    <!-- ✅ NOUVEAU : Filtre de bande -->
     <div class="mb-3">
-      <label class="text-xs text-slate-400 mb-1 block">Filter by Band</label>
+      <label for="band-filter" class="text-xs text-slate-400 mb-1 block">Filter by Band</label>
       <select 
+        id="band-filter"
         bind:value={selectedBand}
         class="w-full px-3 py-2 bg-slate-700/50 border border-slate-600 rounded text-sm text-white focus:outline-none focus:border-blue-500">
         {#each bands as band}
