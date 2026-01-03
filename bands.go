@@ -140,7 +140,7 @@ func FreqMhztoHz(freq string) string {
 		freqFloat = freqFloat * 1000
 	}
 
-	return fmt.Sprintf("%.3f", freqFloat/1000.0)
+	return fmt.Sprintf("%.6f", freqFloat/1000.0)
 }
 
 // GetAllBandNames retourne la liste de tous les noms de bandes
