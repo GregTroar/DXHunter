@@ -57,7 +57,7 @@ func NewLog4OMContactsRepository(filePath string) *Log4OMContactsRepository {
 	if Cfg.Database.MySQL {
 		db, err := sql.Open("mysql", Cfg.Database.MySQLUser+":"+Cfg.Database.MySQLPassword+"@tcp("+Cfg.Database.MySQLHost+":"+Cfg.Database.MySQLPort+")/"+Cfg.Database.MySQLDbName)
 		if err != nil {
-			Log.Errorf("Cannot open db", err)
+			Log.Errorf("Cannot open MySQL database: %v", err)
 		}
 
 		// Configure connection pool
@@ -72,7 +72,7 @@ func NewLog4OMContactsRepository(filePath string) *Log4OMContactsRepository {
 	} else if Cfg.Database.SQLite {
 		db, err := sql.Open("sqlite3", filePath)
 		if err != nil {
-			Log.Errorf("Cannot open db", err)
+			Log.Errorf("Cannot open SQLite database: %v", err)
 		}
 
 		// Configure connection pool for SQLite

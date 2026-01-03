@@ -37,8 +37,8 @@ var BandModeRanges = map[string][]ModeRange{
 		{MinFreqMHz: 7.040, MaxFreqMHz: 7.047, Mode: "RTTY"},
 		{MinFreqMHz: 7.047, MaxFreqMHz: 7.050, Mode: "FT4"},
 		{MinFreqMHz: 7.050, MaxFreqMHz: 7.080, Mode: "FT8"},
-		{MinFreqMHz: 7.080, MaxFreqMHz: 7.125, Mode: "RTTY"},
-		{MinFreqMHz: 7.125, MaxFreqMHz: 7.200, Mode: "LSB"},
+		{MinFreqMHz: 7.080, MaxFreqMHz: 7.100, Mode: "RTTY"},
+		{MinFreqMHz: 7.100, MaxFreqMHz: 7.200, Mode: "LSB"},
 	},
 	"30M": {
 		{MinFreqMHz: 10.100, MaxFreqMHz: 10.130, Mode: "CW"},
@@ -63,8 +63,8 @@ var BandModeRanges = map[string][]ModeRange{
 	"15M": {
 		{MinFreqMHz: 21.000, MaxFreqMHz: 21.070, Mode: "CW"},
 		{MinFreqMHz: 21.070, MaxFreqMHz: 21.078, Mode: "FT8"},
-		{MinFreqMHz: 21.078, MaxFreqMHz: 21.120, Mode: "RTTY"},
-		{MinFreqMHz: 21.120, MaxFreqMHz: 21.143, Mode: "FT4"},
+		{MinFreqMHz: 21.078, MaxFreqMHz: 21.130, Mode: "RTTY"},
+		{MinFreqMHz: 21.130, MaxFreqMHz: 21.143, Mode: "FT4"},
 		{MinFreqMHz: 21.143, MaxFreqMHz: 21.450, Mode: "USB"},
 	},
 	"12M": {
@@ -98,7 +98,6 @@ func GuessMode(freqMHz float64) string {
 	// D'abord déterminer la bande
 	band := FrequencyToBand(freqMHz)
 	if band == "N/A" {
-		// Hors bande amateur - deviner selon la fréquence générale
 		if freqMHz < 10.0 {
 			return "LSB"
 		}
