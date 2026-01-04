@@ -471,7 +471,7 @@ func DiscoverFlexRadio() (bool, *Discovery) {
 	return false, nil
 }
 
-func (fc *FlexClient) ZoomPanadapter(mode string) error {
+func (fc *FlexClient) ZoomPanadapter(mode string, freq string) error {
 	if fc.PanID == "" {
 		return nil
 	}
@@ -480,7 +480,7 @@ func (fc *FlexClient) ZoomPanadapter(mode string) error {
 
 	switch mode {
 	case "USB", "LSB", "SSB", "AM", "FM", "DRM":
-		bandwidth = 0.2
+		bandwidth = 0.1
 	case "CW", "CWR":
 		bandwidth = 0.05
 	case "RTTY", "DIGL", "DIGU":
@@ -493,6 +493,9 @@ func (fc *FlexClient) ZoomPanadapter(mode string) error {
 
 	cmd := fmt.Sprintf("C%v|display pan s %s bandwidth=%.6f", CommandNumber, fc.PanID, bandwidth)
 	fc.Write(cmd)
+	CommandNumber++
+	cmdCenter := fmt.Sprintf("C%v|display pan s %s center=%v", CommandNumber, fc.PanID, freq)
+	fc.Write(cmdCenter)
 	CommandNumber++
 
 	Log.Debugf("🔍 Auto-zoom: %s mode → %.4f MHz", mode, bandwidth)
