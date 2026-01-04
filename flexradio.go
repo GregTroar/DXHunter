@@ -519,7 +519,7 @@ func (fc *FlexClient) AdjustAGC(mode string) {
 		AGCMode = "slow"
 	}
 
-	cmd := fmt.Sprintf("C%v|display pan s %s bandwidth=%s", CommandNumber, "0", AGCMode)
+	cmd := fmt.Sprintf("C%v|slice s 0 bandwidth=%s", CommandNumber, AGCMode)
 	fc.Write(cmd)
 	CommandNumber++
 

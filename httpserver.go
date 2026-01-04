@@ -854,7 +854,7 @@ func (s *HTTPServer) getWatchlistSpotsWithStatus(w http.ResponseWriter, r *http.
 			for callsign, worked := range contestWorkedMap {
 				workedMap[callsign] = worked
 			}
-			Log.Debugf("Contest callsigns in watchlist (%d): checking today only", len(contestCallsigns))
+			// Log.Debugf("Contest callsigns in watchlist (%d): checking today only", len(contestCallsigns))
 		}
 
 		// Pour les callsigns normaux : vérifier tout l'historique
