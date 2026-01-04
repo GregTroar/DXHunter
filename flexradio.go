@@ -491,7 +491,7 @@ func (fc *FlexClient) ZoomPanadapter(mode string) error {
 		bandwidth = 0.2
 	}
 
-	cmd := fmt.Sprintf("C%v|display pan %s bandwidth=%.6f", CommandNumber, fc.PanID, bandwidth)
+	cmd := fmt.Sprintf("C%v|display pan s %s bandwidth=%.6f", CommandNumber, fc.PanID, bandwidth)
 	fc.Write(cmd)
 	CommandNumber++
 
