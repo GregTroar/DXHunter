@@ -7,6 +7,7 @@ import (
 	"net"
 	"os"
 	"regexp"
+	"strings"
 	"time"
 )
 
@@ -71,6 +72,7 @@ type FlexClient struct {
 	Enabled              bool
 	CurrentFrequency     float64 // ✅ NOUVEAU : Fréquence actuelle en MHz
 	CurrentBand          string  // ✅ NOUVEAU : Bande actuelle (20M, 40M, etc.)
+	PanID                string
 }
 
 func NewFlexClient(repo FlexDXClusterRepository, TCPServer *TCPServer, SpotChanToFlex chan TelnetSpot, httpServer *HTTPServer) *FlexClient {
@@ -235,17 +237,23 @@ func (fc *FlexClient) initializeFlex() {
 	subSpotAllCmd := fmt.Sprintf("C%v|sub spot all", CommandNumber)
 	fc.Write(subSpotAllCmd)
 	CommandNumber++
+	Log.Info("Subscribed to spots on FlexRadio")
 
 	clrSpotAllCmd := fmt.Sprintf("C%v|spot clear", CommandNumber)
 	fc.Write(clrSpotAllCmd)
 	CommandNumber++
+	Log.Info("Cleared all spots from panadapter")
 
-	// ✅ NOUVEAU : Subscribe to slice 0 pour tracker la fréquence
 	subSliceCmd := fmt.Sprintf("C%v|sub slice 0", CommandNumber)
 	fc.Write(subSliceCmd)
 	CommandNumber++
+	Log.Info("Subscribed to slices on FlexRadio")
 
-	Log.Debug("Subscribed to spots and slice 0 on FlexRadio, cleared all spots from panadapter")
+	subPanCmd := fmt.Sprintf("C%v|sub pan all", CommandNumber)
+	fc.Write(subPanCmd)
+	CommandNumber++
+	Log.Debug("Subscribed to panadapters on FlexRadio")
+
 }
 
 func (fc *FlexClient) Close() {
@@ -285,11 +293,11 @@ func (fc *FlexClient) ReadLine() {
 		}
 		fc.Conn.SetReadDeadline(time.Time{})
 
-		// ✅ NOUVEAU : Parser les messages slice pour tracker la fréquence
+		// Parser les messages slice pour tracker la fréquence
 		if err := fc.parseSliceMessage(message); err == nil {
-			// Message slice parsé avec succès, continuer
 		}
 
+		// When spot is added on Flex Panadapter get the id of the spot to store it in Db
 		regRespSpot := *regexp.MustCompile(`R(\d+)\|0\|(\d+)\n`)
 		respSpot := regRespSpot.FindStringSubmatch(message)
 
@@ -340,6 +348,31 @@ func (fc *FlexClient) ReadLine() {
 			fc.Repo.DeleteSpotByFlexSpotNumber(respDelete[1])
 			Log.Debugf("Spot deleted from Flex Panadapter and database: %s", message)
 		}
+
+		if strings.HasPrefix(message, "S") && strings.Contains(message, "display pan") {
+			// Format: SCC1D0A5|display pan 0x40000000 client_handle=...
+			regPan := regexp.MustCompile(`display pan (0x[0-9A-Fa-f]+)`)
+			matchPan := regPan.FindStringSubmatch(message)
+
+			if len(matchPan) > 1 {
+				panID := matchPan[1]
+
+				// Stocker le premier panadapter trouvé
+				if fc.PanID == "" {
+					fc.PanID = panID
+
+					// Parser aussi le bandwidth actuel
+					regBW := regexp.MustCompile(`bandwidth=([\d.]+)`)
+					if matchBW := regBW.FindStringSubmatch(message); len(matchBW) > 1 {
+						Log.Debugf("📡 Panadapter %s detected - Current BW: %s MHz",
+							panID, matchBW[1])
+					} else {
+						Log.Debugf("📡 Panadapter %s detected", panID)
+					}
+				}
+			}
+		}
+
 	}
 }
 
@@ -436,4 +469,32 @@ func DiscoverFlexRadio() (bool, *Discovery) {
 	}
 
 	return false, nil
+}
+
+func (fc *FlexClient) ZoomPanadapter(mode string) error {
+	if fc.PanID == "" {
+		return nil
+	}
+
+	var bandwidth float64
+
+	switch mode {
+	case "USB", "LSB", "SSB", "AM", "FM", "DRM":
+		bandwidth = 0.2
+	case "CW", "CWR":
+		bandwidth = 0.05
+	case "RTTY", "DIGL", "DIGU":
+		bandwidth = 0.0125
+	case "FT8", "FT4", "PSK", "FSK":
+		bandwidth = 0.05
+	default:
+		bandwidth = 0.2
+	}
+
+	cmd := fmt.Sprintf("C%v|display pan %s bandwidth=%.6f", CommandNumber, fc.PanID, bandwidth)
+	fc.Write(cmd)
+	CommandNumber++
+
+	Log.Debugf("🔍 Auto-zoom: %s mode → %.4f MHz", mode, bandwidth)
+	return nil
 }
