@@ -371,7 +371,6 @@ func (fc *FlexClient) parseSliceMessage(message string) error {
 		return err
 	}
 
-	// Vérifier si la fréquence a changé
 	if frequency != fc.CurrentFrequency {
 		fc.CurrentFrequency = frequency
 		fc.CurrentBand = FrequencyToBand(frequency)

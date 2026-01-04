@@ -940,7 +940,7 @@ func (s *HTTPServer) handleSendCallsign(w http.ResponseWriter, r *http.Request) 
 	}
 
 	SendUDPMessage([]byte("<CALLSIGN>" + req.Callsign))
-	s.Log.Infof("Sent callsign %s to Log4OM via UDP (127.0.0.1:2241)", req.Callsign)
+	s.Log.Debugf("Sent callsign %s to Log4OM via UDP (127.0.0.1:2241)", req.Callsign)
 
 	if Cfg.General.SendFreqModeToLog {
 		freqLog4OM := strings.Replace(req.Frequency, ".", "", 1)
