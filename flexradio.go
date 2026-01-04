@@ -501,3 +501,28 @@ func (fc *FlexClient) ZoomPanadapter(mode string, freq string) error {
 	Log.Debugf("🔍 Auto-zoom: %s mode → %.4f MHz", mode, bandwidth)
 	return nil
 }
+
+func (fc *FlexClient) AdjustAGC(mode string) {
+
+	var AGCMode string
+
+	switch mode {
+	case "USB", "LSB", "SSB", "AM", "FM", "DRM":
+		AGCMode = "slow"
+	case "CW", "CWR":
+		AGCMode = "fast"
+	case "RTTY", "DIGL", "DIGU":
+		AGCMode = "med"
+	case "FT8", "FT4", "PSK", "FSK":
+		AGCMode = "med"
+	default:
+		AGCMode = "slow"
+	}
+
+	cmd := fmt.Sprintf("C%v|display pan s %s bandwidth=%s", CommandNumber, "0", AGCMode)
+	fc.Write(cmd)
+	CommandNumber++
+
+	Log.Debugf("🔍 AGC Adjustment: %s mode → %s", mode, AGCMode)
+
+}

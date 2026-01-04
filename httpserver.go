@@ -980,8 +980,9 @@ func (s *HTTPServer) handleSendCallsign(w http.ResponseWriter, r *http.Request) 
 		modeCmd := fmt.Sprintf("C%v|slice s 0 mode=%s", CommandNumber, req.Mode)
 		s.FlexClient.Write(modeCmd)
 		CommandNumber++
-		time.Sleep(time.Millisecond * 500)
+		time.Sleep(time.Millisecond * 100)
 		s.FlexClient.ZoomPanadapter(req.Mode, req.Frequency)
+		s.FlexClient.AdjustAGC(req.Mode)
 		s.Log.Infof("Sent TUNE command to Flex: %s", tuneCmd)
 	}
 
