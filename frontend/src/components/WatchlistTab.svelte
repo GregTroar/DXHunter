@@ -15,6 +15,10 @@
   let watchlistSpots = [];
   let refreshInterval;
   let selectedBand = 'ALL'; // ✅ NOUVEAU : Filtre de bande
+ 
+  $: if (!contestMode && selectedBand !== 'ALL') {
+  selectedBand = 'ALL';
+}
   let showOnlyNotWorked = false; // ✅ NOUVEAU : Filtre "Not Worked Only"
 
   // ✅ Liste des bandes disponibles
@@ -22,8 +26,9 @@
                '17M', '15M', '12M', '10M'];
   
   // ✅ SIMPLIFIÉ : Utiliser directement la watchlist du backend (qui filtre déjà selon contest mode)
-  $: displayList = getDisplayList(watchlist, watchlistSpots, showOnlyActive);
-  $: matchingSpots = countWatchlistSpots(spots, watchlist);
+  // ✅ CORRIGÉ : Ajout de showOnlyNotWorked comme dépendance réactive
+  $: displayList = getDisplayList(watchlist, watchlistSpots, showOnlyActive, showOnlyNotWorked);
+  $: matchingSpots = watchlistSpots.length;
   $: filteredSpots = selectedBand === 'ALL' 
     ? matchingSpots 
     : countWatchlistSpotsByBand(watchlistSpots, selectedBand, showOnlyNotWorked);
@@ -80,40 +85,35 @@
     }
   }
   
-  function getDisplayList(wl, wlSpots, activeOnly) {
+  // ✅ CORRIGÉ : Ajout du paramètre onlyNotWorked
+  function getDisplayList(wl, wlSpots, activeOnly, onlyNotWorked) {
     let list = wl;
     
     // ✅ NOUVEAU : Si une bande spécifique est sélectionnée, ne montrer que les callsigns avec des spots sur cette bande
     if (selectedBand !== 'ALL') {
       list = wl.filter(entry => {
-        const spots = wlSpots.filter(s => 
+        let spots = wlSpots.filter(s => 
           (s.dx === entry.callsign || s.dx.startsWith(entry.callsign)) &&
           s.band === selectedBand
         );
+        // ✅ CORRIGÉ : Appliquer aussi le filtre "Not Worked"
+        if (onlyNotWorked) {
+          spots = spots.filter(s => !s.workedBandMode);
+        }
         return spots.length > 0;
       });
-    } else if (activeOnly) {
-      // Sinon, appliquer le filtre "Active Only" normal
+    } else if (activeOnly || onlyNotWorked) {
+      // ✅ CORRIGÉ : Combiner les filtres activeOnly et onlyNotWorked
       list = wl.filter(entry => {
-        const spots = wlSpots.filter(s => s.dx === entry.callsign || s.dx.startsWith(entry.callsign));
+        let spots = wlSpots.filter(s => s.dx === entry.callsign || s.dx.startsWith(entry.callsign));
+        // ✅ CORRIGÉ : Si "Not Worked" activé, ne garder que les callsigns avec des spots non contactés
+        if (onlyNotWorked) {
+          spots = spots.filter(s => !s.workedBandMode);
+        }
         return spots.length > 0;
       });
     }
     
-    // ✅ NOUVEAU : Filtre "Not Worked Only" - ne montrer que les callsigns avec au moins un spot non contacté
-    if (showOnlyNotWorked) {
-      list = list.filter(entry => {
-        let spots = wlSpots.filter(s => s.dx === entry.callsign || s.dx.startsWith(entry.callsign));
-        
-        // Appliquer le filtre de bande si nécessaire
-        if (selectedBand !== 'ALL') {
-          spots = spots.filter(s => s.band === selectedBand);
-        }
-        
-        // Vérifier s'il y a au moins un spot non contacté (workedBandMode = false)
-        return spots.some(s => !s.workedBandMode);
-      });
-    }
     
     return [...list].sort((a, b) => a.callsign.localeCompare(b.callsign, 'en', { numeric: true }));
   }
@@ -131,12 +131,6 @@
     }
   }
   
-  function countWatchlistSpots(allSpots, wl) {
-    return allSpots.filter(spot => 
-      wl.some(entry => spot.DX === entry.callsign || spot.DX.startsWith(entry.callsign))
-    ).length;
-  }
-
 function countWatchlistSpotsByBand(wlSpots, band, onlyNotWorked) {
   let spots = wlSpots.filter(s => s.band === band);
   
@@ -154,6 +148,10 @@ function countWatchlistSpotsByBand(wlSpots, band, onlyNotWorked) {
     // ✅ NOUVEAU : Filtrer par bande sélectionnée
     if (selectedBand !== 'ALL') {
       spots = spots.filter(s => s.band === selectedBand);
+    }
+
+    if (showOnlyNotWorked) {
+    spots = spots.filter(s => !s.workedBandMode);
     }
     
     const bandOrder = { '160M': 0, '80M': 1, '60M': 2, '40M': 3, '30M': 4, '20M': 5, '17M': 6, '15M': 7, '12M': 8, '10M': 9, '6M': 10 };
@@ -176,6 +174,9 @@ function countWatchlistSpotsByBand(wlSpots, band, onlyNotWorked) {
       const timeB = b.utcTime || "00:00";
       return timeB.localeCompare(timeA);
     });
+
+
+
   }
   
   async function addToWatchlist() {
@@ -340,17 +341,19 @@ function countWatchlistSpotsByBand(wlSpots, band, onlyNotWorked) {
       </div>
     </div>
     
-    <div class="mb-3">
-      <label for="band-filter" class="text-xs text-slate-400 mb-1 block">Filter by Band</label>
-      <select 
-        id="band-filter"
-        bind:value={selectedBand}
-        class="w-full px-3 py-2 bg-slate-700/50 border border-slate-600 rounded text-sm text-white focus:outline-none focus:border-blue-500">
-        {#each bands as band}
-          <option value={band}>{band === 'ALL' ? 'All Bands' : band}</option>
-        {/each}
-      </select>
-    </div>
+    {#if contestMode}
+      <div class="mb-3">
+        <label for="band-filter" class="text-xs text-slate-400 mb-1 block">Filter by Band</label>
+        <select 
+          id="band-filter"
+          bind:value={selectedBand}
+          class="w-full px-3 py-2 bg-slate-700/50 border border-slate-600 rounded text-sm text-white focus:outline-none focus:border-blue-500">
+          {#each bands as band}
+            <option value={band}>{band === 'ALL' ? 'All Bands' : band}</option>
+          {/each}
+        </select>
+      </div>
+    {/if}
     
     <div class="flex gap-2">
       <input 
@@ -375,8 +378,8 @@ function countWatchlistSpotsByBand(wlSpots, band, onlyNotWorked) {
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
         </svg>
-        <p class="text-sm">{showOnlyActive ? 'No active spots for watchlist callsigns' : 'No callsigns in watchlist'}</p>
-        <p class="text-xs mt-1">{showOnlyActive ? 'Click "Active Only" to see all entries' : 'Add callsigns or prefixes to monitor'}</p>
+        <p class="text-sm">{showOnlyNotWorked ? 'No unworked spots for watchlist callsigns' : (showOnlyActive ? 'No active spots for watchlist callsigns' : 'No callsigns in watchlist')}</p>
+        <p class="text-xs mt-1">{showOnlyNotWorked ? 'Click "Not Worked" to see all spots' : (showOnlyActive ? 'Click "Active Only" to see all entries' : 'Add callsigns or prefixes to monitor')}</p>
       </div>
     {:else}
       {#each displayList as entry}

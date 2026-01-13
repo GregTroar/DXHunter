@@ -642,22 +642,20 @@ func (s *HTTPServer) updateFilters(w http.ResponseWriter, r *http.Request) {
 	s.sendJSON(w, APIResponse{Success: true, Data: map[string]string{"message": "Filters updated successfully"}})
 }
 
+func filterWatchlistByMode(entries []WatchlistEntry, contestMode bool) []WatchlistEntry {
+	filtered := make([]WatchlistEntry, 0, len(entries))
+	for _, entry := range entries {
+		if entry.IsContest == contestMode {
+			filtered = append(filtered, entry)
+		}
+	}
+	return filtered
+}
+
 func (s *HTTPServer) getWatchlist(w http.ResponseWriter, r *http.Request) {
 	allCallsigns := s.Watchlist.GetAll()
-
-	// ✅ Si contest mode actif, ne montrer que les callsigns contest
-	if Cfg.General.ContestMode {
-		contestCallsigns := make([]WatchlistEntry, 0)
-		for _, entry := range allCallsigns {
-			if entry.IsContest {
-				contestCallsigns = append(contestCallsigns, entry)
-			}
-		}
-		s.sendJSON(w, APIResponse{Success: true, Data: contestCallsigns})
-	} else {
-		// Mode normal : montrer tous les callsigns
-		s.sendJSON(w, APIResponse{Success: true, Data: allCallsigns})
-	}
+	filtered := filterWatchlistByMode(allCallsigns, Cfg.General.ContestMode)
+	s.sendJSON(w, APIResponse{Success: true, Data: filtered})
 }
 
 func (s *HTTPServer) addToWatchlist(w http.ResponseWriter, r *http.Request) {
@@ -716,30 +714,6 @@ func (s *HTTPServer) removeFromWatchlist(w http.ResponseWriter, r *http.Request)
 	s.sendJSON(w, APIResponse{Success: true, Message: "Callsign removed from watchlist"})
 }
 
-func (s *HTTPServer) updateWatchlistNotes(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		Callsign string `json:"callsign"`
-		Notes    string `json:"notes"`
-	}
-
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		s.sendJSON(w, APIResponse{Success: false, Error: "Invalid request"})
-		return
-	}
-
-	if req.Callsign == "" {
-		s.sendJSON(w, APIResponse{Success: false, Error: "Callsign is required"})
-		return
-	}
-
-	s.Log.Debugf("Updated notes for %s", req.Callsign)
-
-	// Broadcast updated watchlist to all clients
-	s.broadcast <- WSMessage{Type: "watchlist", Data: s.Watchlist.GetAll()}
-
-	s.sendJSON(w, APIResponse{Success: true, Message: "Notes updated"})
-}
-
 func (s *HTTPServer) updateWatchlistSound(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		Callsign  string `json:"callsign"`
@@ -773,7 +747,6 @@ func (s *HTTPServer) getWatchlistSpotsWithStatus(w http.ResponseWriter, r *http.
 	allSpots := s.FlexRepo.GetAllSpots("0")
 	watchlistEntries := s.Watchlist.GetAll()
 
-	// ✅ Si contest mode actif, filtrer pour ne garder que les entrées contest
 	if Cfg.General.ContestMode {
 		contestEntries := make([]WatchlistEntry, 0)
 		for _, entry := range watchlistEntries {
@@ -782,6 +755,15 @@ func (s *HTTPServer) getWatchlistSpotsWithStatus(w http.ResponseWriter, r *http.
 			}
 		}
 		watchlistEntries = contestEntries
+	} else {
+		// ✅ FIX : Mode normal - exclure contest
+		normalEntries := make([]WatchlistEntry, 0)
+		for _, entry := range watchlistEntries {
+			if !entry.IsContest {
+				normalEntries = append(normalEntries, entry)
+			}
+		}
+		watchlistEntries = normalEntries
 	}
 
 	watchlistCallsigns := make([]string, len(watchlistEntries))
@@ -854,7 +836,7 @@ func (s *HTTPServer) getWatchlistSpotsWithStatus(w http.ResponseWriter, r *http.
 			for callsign, worked := range contestWorkedMap {
 				workedMap[callsign] = worked
 			}
-			// Log.Debugf("Contest callsigns in watchlist (%d): checking today only", len(contestCallsigns))
+			Log.Debugf("Contest callsigns in watchlist (%d): checking today only", len(contestCallsigns))
 		}
 
 		// Pour les callsigns normaux : vérifier tout l'historique
@@ -980,10 +962,14 @@ func (s *HTTPServer) handleSendCallsign(w http.ResponseWriter, r *http.Request) 
 		modeCmd := fmt.Sprintf("C%v|slice s 0 mode=%s", CommandNumber, req.Mode)
 		s.FlexClient.Write(modeCmd)
 		CommandNumber++
+		s.Log.Infof("Sent TUNE command to Flex: %s", tuneCmd)
+
 		time.Sleep(time.Millisecond * 100)
+
 		s.FlexClient.ZoomPanadapter(req.Mode, req.Frequency)
 		s.FlexClient.AdjustAGC(req.Mode)
-		s.Log.Infof("Sent TUNE command to Flex: %s", tuneCmd)
+		s.Log.Infof("AGC Mode adjusted to mode: %s", req.Mode)
+
 	}
 
 	s.sendJSON(w, APIResponse{

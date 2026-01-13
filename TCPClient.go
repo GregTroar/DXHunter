@@ -16,6 +16,8 @@ import (
 )
 
 var spotRe *regexp.Regexp = regexp.MustCompile(`(?i)DX\sde\s([\w\d\/]+?)(?:-[#\d-]+)?\s*:\s*(\d+\.\d+)\s+([\w\d\/]+)\s+(?:(CW|SSB|FT8|FT4|RTTY|USB|LSB|FM)\s+)?(.+?)\s+(\d{4}Z)`)
+var spotReShort *regexp.Regexp = regexp.MustCompile(`^(\d+\.\d+)\s+([\w\d\/]+)\s+\d{2}-\w{3}-\d{4}\s+(\d{4}Z)\s+(.+?)\s*<([\w\d\/]+)>\s*$`)
+var shortSpotDetectRe *regexp.Regexp = regexp.MustCompile(`^\d+\.\d+\s+[\w\d\/]+\s+\d{2}-\w{3}-\d{4}`)
 var defaultLoginRe *regexp.Regexp = regexp.MustCompile("[\\w\\d-_]+ login:")
 var defaultPasswordRe *regexp.Regexp = regexp.MustCompile("Password:")
 
@@ -318,12 +320,10 @@ func (c *TCPClient) ReadLine() {
 						Log.Debugf("Sending Command: %s", Cfg.Cluster.Command)
 					}
 				}
-
-				if strings.Contains(messageString, "DX") {
+				if strings.Contains(messageString, "DX") || shortSpotDetectRe.MatchString(messageString) {
 					IncrementSpotsReceived()
-					ProcessTelnetSpot(spotRe, messageString, c.SpotChanToFlex, c.SpotChanToHTTPServer, c.Countries, c.ContactRepo)
+					ProcessTelnetSpot(spotRe, spotReShort, messageString, c.SpotChanToFlex, c.SpotChanToHTTPServer, c.Countries, c.ContactRepo)
 				}
-
 				// Send the spot message to TCP server
 				select {
 				case c.MsgChan <- messageString:
