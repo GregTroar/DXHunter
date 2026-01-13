@@ -15,6 +15,10 @@
   let watchlistSpots = [];
   let refreshInterval;
   let selectedBand = 'ALL'; // ✅ NOUVEAU : Filtre de bande
+ 
+  $: if (!contestMode && selectedBand !== 'ALL') {
+  selectedBand = 'ALL';
+}
   let showOnlyNotWorked = false; // ✅ NOUVEAU : Filtre "Not Worked Only"
 
   // ✅ Liste des bandes disponibles
@@ -23,7 +27,7 @@
   
   // ✅ SIMPLIFIÉ : Utiliser directement la watchlist du backend (qui filtre déjà selon contest mode)
   $: displayList = getDisplayList(watchlist, watchlistSpots, showOnlyActive);
-  $: matchingSpots = countWatchlistSpots(spots, watchlist);
+  $: matchingSpots = watchlistSpots.length;
   $: filteredSpots = selectedBand === 'ALL' 
     ? matchingSpots 
     : countWatchlistSpotsByBand(watchlistSpots, selectedBand, showOnlyNotWorked);
@@ -131,12 +135,6 @@
     }
   }
   
-  function countWatchlistSpots(allSpots, wl) {
-    return allSpots.filter(spot => 
-      wl.some(entry => spot.DX === entry.callsign || spot.DX.startsWith(entry.callsign))
-    ).length;
-  }
-
 function countWatchlistSpotsByBand(wlSpots, band, onlyNotWorked) {
   let spots = wlSpots.filter(s => s.band === band);
   
@@ -340,17 +338,19 @@ function countWatchlistSpotsByBand(wlSpots, band, onlyNotWorked) {
       </div>
     </div>
     
-    <div class="mb-3">
-      <label for="band-filter" class="text-xs text-slate-400 mb-1 block">Filter by Band</label>
-      <select 
-        id="band-filter"
-        bind:value={selectedBand}
-        class="w-full px-3 py-2 bg-slate-700/50 border border-slate-600 rounded text-sm text-white focus:outline-none focus:border-blue-500">
-        {#each bands as band}
-          <option value={band}>{band === 'ALL' ? 'All Bands' : band}</option>
-        {/each}
-      </select>
-    </div>
+    {#if contestMode}
+      <div class="mb-3">
+        <label for="band-filter" class="text-xs text-slate-400 mb-1 block">Filter by Band</label>
+        <select 
+          id="band-filter"
+          bind:value={selectedBand}
+          class="w-full px-3 py-2 bg-slate-700/50 border border-slate-600 rounded text-sm text-white focus:outline-none focus:border-blue-500">
+          {#each bands as band}
+            <option value={band}>{band === 'ALL' ? 'All Bands' : band}</option>
+          {/each}
+        </select>
+      </div>
+    {/if}
     
     <div class="flex gap-2">
       <input 

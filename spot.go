@@ -28,23 +28,43 @@ type TelnetSpot struct {
 	CallsignWorked bool
 }
 
-func ProcessTelnetSpot(re *regexp.Regexp, spotRaw string, SpotChanToFlex chan TelnetSpot, SpotChanToHTTPServer chan TelnetSpot, Countries Countries, contactRepo *Log4OMContactsRepository) {
+func ProcessTelnetSpot(re *regexp.Regexp, reShort *regexp.Regexp, spotRaw string, SpotChanToFlex chan TelnetSpot, SpotChanToHTTPServer chan TelnetSpot, Countries Countries, contactRepo *Log4OMContactsRepository) {
 
 	match := re.FindStringSubmatch(spotRaw)
 
-	if len(match) == 0 {
-		IncrementSpotsRejected()
-		Log.Warnf("❌ Regex no match: %s", spotRaw)
-		return
-	}
+	var spot TelnetSpot
 
-	spot := TelnetSpot{
-		DX:        match[3],
-		Spotter:   match[1],
-		Frequency: match[2],
-		Mode:      match[4],
-		Comment:   strings.Trim(match[5], " "),
-		Time:      match[6],
+	if len(match) > 0 {
+		// Format standard : DX de SPOTTER:  FREQ  DX  MODE  COMMENT  TIME
+		spot = TelnetSpot{
+			DX:        match[3],
+			Spotter:   match[1],
+			Frequency: match[2],
+			Mode:      match[4],
+			Comment:   strings.Trim(match[5], " "),
+			Time:      match[6],
+		}
+	} else {
+		// ✅ Essayer le format court : FREQ DX DATE TIME COMMENT <SPOTTER>
+		match = reShort.FindStringSubmatch(spotRaw)
+
+		if len(match) == 0 {
+			IncrementSpotsRejected()
+			Log.Warnf("❌ Regex no match: %s", spotRaw)
+			return
+		}
+
+		spot = TelnetSpot{
+			DX:        match[2],
+			Spotter:   match[5],
+			Frequency: match[1],
+			Mode:      "", // Mode détecté plus tard
+			Comment:   strings.Trim(match[4], " "),
+			Time:      match[3],
+		}
+
+		Log.Debugf("📡 Spot format court: %s @ %s MHz spotted by %s",
+			spot.DX, spot.Frequency, spot.Spotter)
 	}
 
 	DXCC := GetDXCC(spot.DX, Countries)
