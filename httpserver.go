@@ -17,6 +17,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
+	"gopkg.in/yaml.v2"
 )
 
 //go:embed frontend/dist/*
@@ -41,6 +42,7 @@ type HTTPServer struct {
 	wsMutex         sync.RWMutex
 	broadcast       chan WSMessage
 	Watchlist       *Watchlist
+	ConfigPath      string
 }
 
 type Stats struct {
@@ -121,7 +123,7 @@ var upgrader = websocket.Upgrader{
 }
 
 func NewHTTPServer(flexRepo *FlexDXClusterRepository, contactRepo *Log4OMContactsRepository,
-	tcpServer *TCPServer, tcpClient *TCPClient, flexClient *FlexClient, port string) *HTTPServer {
+	tcpServer *TCPServer, tcpClient *TCPClient, flexClient *FlexClient, port string, configPath string) *HTTPServer {
 
 	server := &HTTPServer{
 		Router:          mux.NewRouter(),
@@ -173,11 +175,71 @@ func (s *HTTPServer) setupRoutes() {
 	api.HandleFunc("/watchlist/update-sound", s.updateWatchlistSound).Methods("POST", "OPTIONS")
 	api.HandleFunc("/stats/spots", s.getSpotProcessingStats).Methods("GET", "OPTIONS")
 	api.HandleFunc("/logs", s.getLogs).Methods("GET", "OPTIONS")
+	api.HandleFunc("/contest/toggle", s.toggleContestMode).Methods("POST", "OPTIONS")
 
 	// WebSocket endpoint
 	api.HandleFunc("/ws", s.handleWebSocket).Methods("GET")
 
 	s.setupStaticFiles()
+}
+
+func (s *HTTPServer) toggleContestMode(w http.ResponseWriter, r *http.Request) {
+	// Basculer le mode contest
+	Cfg.General.ContestMode = !Cfg.General.ContestMode
+
+	s.Log.Infof("Contest mode toggled to: %v", Cfg.General.ContestMode)
+
+	// Si on passe en mode contest, ajouter automatiquement les callsigns contest
+	if Cfg.General.ContestMode && s.Watchlist != nil {
+		addedCount := 0
+		for _, callsign := range Cfg.General.ContestCallsigns {
+			if err := s.Watchlist.AddContest(callsign); err == nil {
+				addedCount++
+			}
+		}
+		s.Log.Infof("Added %d contest callsigns to watchlist", addedCount)
+	}
+
+	// Broadcast la mise à jour à tous les clients WebSocket
+	stats := s.calculateStats()
+	s.broadcast <- WSMessage{Type: "stats", Data: stats}
+
+	// Broadcast aussi la watchlist mise à jour
+	watchlist := s.Watchlist.GetAll()
+	s.broadcast <- WSMessage{Type: "watchlist", Data: watchlist}
+
+	s.sendJSON(w, APIResponse{
+		Success: true,
+		Message: fmt.Sprintf("Contest mode %s", map[bool]string{true: "enabled", false: "disabled"}[Cfg.General.ContestMode]),
+		Data: map[string]interface{}{
+			"contestMode":      Cfg.General.ContestMode,
+			"contestPrefix":    Cfg.General.ContestPrefix,
+			"contestCallsigns": Cfg.General.ContestCallsigns,
+		},
+	})
+}
+
+func (s *HTTPServer) saveConfig() error {
+	Mutex.Lock()
+	defer Mutex.Unlock()
+
+	if s.ConfigPath == "" {
+		return fmt.Errorf("config path not set")
+	}
+
+	// Créer le fichier YAML
+	data, err := yaml.Marshal(&Cfg)
+	if err != nil {
+		return fmt.Errorf("failed to marshal config: %v", err)
+	}
+
+	// Écrire dans le fichier
+	if err := os.WriteFile(s.ConfigPath, data, 0644); err != nil {
+		return fmt.Errorf("failed to write config file: %v", err)
+	}
+
+	s.Log.Infof("Configuration saved to %s", s.ConfigPath)
+	return nil
 }
 
 func (s *HTTPServer) setupStaticFiles() {

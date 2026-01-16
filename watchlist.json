@@ -1,426 +1,84 @@
 [
   {
-    "callsign": "CQ7WWA",
-    "lastSeen": "2026-01-14T08:47:38.8608853+01:00",
-    "lastSeenStr": "Just now",
-    "addedAt": "2026-01-02T09:25:26.8989534+01:00",
-    "spotCount": 2281,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "M0WWA",
-    "lastSeen": "2026-01-13T17:25:36.5274295+01:00",
-    "lastSeenStr": "15 hours ago",
-    "addedAt": "2026-01-02T13:21:27.4406663+01:00",
-    "spotCount": 24,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "YI1RN",
-    "lastSeen": "0001-01-01T00:00:00Z",
-    "lastSeenStr": "Never",
-    "addedAt": "2026-01-02T03:52:32.474465+01:00",
-    "spotCount": 0,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "HA9WWA",
-    "lastSeen": "2026-01-04T16:07:50.0879441+01:00",
-    "lastSeenStr": "9 days ago",
-    "addedAt": "2026-01-04T16:07:50.0848419+01:00",
-    "spotCount": 1,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "VK2WWA",
-    "lastSeen": "2026-01-03T12:52:28.3086863+01:00",
-    "lastSeenStr": "10 days ago",
-    "addedAt": "2026-01-03T12:52:28.3050449+01:00",
-    "spotCount": 1,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "5H3MB",
-    "lastSeen": "2025-11-17T20:39:09.7164823+01:00",
-    "lastSeenStr": "57 days ago",
-    "addedAt": "2025-10-18T17:18:42.8402097+02:00",
-    "spotCount": 233,
-    "playSound": true,
+    "callsign": "XV9",
+    "lastSeen": "2026-01-16T21:13:57.8841474+01:00",
+    "lastSeenStr": "2 hours ago",
+    "addedAt": "2025-10-18T17:18:24.9155327+02:00",
+    "spotCount": 323,
+    "playSound": false,
     "isContest": false
   },
   {
-    "callsign": "P44W",
+    "callsign": "6W1/DB1RUL",
     "lastSeen": "0001-01-01T00:00:00Z",
     "lastSeenStr": "Never",
-    "addedAt": "2025-11-18T08:38:26.4401444+01:00",
+    "addedAt": "2026-01-16T18:56:39.8242887+01:00",
     "spotCount": 0,
     "playSound": true,
     "isContest": false
   },
   {
-    "callsign": "IR1WWA",
-    "lastSeen": "2026-01-13T23:19:48.2855481+01:00",
-    "lastSeenStr": "9 hours ago",
-    "addedAt": "2026-01-02T08:29:37.5541561+01:00",
-    "spotCount": 171,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "BY8MA",
-    "lastSeen": "2026-01-14T08:45:58.5278597+01:00",
-    "lastSeenStr": "Just now",
-    "addedAt": "2026-01-02T03:52:32.4454154+01:00",
-    "spotCount": 741,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "CS9WWA",
-    "lastSeen": "2026-01-03T13:40:56.9282012+01:00",
-    "lastSeenStr": "10 days ago",
-    "addedAt": "2026-01-03T13:40:56.9254761+01:00",
-    "spotCount": 1,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "OP0WWA",
-    "lastSeen": "2026-01-14T08:36:18.6232896+01:00",
-    "lastSeenStr": "9 minutes ago",
-    "addedAt": "2026-01-02T03:54:01.0526677+01:00",
-    "spotCount": 3455,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "EW3WWA",
-    "lastSeen": "2026-01-06T15:46:31.7033435+01:00",
-    "lastSeenStr": "7 days ago",
-    "addedAt": "2026-01-06T15:40:35.061738+01:00",
-    "spotCount": 4,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "EO1WWA",
-    "lastSeen": "2026-01-04T16:12:04.464638+01:00",
-    "lastSeenStr": "9 days ago",
-    "addedAt": "2026-01-04T16:12:04.4618581+01:00",
-    "spotCount": 1,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "SP3WWA",
-    "lastSeen": "2026-01-04T13:45:06.7865928+01:00",
-    "lastSeenStr": "9 days ago",
-    "addedAt": "2026-01-04T13:43:04.9769645+01:00",
-    "spotCount": 2,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "IR0WWA",
-    "lastSeen": "2026-01-14T08:46:53.5586479+01:00",
-    "lastSeenStr": "Just now",
-    "addedAt": "2026-01-02T08:47:37.7034341+01:00",
-    "spotCount": 867,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "YL73R",
-    "lastSeen": "2026-01-13T20:51:31.7602481+01:00",
-    "lastSeenStr": "11 hours ago",
-    "addedAt": "2026-01-10T23:44:25.8890338+01:00",
-    "spotCount": 348,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "N4W",
-    "lastSeen": "2026-01-14T08:48:31.9871962+01:00",
-    "lastSeenStr": "Just now",
-    "addedAt": "2026-01-02T03:52:32.3265733+01:00",
-    "spotCount": 1314,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "BY1RX",
-    "lastSeen": "2026-01-14T08:46:55.5123352+01:00",
-    "lastSeenStr": "Just now",
-    "addedAt": "2026-01-02T03:52:32.4254096+01:00",
-    "spotCount": 940,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "8A1A",
-    "lastSeen": "2026-01-14T08:46:52.2419513+01:00",
-    "lastSeenStr": "Just now",
-    "addedAt": "2026-01-02T03:52:32.3852027+01:00",
-    "spotCount": 3151,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "G3WWA",
-    "lastSeen": "2026-01-06T13:34:32.7466944+01:00",
-    "lastSeenStr": "7 days ago",
-    "addedAt": "2026-01-02T18:41:18.2916472+01:00",
-    "spotCount": 6,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "I36WWA",
-    "lastSeen": "2026-01-02T09:50:46.7814055+01:00",
-    "lastSeenStr": "11 days ago",
-    "addedAt": "2026-01-02T09:50:46.7787017+01:00",
-    "spotCount": 1,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "II59WWA",
-    "lastSeen": "2026-01-02T17:09:11.2763512+01:00",
-    "lastSeenStr": "11 days ago",
-    "addedAt": "2026-01-02T17:09:11.2735628+01:00",
-    "spotCount": 1,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "GB2WWA",
-    "lastSeen": "2026-01-14T08:47:56.7030093+01:00",
-    "lastSeenStr": "Just now",
-    "addedAt": "2026-01-02T09:03:42.1625739+01:00",
-    "spotCount": 6270,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "PJ5",
-    "lastSeen": "2025-11-25T21:01:31.2810955+01:00",
-    "lastSeenStr": "49 days ago",
-    "addedAt": "2025-11-14T08:02:34.6350904+01:00",
-    "spotCount": 13,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "NA0WWA",
-    "lastSeen": "2026-01-10T10:21:31.7662121+01:00",
-    "lastSeenStr": "3 days ago",
-    "addedAt": "2026-01-10T10:21:30.1763477+01:00",
-    "spotCount": 2,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "TK4TH",
-    "lastSeen": "0001-01-01T00:00:00Z",
-    "lastSeenStr": "Never",
-    "addedAt": "2026-01-02T03:52:32.4681956+01:00",
-    "spotCount": 0,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "DU0WWA",
-    "lastSeen": "2026-01-14T08:49:16.8592859+01:00",
-    "lastSeenStr": "Just now",
-    "addedAt": "2026-01-02T03:55:49.0949519+01:00",
-    "spotCount": 397,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "4M5A",
-    "lastSeen": "2026-01-14T01:25:40.3647566+01:00",
-    "lastSeenStr": "7 hours ago",
-    "addedAt": "2026-01-02T03:52:32.364621+01:00",
-    "spotCount": 50,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "6W/DO5RQ",
-    "lastSeen": "2025-12-11T17:20:24.6292562+01:00",
-    "lastSeenStr": "33 days ago",
-    "addedAt": "2025-12-06T12:41:45.8933896+01:00",
-    "spotCount": 16,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "AT7WWA",
-    "lastSeen": "2026-01-13T17:57:44.4735674+01:00",
-    "lastSeenStr": "14 hours ago",
-    "addedAt": "2026-01-02T11:50:49.5858454+01:00",
-    "spotCount": 434,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "BY5HB",
-    "lastSeen": "2026-01-14T08:46:07.7361084+01:00",
-    "lastSeenStr": "Just now",
-    "addedAt": "2026-01-05T01:18:54.1399948+01:00",
-    "spotCount": 945,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "RI1ANI",
-    "lastSeen": "0001-01-01T00:00:00Z",
-    "lastSeenStr": "Never",
-    "addedAt": "2026-01-10T17:29:36.0987165+01:00",
-    "spotCount": 0,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "4X6TT",
-    "lastSeen": "2026-01-11T15:56:15.0324505+01:00",
-    "lastSeenStr": "2 days ago",
-    "addedAt": "2025-10-18T17:18:13.335878+02:00",
-    "spotCount": 173,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "N6W",
-    "lastSeen": "2026-01-14T02:44:09.2451419+01:00",
-    "lastSeenStr": "6 hours ago",
-    "addedAt": "2026-01-02T03:52:32.3323646+01:00",
-    "spotCount": 536,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "AT3WWA",
-    "lastSeen": "2026-01-14T08:46:49.3149068+01:00",
-    "lastSeenStr": "Just now",
-    "addedAt": "2026-01-02T11:29:53.7802835+01:00",
-    "spotCount": 177,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "KC4/WE9G",
-    "lastSeen": "0001-01-01T00:00:00Z",
-    "lastSeenStr": "Never",
-    "addedAt": "2025-11-16T13:40:29.4734276+01:00",
-    "spotCount": 0,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "BG0DXC",
-    "lastSeen": "2026-01-14T02:25:25.7521352+01:00",
-    "lastSeenStr": "6 hours ago",
-    "addedAt": "2026-01-02T03:52:32.4053094+01:00",
-    "spotCount": 486,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "TM29WWA",
-    "lastSeen": "2026-01-14T08:45:58.9194883+01:00",
-    "lastSeenStr": "Just now",
-    "addedAt": "2026-01-02T06:39:16.4795172+01:00",
-    "spotCount": 1703,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "EG2WWA",
-    "lastSeen": "2026-01-13T20:57:49.7163086+01:00",
-    "lastSeenStr": "11 hours ago",
-    "addedAt": "2026-01-02T09:13:01.3225098+01:00",
-    "spotCount": 615,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "YO3WWA",
-    "lastSeen": "2026-01-03T14:22:04.6091144+01:00",
-    "lastSeenStr": "10 days ago",
-    "addedAt": "2026-01-03T14:22:04.6052851+01:00",
-    "spotCount": 1,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "SN6WWA",
-    "lastSeen": "2026-01-13T18:23:47.0704876+01:00",
-    "lastSeenStr": "14 hours ago",
-    "addedAt": "2026-01-02T10:26:35.8091591+01:00",
-    "spotCount": 50,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "KE5EE",
-    "lastSeen": "2026-01-10T13:26:22.8644019+01:00",
-    "lastSeenStr": "3 days ago",
-    "addedAt": "2025-12-31T13:55:36.4147592+01:00",
-    "spotCount": 2,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "CR5WWA",
-    "lastSeen": "2026-01-14T08:49:31.0039991+01:00",
-    "lastSeenStr": "Just now",
-    "addedAt": "2026-01-02T09:29:22.8462956+01:00",
-    "spotCount": 1291,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "II1WWA",
-    "lastSeen": "2026-01-14T08:34:21.4021877+01:00",
-    "lastSeenStr": "11 minutes ago",
-    "addedAt": "2026-01-02T07:28:10.4883654+01:00",
-    "spotCount": 3304,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "EG6WWA",
-    "lastSeen": "2026-01-13T20:45:02.7625317+01:00",
+    "callsign": "VR2WWA",
+    "lastSeen": "2026-01-16T11:24:42.2794815+01:00",
     "lastSeenStr": "12 hours ago",
-    "addedAt": "2026-01-02T15:22:31.2337634+01:00",
-    "spotCount": 500,
+    "addedAt": "2026-01-03T09:57:27.6176857+01:00",
+    "spotCount": 15,
     "playSound": true,
     "isContest": true
   },
   {
-    "callsign": "II2WWA",
-    "lastSeen": "2026-01-14T08:49:08.6421561+01:00",
-    "lastSeenStr": "Just now",
-    "addedAt": "2026-01-02T07:08:15.1545782+01:00",
-    "spotCount": 3587,
+    "callsign": "VA9WWA",
+    "lastSeen": "2026-01-02T22:06:10.0831312+01:00",
+    "lastSeenStr": "14 days ago",
+    "addedAt": "2026-01-02T22:06:10.080001+01:00",
+    "spotCount": 1,
     "playSound": true,
     "isContest": true
   },
   {
-    "callsign": "KC4/KL5SE",
-    "lastSeen": "0001-01-01T00:00:00Z",
-    "lastSeenStr": "Never",
-    "addedAt": "2026-01-10T17:28:59.8089153+01:00",
-    "spotCount": 0,
+    "callsign": "DA7WWA",
+    "lastSeen": "2026-01-13T19:34:28.6408245+01:00",
+    "lastSeenStr": "3 days ago",
+    "addedAt": "2026-01-04T18:52:08.2110296+01:00",
+    "spotCount": 2,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "Z61DX",
+    "lastSeen": "2026-01-14T16:29:57.300451+01:00",
+    "lastSeenStr": "2 days ago",
+    "addedAt": "2025-12-26T20:22:29.8200189+02:00",
+    "spotCount": 114,
     "playSound": true,
     "isContest": false
+  },
+  {
+    "callsign": "SX0W",
+    "lastSeen": "2026-01-16T23:06:10.7588588+01:00",
+    "lastSeenStr": "35 minutes ago",
+    "addedAt": "2026-01-02T03:52:32.4628309+01:00",
+    "spotCount": 8333,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "I4WWA",
+    "lastSeen": "2026-01-03T18:46:21.5924427+01:00",
+    "lastSeenStr": "13 days ago",
+    "addedAt": "2026-01-03T18:46:21.5897451+01:00",
+    "spotCount": 1,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "DA0WWA",
+    "lastSeen": "2026-01-16T23:50:22.4378139+01:00",
+    "lastSeenStr": "Just now",
+    "addedAt": "2026-01-02T05:55:41.720253+01:00",
+    "spotCount": 5859,
+    "playSound": true,
+    "isContest": true
   },
   {
     "callsign": "CE0Y",
@@ -432,1279 +90,190 @@
     "isContest": false
   },
   {
-    "callsign": "II8WWA",
-    "lastSeen": "2026-01-14T08:42:02.0315504+01:00",
-    "lastSeenStr": "3 minutes ago",
-    "addedAt": "2026-01-02T09:10:48.0166905+01:00",
-    "spotCount": 1762,
+    "callsign": "PD2WWA",
+    "lastSeen": "2026-01-03T11:45:39.2040328+01:00",
+    "lastSeenStr": "13 days ago",
+    "addedAt": "2026-01-03T11:45:39.2009263+01:00",
+    "spotCount": 1,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "I36WWA",
+    "lastSeen": "2026-01-02T09:50:46.7814055+01:00",
+    "lastSeenStr": "14 days ago",
+    "addedAt": "2026-01-02T09:50:46.7787017+01:00",
+    "spotCount": 1,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "VP2MAA",
+    "lastSeen": "2026-01-16T20:16:38.3230961+01:00",
+    "lastSeenStr": "3 hours ago",
+    "addedAt": "2026-01-14T14:13:40.1872857+01:00",
+    "spotCount": 120,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "S53WWA",
+    "lastSeen": "2026-01-16T23:07:58.8671897+01:00",
+    "lastSeenStr": "33 minutes ago",
+    "addedAt": "2026-01-02T06:30:29.1081531+01:00",
+    "spotCount": 1305,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "PB4WWA",
+    "lastSeen": "2026-01-16T16:27:42.2720526+01:00",
+    "lastSeenStr": "7 hours ago",
+    "addedAt": "2026-01-04T19:51:23.1623402+01:00",
+    "spotCount": 3,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "II9WWA",
+    "lastSeen": "2026-01-16T22:28:22.7913956+01:00",
+    "lastSeenStr": "1 hour ago",
+    "addedAt": "2026-01-02T06:05:13.2429822+01:00",
+    "spotCount": 6311,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "I8WWA",
+    "lastSeen": "2026-01-12T21:17:49.0587571+01:00",
+    "lastSeenStr": "4 days ago",
+    "addedAt": "2026-01-03T16:23:40.3108115+01:00",
+    "spotCount": 2,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "PC26WWA",
+    "lastSeen": "2026-01-16T17:45:08.6534257+01:00",
+    "lastSeenStr": "5 hours ago",
+    "addedAt": "2026-01-02T10:54:34.5662399+01:00",
+    "spotCount": 235,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "SN4WWA",
+    "lastSeen": "2026-01-16T21:23:31.4281714+01:00",
+    "lastSeenStr": "2 hours ago",
+    "addedAt": "2026-01-02T10:14:14.4868019+01:00",
+    "spotCount": 5085,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "II2WWA",
+    "lastSeen": "2026-01-16T23:53:01.8325178+01:00",
+    "lastSeenStr": "Just now",
+    "addedAt": "2026-01-02T07:08:15.1545782+01:00",
+    "spotCount": 5047,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "OL6WWA",
+    "lastSeen": "2026-01-16T21:57:46.2542894+01:00",
+    "lastSeenStr": "1 hour ago",
+    "addedAt": "2026-01-02T06:11:49.9463837+01:00",
+    "spotCount": 1081,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "OR0WWA",
+    "lastSeen": "2026-01-10T17:15:44.8828303+01:00",
+    "lastSeenStr": "6 days ago",
+    "addedAt": "2026-01-06T13:55:26.355637+01:00",
+    "spotCount": 18,
     "playSound": true,
     "isContest": true
   },
   {
     "callsign": "DA1WWA",
     "lastSeen": "2026-01-10T00:35:29.6905748+01:00",
-    "lastSeenStr": "4 days ago",
+    "lastSeenStr": "6 days ago",
     "addedAt": "2026-01-10T00:35:29.687296+01:00",
     "spotCount": 1,
     "playSound": true,
     "isContest": true
   },
   {
-    "callsign": "HQ9X",
-    "lastSeen": "0001-01-01T00:00:00Z",
-    "lastSeenStr": "Never",
-    "addedAt": "2025-11-25T20:31:23.932942+01:00",
-    "spotCount": 0,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "VE9WWA",
-    "lastSeen": "2026-01-14T02:00:45.1354906+01:00",
-    "lastSeenStr": "6 hours ago",
-    "addedAt": "2026-01-02T12:06:28.457441+01:00",
-    "spotCount": 768,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "I1WWA",
-    "lastSeen": "2026-01-11T17:45:48.2309806+01:00",
-    "lastSeenStr": "2 days ago",
-    "addedAt": "2026-01-02T20:18:50.6361545+01:00",
-    "spotCount": 9,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "N1W",
-    "lastSeen": "2026-01-14T02:58:03.1685404+01:00",
-    "lastSeenStr": "5 hours ago",
-    "addedAt": "2026-01-02T03:52:32.3207015+01:00",
-    "spotCount": 1822,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "KP4ES",
-    "lastSeen": "2026-01-10T11:17:51.1166274+01:00",
-    "lastSeenStr": "3 days ago",
-    "addedAt": "2025-12-26T16:09:15.2635554+02:00",
-    "spotCount": 148,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "S54WWA",
-    "lastSeen": "2026-01-10T15:11:50.5443274+01:00",
-    "lastSeenStr": "3 days ago",
-    "addedAt": "2026-01-04T14:47:10.7775396+01:00",
-    "spotCount": 2,
-    "playSound": true,
-    "isContest": true
-  },
-  {
     "callsign": "EA4WWA",
     "lastSeen": "2026-01-06T10:42:32.4931789+01:00",
-    "lastSeenStr": "7 days ago",
+    "lastSeenStr": "10 days ago",
     "addedAt": "2026-01-03T16:27:24.0211706+01:00",
     "spotCount": 3,
     "playSound": true,
     "isContest": true
   },
   {
-    "callsign": "I31WWA",
-    "lastSeen": "2026-01-02T14:36:18.3676114+01:00",
-    "lastSeenStr": "11 days ago",
-    "addedAt": "2026-01-02T14:36:18.3644877+01:00",
-    "spotCount": 1,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "PD26WWA",
-    "lastSeen": "2026-01-13T17:31:05.1597203+01:00",
-    "lastSeenStr": "15 hours ago",
-    "addedAt": "2026-01-02T11:32:42.3192129+01:00",
-    "spotCount": 29,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "TL8BNW",
-    "lastSeen": "2026-01-13T22:42:31.1064753+01:00",
-    "lastSeenStr": "10 hours ago",
-    "addedAt": "2026-01-11T00:08:03.8783802+01:00",
-    "spotCount": 22,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "IT9WWA",
-    "lastSeen": "2026-01-10T17:04:42.1849464+01:00",
-    "lastSeenStr": "3 days ago",
-    "addedAt": "2026-01-10T17:04:42.1817163+01:00",
-    "spotCount": 1,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "5X7W",
-    "lastSeen": "2025-12-06T20:48:18.2822777+01:00",
-    "lastSeenStr": "38 days ago",
-    "addedAt": "2025-11-25T20:30:22.4180676+01:00",
-    "spotCount": 8,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "II9WWA",
-    "lastSeen": "2026-01-14T08:47:25.7296817+01:00",
+    "callsign": "GB2WWA",
+    "lastSeen": "2026-01-16T23:54:52.69228+01:00",
     "lastSeenStr": "Just now",
-    "addedAt": "2026-01-02T06:05:13.2429822+01:00",
-    "spotCount": 4516,
+    "addedAt": "2026-01-02T09:03:42.1625739+01:00",
+    "spotCount": 9213,
     "playSound": true,
     "isContest": true
   },
   {
-    "callsign": "EG9WWA",
-    "lastSeen": "2026-01-14T00:01:26.8365236+01:00",
-    "lastSeenStr": "8 hours ago",
-    "addedAt": "2026-01-02T08:45:43.1665274+01:00",
-    "spotCount": 338,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "V51",
-    "lastSeen": "2026-01-13T20:12:39.6953617+01:00",
-    "lastSeenStr": "12 hours ago",
-    "addedAt": "2025-12-25T13:02:01.3019789+02:00",
-    "spotCount": 167,
+    "callsign": "Z81D",
+    "lastSeen": "2025-12-31T17:28:58.6554699+01:00",
+    "lastSeenStr": "16 days ago",
+    "addedAt": "2025-12-11T20:56:26.664623+01:00",
+    "spotCount": 55,
     "playSound": true,
     "isContest": false
   },
   {
-    "callsign": "II5WWA",
-    "lastSeen": "2026-01-14T08:46:16.2180744+01:00",
-    "lastSeenStr": "Just now",
-    "addedAt": "2026-01-02T07:21:04.70221+01:00",
-    "spotCount": 4080,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "HP3",
-    "lastSeen": "2026-01-14T02:28:23.1855583+01:00",
-    "lastSeenStr": "6 hours ago",
-    "addedAt": "2025-11-18T08:38:19.7574794+01:00",
-    "spotCount": 30,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "4U1A",
-    "lastSeen": "2026-01-14T08:47:32.8200632+01:00",
-    "lastSeenStr": "Just now",
-    "addedAt": "2026-01-02T03:52:32.3788517+01:00",
-    "spotCount": 140,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "PZ5OZ",
-    "lastSeen": "2026-01-02T14:01:34.9550152+01:00",
-    "lastSeenStr": "11 days ago",
-    "addedAt": "2025-12-11T20:56:39.1883984+01:00",
-    "spotCount": 284,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "XW4KV",
-    "lastSeen": "2026-01-14T08:35:42.291087+01:00",
-    "lastSeenStr": "9 minutes ago",
-    "addedAt": "2025-12-11T20:54:19.3067736+01:00",
-    "spotCount": 429,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "EA9WWA",
-    "lastSeen": "2026-01-07T20:05:11.4085021+01:00",
-    "lastSeenStr": "6 days ago",
-    "addedAt": "2026-01-02T17:29:08.7891333+01:00",
-    "spotCount": 3,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "EC6WWA",
-    "lastSeen": "2026-01-03T18:45:16.6265095+01:00",
-    "lastSeenStr": "10 days ago",
-    "addedAt": "2026-01-03T18:45:16.6232442+01:00",
-    "spotCount": 1,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "DA0WWA",
-    "lastSeen": "2026-01-14T08:49:22.7348243+01:00",
-    "lastSeenStr": "Just now",
-    "addedAt": "2026-01-02T05:55:41.720253+01:00",
-    "spotCount": 4447,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "TJ1GD",
-    "lastSeen": "2026-01-14T08:46:34.7626483+01:00",
-    "lastSeenStr": "Just now",
-    "addedAt": "2025-10-18T17:18:27.6004027+02:00",
-    "spotCount": 698,
-    "playSound": false,
-    "isContest": false
-  },
-  {
-    "callsign": "AT4WWA",
-    "lastSeen": "2026-01-11T12:55:31.1910234+01:00",
-    "lastSeenStr": "2 days ago",
-    "addedAt": "2026-01-02T15:24:21.6167159+01:00",
-    "spotCount": 29,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "3W9A",
-    "lastSeen": "2026-01-10T15:04:23.0656154+01:00",
-    "lastSeenStr": "3 days ago",
-    "addedAt": "2025-10-23T20:42:24.5787678+02:00",
-    "spotCount": 146,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "E2WWA",
-    "lastSeen": "2026-01-14T08:40:43.713691+01:00",
-    "lastSeenStr": "4 minutes ago",
-    "addedAt": "2026-01-02T03:53:03.9404172+01:00",
-    "spotCount": 1027,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "I5WWA",
-    "lastSeen": "2026-01-11T07:14:07.9140698+01:00",
-    "lastSeenStr": "3 days ago",
-    "addedAt": "2026-01-04T16:45:02.8659179+01:00",
-    "spotCount": 8,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "XT2MAX",
-    "lastSeen": "2026-01-11T11:51:36.9257791+01:00",
-    "lastSeenStr": "2 days ago",
-    "addedAt": "2026-01-05T00:46:02.5603842+01:00",
-    "spotCount": 92,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "OP6WWA",
-    "lastSeen": "2026-01-10T16:51:31.7150582+01:00",
-    "lastSeenStr": "3 days ago",
-    "addedAt": "2026-01-04T16:00:34.4238612+01:00",
-    "spotCount": 2,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "TW29WWA",
-    "lastSeen": "2026-01-03T13:32:04.6695344+01:00",
-    "lastSeenStr": "10 days ago",
-    "addedAt": "2026-01-03T13:02:46.9240671+01:00",
-    "spotCount": 8,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "CR6WWA",
-    "lastSeen": "2026-01-14T08:48:19.3022912+01:00",
-    "lastSeenStr": "Just now",
-    "addedAt": "2026-01-02T10:32:50.7648706+01:00",
-    "spotCount": 2644,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "TM77WWA",
-    "lastSeen": "2026-01-10T11:35:53.7585477+01:00",
-    "lastSeenStr": "3 days ago",
-    "addedAt": "2026-01-10T11:32:21.6071193+01:00",
-    "spotCount": 2,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "V6HUCHIDA",
+    "callsign": "TO9W",
     "lastSeen": "0001-01-01T00:00:00Z",
     "lastSeenStr": "Never",
-    "addedAt": "2025-12-11T20:57:18.0361298+01:00",
+    "addedAt": "2025-12-04T12:41:37.7543575+01:00",
     "spotCount": 0,
     "playSound": true,
     "isContest": false
-  },
-  {
-    "callsign": "OX7AM",
-    "lastSeen": "0001-01-01T00:00:00Z",
-    "lastSeenStr": "Never",
-    "addedAt": "2025-11-25T20:31:59.3717367+01:00",
-    "spotCount": 0,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "HZ1WWA",
-    "lastSeen": "2026-01-14T08:48:29.3376229+01:00",
-    "lastSeenStr": "Just now",
-    "addedAt": "2026-01-09T13:08:57.7754899+01:00",
-    "spotCount": 302,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "ZL7IO",
-    "lastSeen": "0001-01-01T00:00:00Z",
-    "lastSeenStr": "Never",
-    "addedAt": "2025-10-18T17:17:30.7153757+02:00",
-    "spotCount": 0,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "EG4WWA",
-    "lastSeen": "2026-01-14T08:45:39.5302788+01:00",
-    "lastSeenStr": "Just now",
-    "addedAt": "2026-01-02T03:52:53.1609555+01:00",
-    "spotCount": 2498,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "EG5WWA",
-    "lastSeen": "2026-01-14T01:09:23.0334515+01:00",
-    "lastSeenStr": "7 hours ago",
-    "addedAt": "2026-01-02T06:32:18.3923029+01:00",
-    "spotCount": 622,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "SM3WWA",
-    "lastSeen": "2026-01-11T16:14:21.5405418+01:00",
-    "lastSeenStr": "2 days ago",
-    "addedAt": "2026-01-11T16:14:21.5373796+01:00",
-    "spotCount": 1,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "EG8WW",
-    "lastSeen": "2026-01-14T01:44:24.0097444+01:00",
-    "lastSeenStr": "7 hours ago",
-    "addedAt": "2026-01-03T09:40:36.186703+01:00",
-    "spotCount": 1296,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "IW6WWA",
-    "lastSeen": "2026-01-06T19:53:39.3845071+01:00",
-    "lastSeenStr": "7 days ago",
-    "addedAt": "2026-01-06T19:53:39.3806217+01:00",
-    "spotCount": 1,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "VP2V/K6TOP",
-    "lastSeen": "2025-11-06T02:26:48.5194968+01:00",
-    "lastSeenStr": "69 days ago",
-    "addedAt": "2025-11-03T20:43:32.0688504+01:00",
-    "spotCount": 21,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "IB9WWA",
-    "lastSeen": "2026-01-02T15:05:44.3700589+01:00",
-    "lastSeenStr": "11 days ago",
-    "addedAt": "2026-01-02T15:05:44.3672991+01:00",
-    "spotCount": 1,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "RW1F",
-    "lastSeen": "2026-01-14T08:47:37.2663126+01:00",
-    "lastSeenStr": "Just now",
-    "addedAt": "2026-01-02T03:52:32.3513599+01:00",
-    "spotCount": 911,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "PJ4K",
-    "lastSeen": "2026-01-06T22:32:32.7934796+01:00",
-    "lastSeenStr": "7 days ago",
-    "addedAt": "2025-11-11T18:57:27.014291+01:00",
-    "spotCount": 41,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "VA9WWA",
-    "lastSeen": "2026-01-02T22:06:10.0831312+01:00",
-    "lastSeenStr": "11 days ago",
-    "addedAt": "2026-01-02T22:06:10.080001+01:00",
-    "spotCount": 1,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "HS25SG",
-    "lastSeen": "2025-12-30T15:54:26.0256138+01:00",
-    "lastSeenStr": "14 days ago",
-    "addedAt": "2025-12-07T12:32:23.2987034+01:00",
-    "spotCount": 869,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "EA6WWA",
-    "lastSeen": "2026-01-09T17:58:01.7157726+01:00",
-    "lastSeenStr": "4 days ago",
-    "addedAt": "2026-01-09T17:58:01.7119066+01:00",
-    "spotCount": 1,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "VB2WWA",
-    "lastSeen": "2026-01-13T18:14:33.8829347+01:00",
-    "lastSeenStr": "14 hours ago",
-    "addedAt": "2026-01-05T20:47:09.3437651+01:00",
-    "spotCount": 67,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "DA7WWA",
-    "lastSeen": "2026-01-13T19:34:28.6408245+01:00",
-    "lastSeenStr": "13 hours ago",
-    "addedAt": "2026-01-04T18:52:08.2110296+01:00",
-    "spotCount": 2,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "R1WWA",
-    "lastSeen": "2026-01-11T15:27:59.8273525+01:00",
-    "lastSeenStr": "2 days ago",
-    "addedAt": "2026-01-02T13:57:38.164607+01:00",
-    "spotCount": 6,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "G4WWA",
-    "lastSeen": "2026-01-13T17:04:20.5924034+01:00",
-    "lastSeenStr": "15 hours ago",
-    "addedAt": "2026-01-02T09:59:18.1335737+01:00",
-    "spotCount": 8,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "E25KAE",
-    "lastSeen": "2025-12-31T17:14:51.0797061+01:00",
-    "lastSeenStr": "13 days ago",
-    "addedAt": "2025-12-20T12:12:38.7346482+01:00",
-    "spotCount": 26,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "EA0WWA",
-    "lastSeen": "2026-01-06T12:13:06.0624464+01:00",
-    "lastSeenStr": "7 days ago",
-    "addedAt": "2026-01-06T12:13:06.0586693+01:00",
-    "spotCount": 1,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "US4WWA",
-    "lastSeen": "2026-01-03T23:21:41.980027+01:00",
-    "lastSeenStr": "10 days ago",
-    "addedAt": "2026-01-03T23:21:41.9763908+01:00",
-    "spotCount": 1,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "SN4WWA",
-    "lastSeen": "2026-01-14T08:39:48.5431881+01:00",
-    "lastSeenStr": "5 minutes ago",
-    "addedAt": "2026-01-02T10:14:14.4868019+01:00",
-    "spotCount": 3726,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "OP7WWA",
-    "lastSeen": "2026-01-02T10:00:00.4316172+01:00",
-    "lastSeenStr": "11 days ago",
-    "addedAt": "2026-01-02T10:00:00.4278965+01:00",
-    "spotCount": 1,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "YJ0CA",
-    "lastSeen": "2025-10-23T09:14:00.5419174+02:00",
-    "lastSeenStr": "83 days ago",
-    "addedAt": "2025-10-18T17:17:33.3921665+02:00",
-    "spotCount": 1,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "VE8WWA",
-    "lastSeen": "2026-01-09T20:55:15.5377689+01:00",
-    "lastSeenStr": "4 days ago",
-    "addedAt": "2026-01-09T20:55:15.5338211+01:00",
-    "spotCount": 1,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "HB8WWA",
-    "lastSeen": "2026-01-09T18:28:09.1412521+01:00",
-    "lastSeenStr": "4 days ago",
-    "addedAt": "2026-01-09T18:28:09.1379438+01:00",
-    "spotCount": 1,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "GB6WWWA",
-    "lastSeen": "2026-01-10T12:50:33.3684933+01:00",
-    "lastSeenStr": "3 days ago",
-    "addedAt": "2026-01-10T12:50:33.3657983+01:00",
-    "spotCount": 1,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "YI1MB",
-    "lastSeen": "2025-11-01T11:07:08.2392713+01:00",
-    "lastSeenStr": "73 days ago",
-    "addedAt": "2025-10-18T17:18:18.825584+02:00",
-    "spotCount": 1,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "W2WWA",
-    "lastSeen": "2026-01-04T19:39:08.236259+01:00",
-    "lastSeenStr": "9 days ago",
-    "addedAt": "2026-01-04T19:39:08.2317399+01:00",
-    "spotCount": 1,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "EG7WWA",
-    "lastSeen": "2026-01-14T08:46:49.9769071+01:00",
-    "lastSeenStr": "Just now",
-    "addedAt": "2026-01-02T10:25:28.4841485+01:00",
-    "spotCount": 667,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "SN0WWA",
-    "lastSeen": "2026-01-14T08:48:22.2505335+01:00",
-    "lastSeenStr": "Just now",
-    "addedAt": "2026-01-02T05:56:42.0178847+01:00",
-    "spotCount": 1351,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "6O3T",
-    "lastSeen": "0001-01-01T00:00:00Z",
-    "lastSeenStr": "Never",
-    "addedAt": "2025-12-03T21:31:57.0197124+01:00",
-    "spotCount": 0,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "II7WWA",
-    "lastSeen": "2026-01-14T08:38:11.5936022+01:00",
-    "lastSeenStr": "7 minutes ago",
-    "addedAt": "2026-01-02T04:00:41.7705151+01:00",
-    "spotCount": 2261,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "A52AA",
-    "lastSeen": "0001-01-01T00:00:00Z",
-    "lastSeenStr": "Never",
-    "addedAt": "2025-10-28T22:44:18.1202597+01:00",
-    "spotCount": 0,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "EH2WWA",
-    "lastSeen": "2026-01-03T16:05:44.617734+01:00",
-    "lastSeenStr": "10 days ago",
-    "addedAt": "2026-01-03T15:56:36.2593835+01:00",
-    "spotCount": 2,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "PE26WWA",
-    "lastSeen": "2026-01-14T08:37:11.0413969+01:00",
-    "lastSeenStr": "8 minutes ago",
-    "addedAt": "2026-01-02T12:01:49.5283656+01:00",
-    "spotCount": 67,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "TM26WWA",
-    "lastSeen": "2026-01-04T22:07:26.6961962+01:00",
-    "lastSeenStr": "9 days ago",
-    "addedAt": "2026-01-04T22:07:26.6908195+01:00",
-    "spotCount": 1,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "CR7WWA",
-    "lastSeen": "2026-01-11T10:36:08.5105335+01:00",
-    "lastSeenStr": "2 days ago",
-    "addedAt": "2026-01-03T14:41:11.9844535+01:00",
-    "spotCount": 2,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "AU7RS",
-    "lastSeen": "0001-01-01T00:00:00Z",
-    "lastSeenStr": "Never",
-    "addedAt": "2026-01-05T00:46:33.1977352+01:00",
-    "spotCount": 0,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "3D2AG",
-    "lastSeen": "2026-01-12T08:20:15.7583709+01:00",
-    "lastSeenStr": "2 days ago",
-    "addedAt": "2025-12-25T13:01:57.756112+02:00",
-    "spotCount": 106,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "IN3WWA",
-    "lastSeen": "2026-01-04T13:27:34.2501157+01:00",
-    "lastSeenStr": "9 days ago",
-    "addedAt": "2026-01-02T13:01:47.4857188+01:00",
-    "spotCount": 3,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "XU7GNY",
-    "lastSeen": "0001-01-01T00:00:00Z",
-    "lastSeenStr": "Never",
-    "addedAt": "2025-12-22T17:25:34.2618321+02:00",
-    "spotCount": 0,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "C8K",
-    "lastSeen": "0001-01-01T00:00:00Z",
-    "lastSeenStr": "Never",
-    "addedAt": "2025-10-18T17:18:39.8627992+02:00",
-    "spotCount": 0,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "N2WWA",
-    "lastSeen": "2026-01-07T07:48:00.0552745+01:00",
-    "lastSeenStr": "7 days ago",
-    "addedAt": "2026-01-02T19:51:22.2775738+01:00",
-    "spotCount": 5,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "G1WWA",
-    "lastSeen": "2026-01-13T16:56:31.4553626+01:00",
-    "lastSeenStr": "15 hours ago",
-    "addedAt": "2026-01-03T18:05:07.0064575+01:00",
-    "spotCount": 3,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "II6WWA",
-    "lastSeen": "2026-01-14T08:49:39.1089506+01:00",
-    "lastSeenStr": "Just now",
-    "addedAt": "2026-01-02T05:00:19.6623784+01:00",
-    "spotCount": 3526,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "Z61DX",
-    "lastSeen": "2026-01-13T23:31:15.2981001+01:00",
-    "lastSeenStr": "9 hours ago",
-    "addedAt": "2025-12-26T20:22:29.8200189+02:00",
-    "spotCount": 112,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "VC1WWA",
-    "lastSeen": "2026-01-10T20:25:03.7457927+01:00",
-    "lastSeenStr": "3 days ago",
-    "addedAt": "2026-01-02T15:02:17.3638433+01:00",
-    "spotCount": 32,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "DX1WWA",
-    "lastSeen": "2026-01-09T17:35:52.3825064+01:00",
-    "lastSeenStr": "4 days ago",
-    "addedAt": "2026-01-09T17:35:52.3783969+01:00",
-    "spotCount": 1,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "LR1WWA",
-    "lastSeen": "2026-01-14T02:50:09.3203583+01:00",
-    "lastSeenStr": "5 hours ago",
-    "addedAt": "2026-01-02T14:01:20.9478509+01:00",
-    "spotCount": 1046,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "S9BV",
-    "lastSeen": "0001-01-01T00:00:00Z",
-    "lastSeenStr": "Never",
-    "addedAt": "2025-12-11T20:57:01.4962264+01:00",
-    "spotCount": 0,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "IB4WWA",
-    "lastSeen": "2026-01-04T21:39:41.0387244+01:00",
-    "lastSeenStr": "9 days ago",
-    "addedAt": "2026-01-04T21:39:41.0354351+01:00",
-    "spotCount": 1,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "TI4WWA",
-    "lastSeen": "2026-01-13T21:56:30.4162723+01:00",
-    "lastSeenStr": "10 hours ago",
-    "addedAt": "2026-01-03T21:49:54.4110722+01:00",
-    "spotCount": 2,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "3G0YR",
-    "lastSeen": "2025-11-26T18:38:20.5221616+01:00",
-    "lastSeenStr": "48 days ago",
-    "addedAt": "2025-11-16T13:40:47.8008906+01:00",
-    "spotCount": 1,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "II4WWA",
-    "lastSeen": "2026-01-14T08:49:17.2997592+01:00",
-    "lastSeenStr": "Just now",
-    "addedAt": "2026-01-02T06:40:22.279576+01:00",
-    "spotCount": 1886,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "G2WWA",
-    "lastSeen": "2026-01-11T18:17:06.9024082+01:00",
-    "lastSeenStr": "2 days ago",
-    "addedAt": "2026-01-02T22:49:42.8928095+01:00",
-    "spotCount": 9,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "SU0ERA",
-    "lastSeen": "0001-01-01T00:00:00Z",
-    "lastSeenStr": "Never",
-    "addedAt": "2025-10-18T17:18:45.8848244+02:00",
-    "spotCount": 0,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "VR2WWA",
-    "lastSeen": "2026-01-03T12:53:24.3548766+01:00",
-    "lastSeenStr": "10 days ago",
-    "addedAt": "2026-01-03T09:57:27.6176857+01:00",
-    "spotCount": 11,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "8R1WA",
-    "lastSeen": "0001-01-01T00:00:00Z",
-    "lastSeenStr": "Never",
-    "addedAt": "2026-01-12T23:03:01.8893576+01:00",
-    "spotCount": 0,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "SN5WWA",
-    "lastSeen": "2026-01-04T16:46:51.5089735+01:00",
-    "lastSeenStr": "9 days ago",
-    "addedAt": "2026-01-04T16:46:51.5053342+01:00",
-    "spotCount": 1,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "A43WWA",
-    "lastSeen": "2026-01-14T08:47:28.1103939+01:00",
-    "lastSeenStr": "Just now",
-    "addedAt": "2026-01-02T08:25:59.6426837+01:00",
-    "spotCount": 1178,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "4M5DX",
-    "lastSeen": "2026-01-13T17:21:36.344063+01:00",
-    "lastSeenStr": "15 hours ago",
-    "addedAt": "2026-01-02T03:52:32.3719323+01:00",
-    "spotCount": 112,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "VK0TBC",
-    "lastSeen": "0001-01-01T00:00:00Z",
-    "lastSeenStr": "Never",
-    "addedAt": "2026-01-10T17:28:46.889538+01:00",
-    "spotCount": 0,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "TM7WWA",
-    "lastSeen": "2026-01-12T00:57:59.2358516+01:00",
-    "lastSeenStr": "2 days ago",
-    "addedAt": "2026-01-02T07:22:23.5880081+01:00",
-    "spotCount": 2354,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "TK0C",
-    "lastSeen": "0001-01-01T00:00:00Z",
-    "lastSeenStr": "Never",
-    "addedAt": "2025-11-18T08:38:34.3748553+01:00",
-    "spotCount": 0,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "CS2WWA",
-    "lastSeen": "2026-01-02T15:51:13.457723+01:00",
-    "lastSeenStr": "11 days ago",
-    "addedAt": "2026-01-02T15:49:25.6997238+01:00",
-    "spotCount": 2,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "N8W",
-    "lastSeen": "2026-01-14T02:51:03.9087872+01:00",
-    "lastSeenStr": "5 hours ago",
-    "addedAt": "2026-01-02T03:52:32.3391657+01:00",
-    "spotCount": 898,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "TZ4AM",
-    "lastSeen": "2026-01-13T18:54:59.4528475+01:00",
-    "lastSeenStr": "13 hours ago",
-    "addedAt": "2025-10-18T17:19:00.3154177+02:00",
-    "spotCount": 697,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "I2WWA",
-    "lastSeen": "2026-01-10T12:16:32.2701483+01:00",
-    "lastSeenStr": "3 days ago",
-    "addedAt": "2026-01-02T15:36:12.0911409+01:00",
-    "spotCount": 5,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "SX0W",
-    "lastSeen": "2026-01-14T08:49:22.9949596+01:00",
-    "lastSeenStr": "Just now",
-    "addedAt": "2026-01-02T03:52:32.4628309+01:00",
-    "spotCount": 6037,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "TW1WWA",
-    "lastSeen": "2026-01-04T10:51:07.1792714+01:00",
-    "lastSeenStr": "9 days ago",
-    "addedAt": "2026-01-04T10:51:07.1746633+01:00",
-    "spotCount": 1,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "3B9KW",
-    "lastSeen": "0001-01-01T00:00:00Z",
-    "lastSeenStr": "Never",
-    "addedAt": "2025-11-25T20:29:53.0219945+01:00",
-    "spotCount": 0,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "I0WWA",
-    "lastSeen": "2026-01-10T07:52:52.2552166+01:00",
-    "lastSeenStr": "4 days ago",
-    "addedAt": "2026-01-06T11:54:11.995716+01:00",
-    "spotCount": 2,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "N9W",
-    "lastSeen": "2026-01-14T08:46:20.3296701+01:00",
-    "lastSeenStr": "Just now",
-    "addedAt": "2026-01-02T03:52:32.3455264+01:00",
-    "spotCount": 1501,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "XU7RRC",
-    "lastSeen": "2025-11-26T19:13:59.967944+01:00",
-    "lastSeenStr": "48 days ago",
-    "addedAt": "2025-11-10T20:26:19.3515859+01:00",
-    "spotCount": 4,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "TT3WWA",
-    "lastSeen": "2026-01-13T06:51:07.5269574+01:00",
-    "lastSeenStr": "1 day ago",
-    "addedAt": "2026-01-04T13:18:47.8131004+01:00",
-    "spotCount": 61,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "LZ1WWA",
-    "lastSeen": "2026-01-09T14:24:31.6546616+01:00",
-    "lastSeenStr": "4 days ago",
-    "addedAt": "2026-01-06T13:40:59.0479538+01:00",
-    "spotCount": 2,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "YU0WWA",
-    "lastSeen": "2026-01-03T15:38:25.8181746+01:00",
-    "lastSeenStr": "10 days ago",
-    "addedAt": "2026-01-03T15:32:32.5527795+01:00",
-    "spotCount": 3,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "VP8LP",
-    "lastSeen": "2026-01-06T18:16:07.796921+01:00",
-    "lastSeenStr": "7 days ago",
-    "addedAt": "2025-10-18T17:18:49.0576187+02:00",
-    "spotCount": 118,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "8R1/AG6UT",
-    "lastSeen": "0001-01-01T00:00:00Z",
-    "lastSeenStr": "Never",
-    "addedAt": "2025-11-25T20:30:34.7851434+01:00",
-    "spotCount": 0,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "BY2WL",
-    "lastSeen": "2026-01-14T08:49:02.2986339+01:00",
-    "lastSeenStr": "Just now",
-    "addedAt": "2026-01-02T03:52:32.4320274+01:00",
-    "spotCount": 710,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "N0W",
-    "lastSeen": "2026-01-14T02:51:27.4642558+01:00",
-    "lastSeenStr": "5 hours ago",
-    "addedAt": "2026-01-02T03:52:32.3124253+01:00",
-    "spotCount": 754,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "VE99WWA",
-    "lastSeen": "2026-01-02T21:12:05.4682613+01:00",
-    "lastSeenStr": "11 days ago",
-    "addedAt": "2026-01-02T21:12:05.4639499+01:00",
-    "spotCount": 1,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "3G9S",
-    "lastSeen": "2026-01-14T08:47:13.2995104+01:00",
-    "lastSeenStr": "Just now",
-    "addedAt": "2026-01-05T00:46:54.3239078+01:00",
-    "spotCount": 117,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "EL2BG",
-    "lastSeen": "2026-01-14T08:46:54.8417071+01:00",
-    "lastSeenStr": "Just now",
-    "addedAt": "2025-10-18T17:18:10.2000017+02:00",
-    "spotCount": 504,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "PY0FB",
-    "lastSeen": "0001-01-01T00:00:00Z",
-    "lastSeenStr": "Never",
-    "addedAt": "2025-10-18T17:17:24.3843986+02:00",
-    "spotCount": 0,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "XF4B",
-    "lastSeen": "2026-01-02T10:57:21.718927+01:00",
-    "lastSeenStr": "11 days ago",
-    "addedAt": "2025-12-30T00:37:02.1950945+01:00",
-    "spotCount": 10,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "T88",
-    "lastSeen": "2026-01-14T08:32:55.5415341+01:00",
-    "lastSeenStr": "12 minutes ago",
-    "addedAt": "2025-11-14T18:55:01.2770796+01:00",
-    "spotCount": 211,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "BA3RA",
-    "lastSeen": "2026-01-14T08:46:38.8422327+01:00",
-    "lastSeenStr": "Just now",
-    "addedAt": "2026-01-02T03:52:32.3915191+01:00",
-    "spotCount": 1172,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "J38WG",
-    "lastSeen": "2026-01-14T08:45:51.5327951+01:00",
-    "lastSeenStr": "Just now",
-    "addedAt": "2025-12-22T17:25:44.595895+02:00",
-    "spotCount": 545,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "GB3WWA",
-    "lastSeen": "2026-01-06T17:45:28.5275263+01:00",
-    "lastSeenStr": "7 days ago",
-    "addedAt": "2026-01-06T17:45:28.5242365+01:00",
-    "spotCount": 1,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "H44MS",
-    "lastSeen": "2025-11-21T10:36:09.233589+01:00",
-    "lastSeenStr": "53 days ago",
-    "addedAt": "2025-10-18T17:16:49.1572859+02:00",
-    "spotCount": 73,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "YO0WWA",
-    "lastSeen": "2026-01-14T08:49:50.5404527+01:00",
-    "lastSeenStr": "Just now",
-    "addedAt": "2026-01-02T07:19:11.6718387+01:00",
-    "spotCount": 2900,
-    "playSound": true,
-    "isContest": true
   },
   {
     "callsign": "CR2WWA",
-    "lastSeen": "2026-01-14T08:48:32.4098207+01:00",
-    "lastSeenStr": "Just now",
+    "lastSeen": "2026-01-16T21:20:47.9042647+01:00",
+    "lastSeenStr": "2 hours ago",
     "addedAt": "2026-01-02T17:29:01.5787752+01:00",
-    "spotCount": 917,
+    "spotCount": 2079,
     "playSound": true,
     "isContest": true
   },
   {
-    "callsign": "DP0GVN",
-    "lastSeen": "2025-12-15T21:45:58.2905292+01:00",
-    "lastSeenStr": "29 days ago",
-    "addedAt": "2025-10-20T07:00:51.7088369+02:00",
-    "spotCount": 294,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "GD2WWA",
-    "lastSeen": "2026-01-09T21:16:53.9756628+01:00",
-    "lastSeenStr": "4 days ago",
-    "addedAt": "2026-01-09T21:11:36.3072044+01:00",
+    "callsign": "YO3WWA",
+    "lastSeen": "2026-01-16T07:52:34.247957+01:00",
+    "lastSeenStr": "15 hours ago",
+    "addedAt": "2026-01-03T14:22:04.6052851+01:00",
     "spotCount": 2,
     "playSound": true,
     "isContest": true
   },
   {
-    "callsign": "GB5WWA",
-    "lastSeen": "2026-01-13T21:51:25.9730221+01:00",
-    "lastSeenStr": "10 hours ago",
-    "addedAt": "2026-01-02T11:45:40.3855086+01:00",
-    "spotCount": 4,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "HB9WWA",
-    "lastSeen": "2026-01-14T08:48:29.4592743+01:00",
-    "lastSeenStr": "Just now",
-    "addedAt": "2026-01-02T07:00:06.6245598+01:00",
-    "spotCount": 2463,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "IR6WWA",
-    "lastSeen": "2026-01-02T12:38:56.3479297+01:00",
-    "lastSeenStr": "11 days ago",
-    "addedAt": "2026-01-02T12:38:56.344201+01:00",
-    "spotCount": 1,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "AT21WWA",
-    "lastSeen": "2026-01-10T12:02:16.0095395+01:00",
-    "lastSeenStr": "3 days ago",
-    "addedAt": "2026-01-10T12:02:16.0053998+01:00",
-    "spotCount": 1,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "T88AC",
-    "lastSeen": "2025-12-17T14:25:57.7368909+01:00",
-    "lastSeenStr": "27 days ago",
-    "addedAt": "2025-12-11T20:56:20.7397456+01:00",
-    "spotCount": 87,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "I7WWA",
-    "lastSeen": "2026-01-03T17:59:30.8379902+01:00",
-    "lastSeenStr": "10 days ago",
-    "addedAt": "2026-01-03T17:59:30.8359372+01:00",
-    "spotCount": 1,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "P40AA",
-    "lastSeen": "2026-01-14T08:47:31.2717314+01:00",
-    "lastSeenStr": "Just now",
-    "addedAt": "2026-01-05T00:46:23.4079079+01:00",
-    "spotCount": 174,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "FR6WWA",
-    "lastSeen": "2026-01-05T20:02:09.8299349+01:00",
-    "lastSeenStr": "8 days ago",
-    "addedAt": "2026-01-05T20:02:09.8268129+01:00",
-    "spotCount": 1,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "TI9WWA",
-    "lastSeen": "2026-01-04T23:07:20.6172925+01:00",
+    "callsign": "TM0WWA",
+    "lastSeen": "2026-01-07T22:47:30.6032163+01:00",
     "lastSeenStr": "9 days ago",
-    "addedAt": "2026-01-04T23:07:20.6139217+01:00",
+    "addedAt": "2026-01-07T22:47:30.5998987+01:00",
+    "spotCount": 1,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "HA9WWA",
+    "lastSeen": "2026-01-04T16:07:50.0879441+01:00",
+    "lastSeenStr": "12 days ago",
+    "addedAt": "2026-01-04T16:07:50.0848419+01:00",
     "spotCount": 1,
     "playSound": true,
     "isContest": true
@@ -1719,569 +288,479 @@
     "isContest": false
   },
   {
-    "callsign": "PA26WWA",
-    "lastSeen": "2026-01-13T21:22:23.5939482+01:00",
-    "lastSeenStr": "11 hours ago",
-    "addedAt": "2026-01-03T14:39:47.7068715+01:00",
-    "spotCount": 19,
+    "callsign": "CS2WWA",
+    "lastSeen": "2026-01-02T15:51:13.457723+01:00",
+    "lastSeenStr": "14 days ago",
+    "addedAt": "2026-01-02T15:49:25.6997238+01:00",
+    "spotCount": 2,
     "playSound": true,
     "isContest": true
   },
   {
-    "callsign": "GW2WWA",
-    "lastSeen": "2026-01-07T22:17:21.3860297+01:00",
+    "callsign": "BA3RA",
+    "lastSeen": "2026-01-16T21:13:28.0586646+01:00",
+    "lastSeenStr": "2 hours ago",
+    "addedAt": "2026-01-02T03:52:32.3915191+01:00",
+    "spotCount": 1340,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "PJ4A",
+    "lastSeen": "2026-01-10T23:01:01.402383+01:00",
     "lastSeenStr": "6 days ago",
-    "addedAt": "2026-01-06T09:11:25.7356458+01:00",
-    "spotCount": 2,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "E51MWA",
-    "lastSeen": "0001-01-01T00:00:00Z",
-    "lastSeenStr": "Never",
-    "addedAt": "2025-10-18T17:17:43.6895454+02:00",
-    "spotCount": 0,
+    "addedAt": "2025-11-25T20:32:11.0629799+01:00",
+    "spotCount": 1,
     "playSound": true,
     "isContest": false
   },
   {
-    "callsign": "ZL7/LZ1GC",
-    "lastSeen": "2025-11-20T11:13:27.5589025+01:00",
-    "lastSeenStr": "54 days ago",
-    "addedAt": "2025-11-03T20:44:07.0333965+01:00",
-    "spotCount": 582,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "GB9WWA",
-    "lastSeen": "2026-01-13T23:25:54.7734492+01:00",
-    "lastSeenStr": "9 hours ago",
-    "addedAt": "2026-01-04T14:57:07.2014442+01:00",
-    "spotCount": 37,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "EG99WWA",
-    "lastSeen": "2026-01-07T19:10:48.3920346+01:00",
-    "lastSeenStr": "6 days ago",
-    "addedAt": "2026-01-07T19:10:48.3894105+01:00",
-    "spotCount": 1,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "N2RJ",
-    "lastSeen": "2026-01-13T17:53:56.1511627+01:00",
-    "lastSeenStr": "14 hours ago",
-    "addedAt": "2026-01-04T18:52:11.3865393+01:00",
-    "spotCount": 19,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "DB6WWA",
-    "lastSeen": "2026-01-06T16:53:24.2430472+01:00",
-    "lastSeenStr": "7 days ago",
-    "addedAt": "2026-01-06T16:53:24.239411+01:00",
-    "spotCount": 1,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "EG3WWA",
-    "lastSeen": "2026-01-13T23:38:16.4258929+01:00",
-    "lastSeenStr": "9 hours ago",
-    "addedAt": "2026-01-02T09:43:30.5108072+01:00",
-    "spotCount": 1275,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "F4HQLCQ7WWA",
-    "lastSeen": "2026-01-06T17:23:24.5805895+01:00",
-    "lastSeenStr": "7 days ago",
-    "addedAt": "2026-01-06T17:23:24.5754003+01:00",
-    "spotCount": 1,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "SN1WWA",
-    "lastSeen": "2026-01-14T01:18:31.8675904+01:00",
-    "lastSeenStr": "7 hours ago",
-    "addedAt": "2026-01-09T01:19:34.7987633+01:00",
-    "spotCount": 30,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "EG1WWA",
-    "lastSeen": "2026-01-14T08:40:54.3632765+01:00",
-    "lastSeenStr": "4 minutes ago",
-    "addedAt": "2026-01-02T09:09:06.702051+01:00",
-    "spotCount": 1266,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "UP7WWA",
-    "lastSeen": "2026-01-14T08:46:18.8678753+01:00",
-    "lastSeenStr": "Just now",
-    "addedAt": "2026-01-02T03:57:54.3344753+01:00",
-    "spotCount": 2343,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "OL6WWA",
-    "lastSeen": "2026-01-14T08:42:21.4081268+01:00",
-    "lastSeenStr": "3 minutes ago",
-    "addedAt": "2026-01-02T06:11:49.9463837+01:00",
-    "spotCount": 684,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "GD4WWA",
-    "lastSeen": "2026-01-02T23:15:30.5102562+01:00",
-    "lastSeenStr": "11 days ago",
-    "addedAt": "2026-01-02T16:24:53.4978098+01:00",
-    "spotCount": 2,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "6W1RD",
-    "lastSeen": "2025-11-21T19:53:28.7049173+01:00",
-    "lastSeenStr": "53 days ago",
-    "addedAt": "2025-11-02T16:13:09.7633704+01:00",
-    "spotCount": 59,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "S53WWA",
-    "lastSeen": "2026-01-13T20:37:56.1624322+01:00",
-    "lastSeenStr": "12 hours ago",
-    "addedAt": "2026-01-02T06:30:29.1081531+01:00",
-    "spotCount": 1049,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "PB4WWA",
-    "lastSeen": "2026-01-04T19:51:23.1655305+01:00",
-    "lastSeenStr": "9 days ago",
-    "addedAt": "2026-01-04T19:51:23.1623402+01:00",
-    "spotCount": 1,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "ZW5B",
-    "lastSeen": "2026-01-14T08:46:30.5132161+01:00",
-    "lastSeenStr": "Just now",
-    "addedAt": "2026-01-02T03:52:32.4781453+01:00",
-    "spotCount": 693,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "OR0WWA",
-    "lastSeen": "2026-01-10T17:15:44.8828303+01:00",
-    "lastSeenStr": "3 days ago",
-    "addedAt": "2026-01-06T13:55:26.355637+01:00",
-    "spotCount": 18,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "YH0WWA",
-    "lastSeen": "2026-01-06T18:27:49.4960983+01:00",
-    "lastSeenStr": "7 days ago",
-    "addedAt": "2026-01-06T18:27:49.4923545+01:00",
-    "spotCount": 1,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "C6AQQ",
-    "lastSeen": "0001-01-01T00:00:00Z",
-    "lastSeenStr": "Never",
-    "addedAt": "2025-11-25T20:30:44.0738984+01:00",
-    "spotCount": 0,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "MB4WWA",
-    "lastSeen": "2026-01-02T23:16:00.9785362+01:00",
-    "lastSeenStr": "11 days ago",
-    "addedAt": "2026-01-02T16:23:42.4791004+01:00",
-    "spotCount": 2,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "LZ0WWA",
-    "lastSeen": "2026-01-14T08:49:19.6254806+01:00",
-    "lastSeenStr": "Just now",
-    "addedAt": "2026-01-04T16:54:35.4074841+01:00",
-    "spotCount": 2728,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "SP4WWA",
-    "lastSeen": "2026-01-03T13:55:30.0969401+01:00",
-    "lastSeenStr": "10 days ago",
-    "addedAt": "2026-01-03T13:55:30.0930298+01:00",
-    "spotCount": 1,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "SN2WWA",
-    "lastSeen": "2026-01-14T00:08:25.5089878+01:00",
-    "lastSeenStr": "8 hours ago",
-    "addedAt": "2026-01-02T14:40:33.4847369+01:00",
-    "spotCount": 376,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "TO9W",
-    "lastSeen": "0001-01-01T00:00:00Z",
-    "lastSeenStr": "Never",
-    "addedAt": "2025-12-04T12:41:37.7543575+01:00",
-    "spotCount": 0,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "EM0WWA",
-    "lastSeen": "2026-01-14T08:48:37.0200104+01:00",
-    "lastSeenStr": "Just now",
-    "addedAt": "2026-01-02T06:20:32.395419+01:00",
-    "spotCount": 3881,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "II0WWA",
-    "lastSeen": "2026-01-14T08:49:28.2944105+01:00",
-    "lastSeenStr": "Just now",
-    "addedAt": "2026-01-02T07:20:50.6074249+01:00",
-    "spotCount": 3071,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "I6WWA",
-    "lastSeen": "2026-01-08T23:30:34.0126207+01:00",
-    "lastSeenStr": "5 days ago",
-    "addedAt": "2026-01-03T11:52:54.6355216+01:00",
+    "callsign": "CR3WWA",
+    "lastSeen": "2026-01-14T00:01:41.7514089+01:00",
+    "lastSeenStr": "2 days ago",
+    "addedAt": "2026-01-03T10:16:23.921529+01:00",
     "spotCount": 6,
     "playSound": true,
     "isContest": true
   },
   {
-    "callsign": "GB6WWA",
-    "lastSeen": "2026-01-14T01:01:45.0878569+01:00",
-    "lastSeenStr": "7 hours ago",
-    "addedAt": "2026-01-02T09:32:02.1079431+01:00",
-    "spotCount": 322,
+    "callsign": "M0WWA",
+    "lastSeen": "2026-01-16T14:39:44.8808168+01:00",
+    "lastSeenStr": "9 hours ago",
+    "addedAt": "2026-01-02T13:21:27.4406663+01:00",
+    "spotCount": 25,
     "playSound": true,
     "isContest": true
   },
   {
-    "callsign": "D4W",
-    "lastSeen": "2026-01-11T17:10:42.0966977+01:00",
-    "lastSeenStr": "2 days ago",
-    "addedAt": "2026-01-02T03:52:32.4517307+01:00",
-    "spotCount": 110,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "BH9CA",
-    "lastSeen": "2026-01-14T08:39:58.285625+01:00",
-    "lastSeenStr": "5 minutes ago",
-    "addedAt": "2026-01-02T03:52:32.4111169+01:00",
-    "spotCount": 62,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "UP7WWWA",
-    "lastSeen": "2026-01-09T15:06:02.3568665+01:00",
-    "lastSeenStr": "4 days ago",
-    "addedAt": "2026-01-09T15:06:02.3535997+01:00",
+    "callsign": "VE8WWA",
+    "lastSeen": "2026-01-09T20:55:15.5377689+01:00",
+    "lastSeenStr": "7 days ago",
+    "addedAt": "2026-01-09T20:55:15.5338211+01:00",
     "spotCount": 1,
     "playSound": true,
     "isContest": true
   },
   {
-    "callsign": "SD9WWA",
-    "lastSeen": "2026-01-14T08:47:50.4013246+01:00",
-    "lastSeenStr": "Just now",
-    "addedAt": "2026-01-02T11:31:42.011914+01:00",
-    "spotCount": 583,
+    "callsign": "PF26WWA",
+    "lastSeen": "2026-01-16T21:20:26.3403219+01:00",
+    "lastSeenStr": "2 hours ago",
+    "addedAt": "2026-01-02T12:55:10.4527283+01:00",
+    "spotCount": 465,
     "playSound": true,
     "isContest": true
   },
   {
-    "callsign": "MD4WWA",
-    "lastSeen": "2026-01-02T22:56:12.5436141+01:00",
-    "lastSeenStr": "11 days ago",
-    "addedAt": "2026-01-02T22:56:12.5410086+01:00",
+    "callsign": "VE99WWA",
+    "lastSeen": "2026-01-02T21:12:05.4682613+01:00",
+    "lastSeenStr": "14 days ago",
+    "addedAt": "2026-01-02T21:12:05.4639499+01:00",
     "spotCount": 1,
     "playSound": true,
     "isContest": true
   },
   {
-    "callsign": "LW0WWA",
-    "lastSeen": "2026-01-10T16:36:24.7908466+01:00",
-    "lastSeenStr": "3 days ago",
-    "addedAt": "2026-01-10T16:36:24.7860292+01:00",
+    "callsign": "II33WWA",
+    "lastSeen": "2026-01-06T17:29:18.1430793+01:00",
+    "lastSeenStr": "10 days ago",
+    "addedAt": "2026-01-06T17:29:18.139285+01:00",
     "spotCount": 1,
     "playSound": true,
     "isContest": true
   },
   {
-    "callsign": "SO3WWA",
-    "lastSeen": "2026-01-14T08:49:15.6563205+01:00",
-    "lastSeenStr": "Just now",
-    "addedAt": "2026-01-02T06:59:02.7887624+01:00",
-    "spotCount": 1237,
+    "callsign": "DL0WWA",
+    "lastSeen": "2026-01-16T21:01:55.2331125+01:00",
+    "lastSeenStr": "2 hours ago",
+    "addedAt": "2026-01-02T15:44:35.8243513+01:00",
+    "spotCount": 367,
     "playSound": true,
     "isContest": true
   },
   {
-    "callsign": "ZC4RH",
-    "lastSeen": "2025-11-08T08:25:39.5696597+01:00",
-    "lastSeenStr": "67 days ago",
-    "addedAt": "2025-10-28T22:43:16.3202825+01:00",
-    "spotCount": 14,
+    "callsign": "3D2USU",
+    "lastSeen": "2026-01-16T18:53:29.2239362+01:00",
+    "lastSeenStr": "4 hours ago",
+    "addedAt": "2025-11-18T10:01:13.7801383+01:00",
+    "spotCount": 545,
     "playSound": true,
     "isContest": false
-  },
-  {
-    "callsign": "GN4WWA",
-    "lastSeen": "2026-01-02T23:02:41.2619039+01:00",
-    "lastSeenStr": "11 days ago",
-    "addedAt": "2026-01-02T22:57:53.8880309+01:00",
-    "spotCount": 2,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "TM2WWA",
-    "lastSeen": "2026-01-14T08:26:25.7766238+01:00",
-    "lastSeenStr": "19 minutes ago",
-    "addedAt": "2026-01-04T12:35:11.8667246+01:00",
-    "spotCount": 5,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "I8WWA",
-    "lastSeen": "2026-01-12T21:17:49.0587571+01:00",
-    "lastSeenStr": "1 day ago",
-    "addedAt": "2026-01-03T16:23:40.3108115+01:00",
-    "spotCount": 2,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "5V7RU",
-    "lastSeen": "2025-11-18T20:13:54.5939468+01:00",
-    "lastSeenStr": "56 days ago",
-    "addedAt": "2025-11-03T20:43:40.9865712+01:00",
-    "spotCount": 2065,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "DO0WWA",
-    "lastSeen": "2026-01-04T16:21:37.7789691+01:00",
-    "lastSeenStr": "9 days ago",
-    "addedAt": "2026-01-04T16:21:37.7743588+01:00",
-    "spotCount": 1,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "SN3WWA",
-    "lastSeen": "2026-01-14T08:48:20.900321+01:00",
-    "lastSeenStr": "Just now",
-    "addedAt": "2026-01-02T08:31:21.9761667+01:00",
-    "spotCount": 3234,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "YU45MJA",
-    "lastSeen": "2026-01-14T08:47:00.6233292+01:00",
-    "lastSeenStr": "Just now",
-    "addedAt": "2026-01-02T09:23:22.5899255+01:00",
-    "spotCount": 1205,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "CV5WWA",
-    "lastSeen": "2026-01-09T18:32:36.9391161+01:00",
-    "lastSeenStr": "4 days ago",
-    "addedAt": "2026-01-09T18:32:36.9364143+01:00",
-    "spotCount": 1,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "RM0WWA",
-    "lastSeen": "2026-01-13T14:15:22.1338099+01:00",
-    "lastSeenStr": "18 hours ago",
-    "addedAt": "2026-01-07T20:58:28.9013611+01:00",
-    "spotCount": 10,
-    "playSound": true,
-    "isContest": true
   },
   {
     "callsign": "K4WWA",
     "lastSeen": "2026-01-03T21:19:19.5681882+01:00",
-    "lastSeenStr": "10 days ago",
+    "lastSeenStr": "13 days ago",
     "addedAt": "2026-01-03T21:19:19.5648088+01:00",
     "spotCount": 1,
     "playSound": true,
     "isContest": true
   },
   {
-    "callsign": "SC9WWA",
-    "lastSeen": "2026-01-14T08:46:27.615507+01:00",
-    "lastSeenStr": "Just now",
-    "addedAt": "2026-01-02T15:50:37.7081206+01:00",
-    "spotCount": 300,
+    "callsign": "VK2WWA",
+    "lastSeen": "2026-01-03T12:52:28.3086863+01:00",
+    "lastSeenStr": "13 days ago",
+    "addedAt": "2026-01-03T12:52:28.3050449+01:00",
+    "spotCount": 1,
     "playSound": true,
     "isContest": true
   },
   {
-    "callsign": "KP5/NP3VI",
-    "lastSeen": "2026-01-14T02:27:06.4714342+01:00",
-    "lastSeenStr": "6 hours ago",
-    "addedAt": "2026-01-12T23:07:02.1980378+01:00",
-    "spotCount": 40,
+    "callsign": "SM3WWA",
+    "lastSeen": "2026-01-11T16:14:21.5405418+01:00",
+    "lastSeenStr": "5 days ago",
+    "addedAt": "2026-01-11T16:14:21.5373796+01:00",
+    "spotCount": 1,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "YH0WWA",
+    "lastSeen": "2026-01-06T18:27:49.4960983+01:00",
+    "lastSeenStr": "10 days ago",
+    "addedAt": "2026-01-06T18:27:49.4923545+01:00",
+    "spotCount": 1,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "CR5WWA",
+    "lastSeen": "2026-01-16T21:55:06.5525111+01:00",
+    "lastSeenStr": "1 hour ago",
+    "addedAt": "2026-01-02T09:29:22.8462956+01:00",
+    "spotCount": 2065,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "LZ0WWA",
+    "lastSeen": "2026-01-16T23:48:39.4301504+01:00",
+    "lastSeenStr": "Just now",
+    "addedAt": "2026-01-04T16:54:35.4074841+01:00",
+    "spotCount": 3783,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "EW3WWA",
+    "lastSeen": "2026-01-06T15:46:31.7033435+01:00",
+    "lastSeenStr": "10 days ago",
+    "addedAt": "2026-01-06T15:40:35.061738+01:00",
+    "spotCount": 4,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "SN2WWA",
+    "lastSeen": "2026-01-16T22:20:50.0765653+01:00",
+    "lastSeenStr": "1 hour ago",
+    "addedAt": "2026-01-02T14:40:33.4847369+01:00",
+    "spotCount": 622,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "8R1/AG6UT",
+    "lastSeen": "0001-01-01T00:00:00Z",
+    "lastSeenStr": "Never",
+    "addedAt": "2025-11-25T20:30:34.7851434+01:00",
+    "spotCount": 0,
     "playSound": true,
     "isContest": false
   },
   {
-    "callsign": "GB1WWA",
-    "lastSeen": "2026-01-07T14:50:54.2709564+01:00",
-    "lastSeenStr": "6 days ago",
-    "addedAt": "2026-01-02T15:48:38.575121+01:00",
-    "spotCount": 14,
+    "callsign": "4X6TT",
+    "lastSeen": "2026-01-11T15:56:15.0324505+01:00",
+    "lastSeenStr": "5 days ago",
+    "addedAt": "2025-10-18T17:18:13.335878+02:00",
+    "spotCount": 173,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "AT3WWA",
+    "lastSeen": "2026-01-16T19:38:16.1908681+01:00",
+    "lastSeenStr": "4 hours ago",
+    "addedAt": "2026-01-02T11:29:53.7802835+01:00",
+    "spotCount": 356,
     "playSound": true,
     "isContest": true
   },
   {
-    "callsign": "I4WWA",
-    "lastSeen": "2026-01-03T18:46:21.5924427+01:00",
-    "lastSeenStr": "10 days ago",
-    "addedAt": "2026-01-03T18:46:21.5897451+01:00",
-    "spotCount": 1,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "3Z6I",
-    "lastSeen": "2026-01-13T21:50:22.3987033+01:00",
-    "lastSeenStr": "10 hours ago",
-    "addedAt": "2026-01-02T03:52:32.3576912+01:00",
-    "spotCount": 193,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "EW2WWA",
-    "lastSeen": "2026-01-06T17:04:24.6474548+01:00",
+    "callsign": "LZ3WWA",
+    "lastSeen": "2026-01-09T16:38:53.9891572+01:00",
     "lastSeenStr": "7 days ago",
-    "addedAt": "2026-01-06T17:04:24.6443985+01:00",
+    "addedAt": "2026-01-09T16:38:53.9859403+01:00",
     "spotCount": 1,
     "playSound": true,
     "isContest": true
+  },
+  {
+    "callsign": "PA26WWA",
+    "lastSeen": "2026-01-16T17:21:47.7572945+01:00",
+    "lastSeenStr": "6 hours ago",
+    "addedAt": "2026-01-03T14:39:47.7068715+01:00",
+    "spotCount": 81,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "N0W",
+    "lastSeen": "2026-01-16T22:30:04.7052493+01:00",
+    "lastSeenStr": "1 hour ago",
+    "addedAt": "2026-01-02T03:52:32.3124253+01:00",
+    "spotCount": 891,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "XU7RRC",
+    "lastSeen": "2025-11-26T19:13:59.967944+01:00",
+    "lastSeenStr": "51 days ago",
+    "addedAt": "2025-11-10T20:26:19.3515859+01:00",
+    "spotCount": 4,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "II4WWA",
+    "lastSeen": "2026-01-16T23:51:57.1382646+01:00",
+    "lastSeenStr": "Just now",
+    "addedAt": "2026-01-02T06:40:22.279576+01:00",
+    "spotCount": 2379,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "DU0WWA",
+    "lastSeen": "2026-01-16T18:19:27.5887654+01:00",
+    "lastSeenStr": "5 hours ago",
+    "addedAt": "2026-01-02T03:55:49.0949519+01:00",
+    "spotCount": 528,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "EG2WWA",
+    "lastSeen": "2026-01-16T12:12:37.0918954+01:00",
+    "lastSeenStr": "11 hours ago",
+    "addedAt": "2026-01-02T09:13:01.3225098+01:00",
+    "spotCount": 627,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "IR6WWA",
+    "lastSeen": "2026-01-02T12:38:56.3479297+01:00",
+    "lastSeenStr": "14 days ago",
+    "addedAt": "2026-01-02T12:38:56.344201+01:00",
+    "spotCount": 1,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "TW29WWA",
+    "lastSeen": "2026-01-03T13:32:04.6695344+01:00",
+    "lastSeenStr": "13 days ago",
+    "addedAt": "2026-01-03T13:02:46.9240671+01:00",
+    "spotCount": 8,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "GB3WWA",
+    "lastSeen": "2026-01-06T17:45:28.5275263+01:00",
+    "lastSeenStr": "10 days ago",
+    "addedAt": "2026-01-06T17:45:28.5242365+01:00",
+    "spotCount": 1,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "II3WWA",
+    "lastSeen": "2026-01-16T22:48:22.2954413+01:00",
+    "lastSeenStr": "52 minutes ago",
+    "addedAt": "2026-01-02T06:18:37.8421971+01:00",
+    "spotCount": 8787,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "BY2WL",
+    "lastSeen": "2026-01-16T10:28:55.9221189+01:00",
+    "lastSeenStr": "13 hours ago",
+    "addedAt": "2026-01-02T03:52:32.4320274+01:00",
+    "spotCount": 790,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "GB9WWA",
+    "lastSeen": "2026-01-16T17:56:01.0545514+01:00",
+    "lastSeenStr": "5 hours ago",
+    "addedAt": "2026-01-04T14:57:07.2014442+01:00",
+    "spotCount": 75,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "D2A",
+    "lastSeen": "2025-12-07T23:00:04.3554871+01:00",
+    "lastSeenStr": "40 days ago",
+    "addedAt": "2025-10-20T22:11:35.4767205+02:00",
+    "spotCount": 550,
+    "playSound": true,
+    "isContest": false
   },
   {
     "callsign": "5X1XA",
     "lastSeen": "2025-11-21T08:41:53.611225+01:00",
-    "lastSeenStr": "54 days ago",
+    "lastSeenStr": "56 days ago",
     "addedAt": "2025-10-18T17:18:01.2081871+02:00",
     "spotCount": 13,
     "playSound": true,
     "isContest": false
   },
   {
-    "callsign": "3B8WWA",
-    "lastSeen": "2026-01-13T16:29:53.8214786+01:00",
-    "lastSeenStr": "16 hours ago",
-    "addedAt": "2026-01-02T08:44:21.122356+01:00",
-    "spotCount": 202,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "GB4WWA",
-    "lastSeen": "2026-01-13T21:53:00.3065207+01:00",
-    "lastSeenStr": "10 hours ago",
-    "addedAt": "2026-01-02T13:20:04.7964202+01:00",
-    "spotCount": 648,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "TM1WWA",
-    "lastSeen": "2026-01-14T08:49:07.2987036+01:00",
-    "lastSeenStr": "Just now",
-    "addedAt": "2026-01-02T08:33:44.0796346+01:00",
-    "spotCount": 910,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "V73JW",
-    "lastSeen": "0001-01-01T00:00:00Z",
-    "lastSeenStr": "Never",
-    "addedAt": "2025-11-18T09:35:50.658859+01:00",
-    "spotCount": 0,
+    "callsign": "6W/DO5RQ",
+    "lastSeen": "2025-12-11T17:20:24.6292562+01:00",
+    "lastSeenStr": "36 days ago",
+    "addedAt": "2025-12-06T12:41:45.8933896+01:00",
+    "spotCount": 16,
     "playSound": true,
     "isContest": false
   },
   {
-    "callsign": "TY5GG",
-    "lastSeen": "0001-01-01T00:00:00Z",
-    "lastSeenStr": "Never",
-    "addedAt": "2026-01-05T00:46:43.290756+01:00",
-    "spotCount": 0,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "BI4SSB",
-    "lastSeen": "2026-01-14T08:34:28.9245249+01:00",
-    "lastSeenStr": "11 minutes ago",
-    "addedAt": "2026-01-02T03:52:32.4179993+01:00",
-    "spotCount": 1455,
+    "callsign": "BG0DXC",
+    "lastSeen": "2026-01-16T15:51:33.4825003+01:00",
+    "lastSeenStr": "7 hours ago",
+    "addedAt": "2026-01-02T03:52:32.4053094+01:00",
+    "spotCount": 634,
     "playSound": true,
     "isContest": true
   },
   {
-    "callsign": "H5WWA",
-    "lastSeen": "2026-01-04T14:08:10.6045841+01:00",
-    "lastSeenStr": "9 days ago",
-    "addedAt": "2026-01-04T14:03:58.0703927+01:00",
+    "callsign": "XT2MAX",
+    "lastSeen": "2026-01-11T11:51:36.9257791+01:00",
+    "lastSeenStr": "5 days ago",
+    "addedAt": "2026-01-05T00:46:02.5603842+01:00",
+    "spotCount": 92,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "EA9WWA",
+    "lastSeen": "2026-01-16T20:48:52.9356091+01:00",
+    "lastSeenStr": "2 hours ago",
+    "addedAt": "2026-01-02T17:29:08.7891333+01:00",
+    "spotCount": 10,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "SP3WWA",
+    "lastSeen": "2026-01-04T13:45:06.7865928+01:00",
+    "lastSeenStr": "12 days ago",
+    "addedAt": "2026-01-04T13:43:04.9769645+01:00",
     "spotCount": 2,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "TK0C",
+    "lastSeen": "0001-01-01T00:00:00Z",
+    "lastSeenStr": "Never",
+    "addedAt": "2025-11-18T08:38:34.3748553+01:00",
+    "spotCount": 0,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "S21SDX",
+    "lastSeen": "2025-11-13T11:53:16.5941729+01:00",
+    "lastSeenStr": "64 days ago",
+    "addedAt": "2025-11-10T20:27:00.4756217+01:00",
+    "spotCount": 15,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "YI1RN",
+    "lastSeen": "2026-01-16T14:59:28.5937646+01:00",
+    "lastSeenStr": "8 hours ago",
+    "addedAt": "2026-01-02T03:52:32.474465+01:00",
+    "spotCount": 20,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "KC4/KL5SE",
+    "lastSeen": "0001-01-01T00:00:00Z",
+    "lastSeenStr": "Never",
+    "addedAt": "2026-01-10T17:28:59.8089153+01:00",
+    "spotCount": 0,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "FR6WWA",
+    "lastSeen": "2026-01-05T20:02:09.8299349+01:00",
+    "lastSeenStr": "11 days ago",
+    "addedAt": "2026-01-05T20:02:09.8268129+01:00",
+    "spotCount": 1,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "VB2WWA",
+    "lastSeen": "2026-01-15T18:53:24.2080566+01:00",
+    "lastSeenStr": "1 day ago",
+    "addedAt": "2026-01-05T20:47:09.3437651+01:00",
+    "spotCount": 68,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "EG4WWA",
+    "lastSeen": "2026-01-16T23:50:08.2430181+01:00",
+    "lastSeenStr": "Just now",
+    "addedAt": "2026-01-02T03:52:53.1609555+01:00",
+    "spotCount": 3172,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "VP2V/K6TOP",
+    "lastSeen": "2025-11-06T02:26:48.5194968+01:00",
+    "lastSeenStr": "71 days ago",
+    "addedAt": "2025-11-03T20:43:32.0688504+01:00",
+    "spotCount": 21,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "IT9WWA",
+    "lastSeen": "2026-01-10T17:04:42.1849464+01:00",
+    "lastSeenStr": "6 days ago",
+    "addedAt": "2026-01-10T17:04:42.1817163+01:00",
+    "spotCount": 1,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "R5WWA",
+    "lastSeen": "2026-01-09T18:23:33.3085737+01:00",
+    "lastSeenStr": "7 days ago",
+    "addedAt": "2026-01-09T18:23:33.3053804+01:00",
+    "spotCount": 1,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "RM0WWA",
+    "lastSeen": "2026-01-14T21:23:52.6434794+01:00",
+    "lastSeenStr": "2 days ago",
+    "addedAt": "2026-01-07T20:58:28.9013611+01:00",
+    "spotCount": 11,
     "playSound": true,
     "isContest": true
   },
@@ -2295,83 +774,20 @@
     "isContest": false
   },
   {
-    "callsign": "DE2WWA",
-    "lastSeen": "2026-01-02T04:29:44.1507324+01:00",
-    "lastSeenStr": "12 days ago",
-    "addedAt": "2026-01-02T04:29:44.1474335+01:00",
-    "spotCount": 1,
+    "callsign": "SN3WWA",
+    "lastSeen": "2026-01-16T23:02:11.4100441+01:00",
+    "lastSeenStr": "39 minutes ago",
+    "addedAt": "2026-01-02T08:31:21.9761667+01:00",
+    "spotCount": 4605,
     "playSound": true,
     "isContest": true
   },
   {
-    "callsign": "TT1GD",
-    "lastSeen": "2025-12-30T08:38:56.4852045+01:00",
-    "lastSeenStr": "15 days ago",
-    "addedAt": "2025-12-04T12:41:47.7065212+01:00",
-    "spotCount": 835,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "TM0WWA",
-    "lastSeen": "2026-01-07T22:47:30.6032163+01:00",
-    "lastSeenStr": "6 days ago",
-    "addedAt": "2026-01-07T22:47:30.5998987+01:00",
-    "spotCount": 1,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "Z30WWA",
-    "lastSeen": "2026-01-14T08:39:09.7136526+01:00",
-    "lastSeenStr": "6 minutes ago",
-    "addedAt": "2026-01-02T06:13:14.9295663+01:00",
-    "spotCount": 1252,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "T2JK",
-    "lastSeen": "2025-11-20T19:08:54.2416382+01:00",
-    "lastSeenStr": "54 days ago",
-    "addedAt": "2025-11-11T18:57:03.9342979+01:00",
-    "spotCount": 31,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "DM0WWA",
-    "lastSeen": "2026-01-02T20:59:46.6471759+01:00",
-    "lastSeenStr": "11 days ago",
-    "addedAt": "2026-01-02T20:59:46.6445011+01:00",
-    "spotCount": 1,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "I3WWA",
-    "lastSeen": "2026-01-11T08:53:27.2630429+01:00",
-    "lastSeenStr": "2 days ago",
-    "addedAt": "2026-01-02T07:06:27.1814619+01:00",
-    "spotCount": 3,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "II3WWA",
-    "lastSeen": "2026-01-14T08:47:54.9407883+01:00",
+    "callsign": "EG1WWA",
+    "lastSeen": "2026-01-16T23:51:06.517312+01:00",
     "lastSeenStr": "Just now",
-    "addedAt": "2026-01-02T06:18:37.8421971+01:00",
-    "spotCount": 6128,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "DL0WWA",
-    "lastSeen": "2026-01-13T23:31:32.2162926+01:00",
-    "lastSeenStr": "9 hours ago",
-    "addedAt": "2026-01-02T15:44:35.8243513+01:00",
-    "spotCount": 163,
+    "addedAt": "2026-01-02T09:09:06.702051+01:00",
+    "spotCount": 1563,
     "playSound": true,
     "isContest": true
   },
@@ -2385,316 +801,838 @@
     "isContest": false
   },
   {
-    "callsign": "DB2WWA",
-    "lastSeen": "2026-01-06T17:03:21.8895692+01:00",
-    "lastSeenStr": "7 days ago",
-    "addedAt": "2026-01-06T17:03:21.8857163+01:00",
-    "spotCount": 1,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "I9WWA",
-    "lastSeen": "2026-01-07T11:29:55.5143687+01:00",
-    "lastSeenStr": "6 days ago",
-    "addedAt": "2026-01-03T17:02:48.5682433+01:00",
-    "spotCount": 3,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "PJ4A",
-    "lastSeen": "2026-01-10T23:01:01.402383+01:00",
-    "lastSeenStr": "3 days ago",
-    "addedAt": "2025-11-25T20:32:11.0629799+01:00",
-    "spotCount": 1,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "VW9WWA",
-    "lastSeen": "2026-01-02T20:32:08.8542912+01:00",
-    "lastSeenStr": "11 days ago",
-    "addedAt": "2026-01-02T20:32:08.851645+01:00",
-    "spotCount": 1,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "XV9",
-    "lastSeen": "2026-01-13T23:50:51.3004522+01:00",
-    "lastSeenStr": "8 hours ago",
-    "addedAt": "2025-10-18T17:18:24.9155327+02:00",
-    "spotCount": 238,
-    "playSound": false,
-    "isContest": false
-  },
-  {
-    "callsign": "9M8WWA",
-    "lastSeen": "2026-01-14T08:47:44.5971923+01:00",
-    "lastSeenStr": "Just now",
-    "addedAt": "2026-01-02T14:34:37.4845994+01:00",
-    "spotCount": 318,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "9M2WWA",
-    "lastSeen": "2026-01-13T14:55:56.3238628+01:00",
-    "lastSeenStr": "17 hours ago",
-    "addedAt": "2026-01-02T12:06:48.2642872+01:00",
-    "spotCount": 17,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "D2A",
-    "lastSeen": "2025-12-07T23:00:04.3554871+01:00",
-    "lastSeenStr": "37 days ago",
-    "addedAt": "2025-10-20T22:11:35.4767205+02:00",
-    "spotCount": 550,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "KC4USV",
-    "lastSeen": "2025-11-20T20:30:25.441016+01:00",
-    "lastSeenStr": "54 days ago",
-    "addedAt": "2025-11-18T08:54:05.466599+01:00",
-    "spotCount": 1,
-    "playSound": true,
-    "isContest": false
-  },
-  {
     "callsign": "SB9WWA",
-    "lastSeen": "2026-01-14T08:48:02.083957+01:00",
-    "lastSeenStr": "Just now",
+    "lastSeen": "2026-01-16T21:22:49.0537227+01:00",
+    "lastSeenStr": "2 hours ago",
     "addedAt": "2026-01-02T08:20:40.0940542+01:00",
-    "spotCount": 639,
+    "spotCount": 1004,
     "playSound": true,
     "isContest": true
   },
   {
-    "callsign": "CR3WWA",
-    "lastSeen": "2026-01-14T00:01:41.7514089+01:00",
-    "lastSeenStr": "8 hours ago",
-    "addedAt": "2026-01-03T10:16:23.921529+01:00",
-    "spotCount": 6,
+    "callsign": "6O3T",
+    "lastSeen": "0001-01-01T00:00:00Z",
+    "lastSeenStr": "Never",
+    "addedAt": "2025-12-03T21:31:57.0197124+01:00",
+    "spotCount": 0,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "ZL7IO",
+    "lastSeen": "0001-01-01T00:00:00Z",
+    "lastSeenStr": "Never",
+    "addedAt": "2025-10-18T17:17:30.7153757+02:00",
+    "spotCount": 0,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "CR7WWA",
+    "lastSeen": "2026-01-11T10:36:08.5105335+01:00",
+    "lastSeenStr": "5 days ago",
+    "addedAt": "2026-01-03T14:41:11.9844535+01:00",
+    "spotCount": 2,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "TM1WWA",
+    "lastSeen": "2026-01-16T22:44:51.3633876+01:00",
+    "lastSeenStr": "56 minutes ago",
+    "addedAt": "2026-01-02T08:33:44.0796346+01:00",
+    "spotCount": 1375,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "8A1A",
+    "lastSeen": "2026-01-16T23:54:38.1134744+01:00",
+    "lastSeenStr": "Just now",
+    "addedAt": "2026-01-02T03:52:32.3852027+01:00",
+    "spotCount": 4037,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "E7W",
+    "lastSeen": "2026-01-16T22:37:07.4623258+01:00",
+    "lastSeenStr": "1 hour ago",
+    "addedAt": "2026-01-02T03:52:32.4575702+01:00",
+    "spotCount": 2315,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "EG7WWA",
+    "lastSeen": "2026-01-16T23:36:00.663644+01:00",
+    "lastSeenStr": "5 minutes ago",
+    "addedAt": "2026-01-02T10:25:28.4841485+01:00",
+    "spotCount": 947,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "DE2WWA",
+    "lastSeen": "2026-01-02T04:29:44.1507324+01:00",
+    "lastSeenStr": "14 days ago",
+    "addedAt": "2026-01-02T04:29:44.1474335+01:00",
+    "spotCount": 1,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "SD9WWA",
+    "lastSeen": "2026-01-16T23:48:39.6936505+01:00",
+    "lastSeenStr": "Just now",
+    "addedAt": "2026-01-02T11:31:42.011914+01:00",
+    "spotCount": 770,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "TI4WWA",
+    "lastSeen": "2026-01-13T21:56:30.4162723+01:00",
+    "lastSeenStr": "3 days ago",
+    "addedAt": "2026-01-03T21:49:54.4110722+01:00",
+    "spotCount": 2,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "N8W",
+    "lastSeen": "2026-01-16T23:52:50.9250775+01:00",
+    "lastSeenStr": "Just now",
+    "addedAt": "2026-01-02T03:52:32.3391657+01:00",
+    "spotCount": 1139,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "BI4SSB",
+    "lastSeen": "2026-01-16T21:18:57.5178528+01:00",
+    "lastSeenStr": "2 hours ago",
+    "addedAt": "2026-01-02T03:52:32.4179993+01:00",
+    "spotCount": 1868,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "V73JW",
+    "lastSeen": "0001-01-01T00:00:00Z",
+    "lastSeenStr": "Never",
+    "addedAt": "2025-11-18T09:35:50.658859+01:00",
+    "spotCount": 0,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "TM9WWA",
+    "lastSeen": "2026-01-16T18:50:05.7147618+01:00",
+    "lastSeenStr": "4 hours ago",
+    "addedAt": "2026-01-02T10:08:30.3899825+01:00",
+    "spotCount": 371,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "SU0ERA",
+    "lastSeen": "0001-01-01T00:00:00Z",
+    "lastSeenStr": "Never",
+    "addedAt": "2025-10-18T17:18:45.8848244+02:00",
+    "spotCount": 0,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "IR1WWA",
+    "lastSeen": "2026-01-16T16:36:23.9730482+01:00",
+    "lastSeenStr": "7 hours ago",
+    "addedAt": "2026-01-02T08:29:37.5541561+01:00",
+    "spotCount": 200,
     "playSound": true,
     "isContest": true
   },
   {
     "callsign": "TL8GD",
     "lastSeen": "2025-11-26T19:00:50.3734248+01:00",
-    "lastSeenStr": "48 days ago",
+    "lastSeenStr": "51 days ago",
     "addedAt": "2025-11-15T16:24:57.4489414+01:00",
     "spotCount": 742,
     "playSound": true,
     "isContest": false
   },
   {
-    "callsign": "VE1WWA",
-    "lastSeen": "2026-01-08T21:24:09.47877+01:00",
-    "lastSeenStr": "5 days ago",
-    "addedAt": "2026-01-06T11:22:22.8705152+01:00",
+    "callsign": "II5WWA",
+    "lastSeen": "2026-01-16T22:56:12.813137+01:00",
+    "lastSeenStr": "45 minutes ago",
+    "addedAt": "2026-01-02T07:21:04.70221+01:00",
+    "spotCount": 6080,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "EH2WWA",
+    "lastSeen": "2026-01-03T16:05:44.617734+01:00",
+    "lastSeenStr": "13 days ago",
+    "addedAt": "2026-01-03T15:56:36.2593835+01:00",
     "spotCount": 2,
     "playSound": true,
     "isContest": true
   },
   {
-    "callsign": "Z81D",
-    "lastSeen": "2025-12-31T17:28:58.6554699+01:00",
-    "lastSeenStr": "13 days ago",
-    "addedAt": "2025-12-11T20:56:26.664623+01:00",
-    "spotCount": 55,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "9Y9DX",
-    "lastSeen": "2025-12-23T19:04:36.5932723+02:00",
-    "lastSeenStr": "21 days ago",
-    "addedAt": "2025-12-11T20:56:32.6534285+01:00",
-    "spotCount": 6,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "II33WWA",
-    "lastSeen": "2026-01-06T17:29:18.1430793+01:00",
-    "lastSeenStr": "7 days ago",
-    "addedAt": "2026-01-06T17:29:18.139285+01:00",
-    "spotCount": 1,
+    "callsign": "BA7CK",
+    "lastSeen": "2026-01-16T21:12:26.2543264+01:00",
+    "lastSeenStr": "2 hours ago",
+    "addedAt": "2026-01-02T03:52:32.3978418+01:00",
+    "spotCount": 232,
     "playSound": true,
     "isContest": true
   },
   {
-    "callsign": "BY6SX",
-    "lastSeen": "2026-01-14T08:30:24.4212138+01:00",
-    "lastSeenStr": "15 minutes ago",
-    "addedAt": "2026-01-02T03:52:32.441172+01:00",
-    "spotCount": 196,
+    "callsign": "GN4WWA",
+    "lastSeen": "2026-01-02T23:02:41.2619039+01:00",
+    "lastSeenStr": "14 days ago",
+    "addedAt": "2026-01-02T22:57:53.8880309+01:00",
+    "spotCount": 2,
     "playSound": true,
     "isContest": true
   },
   {
-    "callsign": "R5WWA",
-    "lastSeen": "2026-01-09T18:23:33.3085737+01:00",
-    "lastSeenStr": "4 days ago",
-    "addedAt": "2026-01-09T18:23:33.3053804+01:00",
-    "spotCount": 1,
+    "callsign": "9M8WWA",
+    "lastSeen": "2026-01-16T21:13:31.6134448+01:00",
+    "lastSeenStr": "2 hours ago",
+    "addedAt": "2026-01-02T14:34:37.4845994+01:00",
+    "spotCount": 511,
     "playSound": true,
     "isContest": true
   },
   {
-    "callsign": "3D2USU",
-    "lastSeen": "2026-01-14T08:47:50.5780056+01:00",
-    "lastSeenStr": "Just now",
-    "addedAt": "2025-11-18T10:01:13.7801383+01:00",
-    "spotCount": 451,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "LZ3WWA",
-    "lastSeen": "2026-01-09T16:38:53.9891572+01:00",
-    "lastSeenStr": "4 days ago",
-    "addedAt": "2026-01-09T16:38:53.9859403+01:00",
-    "spotCount": 1,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "TM2GWWA",
-    "lastSeen": "2026-01-09T23:10:20.9309331+01:00",
-    "lastSeenStr": "4 days ago",
-    "addedAt": "2026-01-09T23:10:20.9282377+01:00",
-    "spotCount": 1,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "E7W",
-    "lastSeen": "2026-01-14T08:46:20.0469272+01:00",
-    "lastSeenStr": "Just now",
-    "addedAt": "2026-01-02T03:52:32.4575702+01:00",
-    "spotCount": 1829,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "IZ0WWA",
-    "lastSeen": "2026-01-11T18:07:45.2656339+01:00",
-    "lastSeenStr": "2 days ago",
-    "addedAt": "2026-01-04T17:57:50.7651094+01:00",
-    "spotCount": 4,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "T7WWA",
-    "lastSeen": "2026-01-02T10:53:05.0526181+01:00",
-    "lastSeenStr": "11 days ago",
-    "addedAt": "2026-01-02T10:53:05.049378+01:00",
-    "spotCount": 1,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "PC2WWA",
-    "lastSeen": "2026-01-06T16:19:41.1598395+01:00",
-    "lastSeenStr": "7 days ago",
-    "addedAt": "2026-01-06T16:19:41.156115+01:00",
-    "spotCount": 1,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "B4WWA",
-    "lastSeen": "2026-01-13T21:57:21.3651706+01:00",
-    "lastSeenStr": "10 hours ago",
-    "addedAt": "2026-01-02T16:18:55.8161034+01:00",
-    "spotCount": 4,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "PF26WWA",
-    "lastSeen": "2026-01-14T08:46:56.0526807+01:00",
-    "lastSeenStr": "Just now",
-    "addedAt": "2026-01-02T12:55:10.4527283+01:00",
-    "spotCount": 190,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "PD2WWA",
-    "lastSeen": "2026-01-03T11:45:39.2040328+01:00",
-    "lastSeenStr": "10 days ago",
-    "addedAt": "2026-01-03T11:45:39.2009263+01:00",
-    "spotCount": 1,
+    "callsign": "TK4TH",
+    "lastSeen": "0001-01-01T00:00:00Z",
+    "lastSeenStr": "Never",
+    "addedAt": "2026-01-02T03:52:32.4681956+01:00",
+    "spotCount": 0,
     "playSound": true,
     "isContest": true
   },
   {
     "callsign": "TM18WWA",
-    "lastSeen": "2026-01-11T08:50:37.156067+01:00",
-    "lastSeenStr": "2 days ago",
+    "lastSeen": "2026-01-15T23:55:29.1285516+01:00",
+    "lastSeenStr": "23 hours ago",
     "addedAt": "2026-01-02T17:47:03.7692168+01:00",
-    "spotCount": 8,
+    "spotCount": 9,
     "playSound": true,
     "isContest": true
   },
   {
-    "callsign": "N3WWA",
-    "lastSeen": "2026-01-07T19:22:04.8621051+01:00",
-    "lastSeenStr": "6 days ago",
-    "addedAt": "2026-01-02T17:03:44.7728806+01:00",
-    "spotCount": 4,
+    "callsign": "W4I",
+    "lastSeen": "2026-01-16T21:20:06.9418321+01:00",
+    "lastSeenStr": "2 hours ago",
+    "addedAt": "2026-01-02T03:52:32.3085524+01:00",
+    "spotCount": 2995,
     "playSound": true,
     "isContest": true
   },
   {
-    "callsign": "TM9WWA",
-    "lastSeen": "2026-01-14T08:47:36.9641609+01:00",
+    "callsign": "MB4WWA",
+    "lastSeen": "2026-01-02T23:16:00.9785362+01:00",
+    "lastSeenStr": "14 days ago",
+    "addedAt": "2026-01-02T16:23:42.4791004+01:00",
+    "spotCount": 2,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "G4WWA",
+    "lastSeen": "2026-01-14T16:37:20.2127577+01:00",
+    "lastSeenStr": "2 days ago",
+    "addedAt": "2026-01-02T09:59:18.1335737+01:00",
+    "spotCount": 9,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "3Z6I",
+    "lastSeen": "2026-01-16T21:21:30.9757365+01:00",
+    "lastSeenStr": "2 hours ago",
+    "addedAt": "2026-01-02T03:52:32.3576912+01:00",
+    "spotCount": 422,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "OP0WWA",
+    "lastSeen": "2026-01-16T23:50:19.0781435+01:00",
     "lastSeenStr": "Just now",
-    "addedAt": "2026-01-02T10:08:30.3899825+01:00",
-    "spotCount": 228,
+    "addedAt": "2026-01-02T03:54:01.0526677+01:00",
+    "spotCount": 4223,
     "playSound": true,
     "isContest": true
   },
   {
-    "callsign": "5J0EA",
-    "lastSeen": "2025-11-26T19:05:59.3367587+01:00",
-    "lastSeenStr": "48 days ago",
-    "addedAt": "2025-10-18T17:17:51.0758741+02:00",
-    "spotCount": 53,
+    "callsign": "RI1ANI",
+    "lastSeen": "0001-01-01T00:00:00Z",
+    "lastSeenStr": "Never",
+    "addedAt": "2026-01-10T17:29:36.0987165+01:00",
+    "spotCount": 0,
     "playSound": true,
     "isContest": false
   },
   {
-    "callsign": "V85NPV",
-    "lastSeen": "2026-01-14T00:23:52.8367633+01:00",
-    "lastSeenStr": "8 hours ago",
-    "addedAt": "2025-10-18T17:18:15.8781583+02:00",
-    "spotCount": 119,
+    "callsign": "VE9WWA",
+    "lastSeen": "2026-01-16T21:40:44.1223323+01:00",
+    "lastSeenStr": "2 hours ago",
+    "addedAt": "2026-01-02T12:06:28.457441+01:00",
+    "spotCount": 842,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "HS25SG",
+    "lastSeen": "2025-12-30T15:54:26.0256138+01:00",
+    "lastSeenStr": "17 days ago",
+    "addedAt": "2025-12-07T12:32:23.2987034+01:00",
+    "spotCount": 869,
     "playSound": true,
     "isContest": false
   },
   {
-    "callsign": "OP2WWA",
-    "lastSeen": "2026-01-04T15:39:53.4585841+01:00",
-    "lastSeenStr": "9 days ago",
-    "addedAt": "2026-01-04T15:39:53.4550896+01:00",
+    "callsign": "EW2WWA",
+    "lastSeen": "2026-01-06T17:04:24.6474548+01:00",
+    "lastSeenStr": "10 days ago",
+    "addedAt": "2026-01-06T17:04:24.6443985+01:00",
     "spotCount": 1,
     "playSound": true,
     "isContest": true
   },
   {
-    "callsign": "DA0WWWA",
-    "lastSeen": "2026-01-06T00:18:59.4910854+01:00",
-    "lastSeenStr": "8 days ago",
-    "addedAt": "2026-01-06T00:18:59.4873996+01:00",
+    "callsign": "TM2WWA",
+    "lastSeen": "2026-01-16T18:20:08.6082118+01:00",
+    "lastSeenStr": "5 hours ago",
+    "addedAt": "2026-01-04T12:35:11.8667246+01:00",
+    "spotCount": 7,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "9M2WWA",
+    "lastSeen": "2026-01-13T14:55:56.3238628+01:00",
+    "lastSeenStr": "3 days ago",
+    "addedAt": "2026-01-02T12:06:48.2642872+01:00",
+    "spotCount": 17,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "NA0WWA",
+    "lastSeen": "2026-01-10T10:21:31.7662121+01:00",
+    "lastSeenStr": "6 days ago",
+    "addedAt": "2026-01-10T10:21:30.1763477+01:00",
+    "spotCount": 2,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "PJ5",
+    "lastSeen": "2025-11-25T21:01:31.2810955+01:00",
+    "lastSeenStr": "52 days ago",
+    "addedAt": "2025-11-14T08:02:34.6350904+01:00",
+    "spotCount": 13,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "SN0WWA",
+    "lastSeen": "2026-01-16T22:03:21.0478814+01:00",
+    "lastSeenStr": "1 hour ago",
+    "addedAt": "2026-01-02T05:56:42.0178847+01:00",
+    "spotCount": 2639,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "KP5/NP3VI",
+    "lastSeen": "2026-01-16T23:49:40.0267469+01:00",
+    "lastSeenStr": "Just now",
+    "addedAt": "2026-01-12T23:07:02.1980378+01:00",
+    "spotCount": 118,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "GB6WWA",
+    "lastSeen": "2026-01-16T21:15:23.0440596+01:00",
+    "lastSeenStr": "2 hours ago",
+    "addedAt": "2026-01-02T09:32:02.1079431+01:00",
+    "spotCount": 656,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "SC9WWA",
+    "lastSeen": "2026-01-16T21:18:03.6519284+01:00",
+    "lastSeenStr": "2 hours ago",
+    "addedAt": "2026-01-02T15:50:37.7081206+01:00",
+    "spotCount": 595,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "S54WWA",
+    "lastSeen": "2026-01-10T15:11:50.5443274+01:00",
+    "lastSeenStr": "6 days ago",
+    "addedAt": "2026-01-04T14:47:10.7775396+01:00",
+    "spotCount": 2,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "T88",
+    "lastSeen": "2026-01-14T14:59:45.261899+01:00",
+    "lastSeenStr": "2 days ago",
+    "addedAt": "2025-11-14T18:55:01.2770796+01:00",
+    "spotCount": 242,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "KC4/WE9G",
+    "lastSeen": "0001-01-01T00:00:00Z",
+    "lastSeenStr": "Never",
+    "addedAt": "2025-11-16T13:40:29.4734276+01:00",
+    "spotCount": 0,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "CS9WWA",
+    "lastSeen": "2026-01-03T13:40:56.9282012+01:00",
+    "lastSeenStr": "13 days ago",
+    "addedAt": "2026-01-03T13:40:56.9254761+01:00",
+    "spotCount": 1,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "TI9WWA",
+    "lastSeen": "2026-01-04T23:07:20.6172925+01:00",
+    "lastSeenStr": "12 days ago",
+    "addedAt": "2026-01-04T23:07:20.6139217+01:00",
+    "spotCount": 1,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "PY0FB",
+    "lastSeen": "0001-01-01T00:00:00Z",
+    "lastSeenStr": "Never",
+    "addedAt": "2025-10-18T17:17:24.3843986+02:00",
+    "spotCount": 0,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "OP7WWA",
+    "lastSeen": "2026-01-02T10:00:00.4316172+01:00",
+    "lastSeenStr": "14 days ago",
+    "addedAt": "2026-01-02T10:00:00.4278965+01:00",
+    "spotCount": 1,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "G3WWA",
+    "lastSeen": "2026-01-14T16:17:02.0166295+01:00",
+    "lastSeenStr": "2 days ago",
+    "addedAt": "2026-01-02T18:41:18.2916472+01:00",
+    "spotCount": 7,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "TJ1GD",
+    "lastSeen": "2026-01-16T21:08:01.7106855+01:00",
+    "lastSeenStr": "2 hours ago",
+    "addedAt": "2025-10-18T17:18:27.6004027+02:00",
+    "spotCount": 877,
+    "playSound": false,
+    "isContest": false
+  },
+  {
+    "callsign": "5X7W",
+    "lastSeen": "2025-12-06T20:48:18.2822777+01:00",
+    "lastSeenStr": "41 days ago",
+    "addedAt": "2025-11-25T20:30:22.4180676+01:00",
+    "spotCount": 8,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "AU7RS",
+    "lastSeen": "0001-01-01T00:00:00Z",
+    "lastSeenStr": "Never",
+    "addedAt": "2026-01-05T00:46:33.1977352+01:00",
+    "spotCount": 0,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "YU45MJA",
+    "lastSeen": "2026-01-16T21:43:53.4504264+01:00",
+    "lastSeenStr": "1 hour ago",
+    "addedAt": "2026-01-02T09:23:22.5899255+01:00",
+    "spotCount": 1310,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "N1W",
+    "lastSeen": "2026-01-16T22:49:41.0418276+01:00",
+    "lastSeenStr": "51 minutes ago",
+    "addedAt": "2026-01-02T03:52:32.3207015+01:00",
+    "spotCount": 2387,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "GB4WWA",
+    "lastSeen": "2026-01-16T21:21:56.2983309+01:00",
+    "lastSeenStr": "2 hours ago",
+    "addedAt": "2026-01-02T13:20:04.7964202+01:00",
+    "spotCount": 933,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "GD4WWA",
+    "lastSeen": "2026-01-02T23:15:30.5102562+01:00",
+    "lastSeenStr": "14 days ago",
+    "addedAt": "2026-01-02T16:24:53.4978098+01:00",
+    "spotCount": 2,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "G1WWA",
+    "lastSeen": "2026-01-13T16:56:31.4553626+01:00",
+    "lastSeenStr": "3 days ago",
+    "addedAt": "2026-01-03T18:05:07.0064575+01:00",
+    "spotCount": 3,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "TY5GG",
+    "lastSeen": "2026-01-16T18:41:34.4717385+01:00",
+    "lastSeenStr": "4 hours ago",
+    "addedAt": "2026-01-05T00:46:43.290756+01:00",
+    "spotCount": 48,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "VW9WWA",
+    "lastSeen": "2026-01-02T20:32:08.8542912+01:00",
+    "lastSeenStr": "14 days ago",
+    "addedAt": "2026-01-02T20:32:08.851645+01:00",
+    "spotCount": 1,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "OP6WWA",
+    "lastSeen": "2026-01-10T16:51:31.7150582+01:00",
+    "lastSeenStr": "6 days ago",
+    "addedAt": "2026-01-04T16:00:34.4238612+01:00",
+    "spotCount": 2,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "SN5WWA",
+    "lastSeen": "2026-01-15T15:11:26.7900028+01:00",
+    "lastSeenStr": "1 day ago",
+    "addedAt": "2026-01-04T16:46:51.5053342+01:00",
+    "spotCount": 2,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "T2JK",
+    "lastSeen": "2025-11-20T19:08:54.2416382+01:00",
+    "lastSeenStr": "57 days ago",
+    "addedAt": "2025-11-11T18:57:03.9342979+01:00",
+    "spotCount": 31,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "I3WWA",
+    "lastSeen": "2026-01-11T08:53:27.2630429+01:00",
+    "lastSeenStr": "5 days ago",
+    "addedAt": "2026-01-02T07:06:27.1814619+01:00",
+    "spotCount": 3,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "VE6WWA",
+    "lastSeen": "2026-01-16T21:53:58.4814866+01:00",
+    "lastSeenStr": "1 hour ago",
+    "addedAt": "2026-01-16T21:53:58.4777513+01:00",
+    "spotCount": 1,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "SO3WWA",
+    "lastSeen": "2026-01-16T21:23:57.6020007+01:00",
+    "lastSeenStr": "2 hours ago",
+    "addedAt": "2026-01-02T06:59:02.7887624+01:00",
+    "spotCount": 1773,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "IW6WWA",
+    "lastSeen": "2026-01-06T19:53:39.3845071+01:00",
+    "lastSeenStr": "10 days ago",
+    "addedAt": "2026-01-06T19:53:39.3806217+01:00",
+    "spotCount": 1,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "3D2AG",
+    "lastSeen": "2026-01-15T13:20:20.217303+01:00",
+    "lastSeenStr": "1 day ago",
+    "addedAt": "2025-12-25T13:01:57.756112+02:00",
+    "spotCount": 123,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "I6WWA",
+    "lastSeen": "2026-01-15T22:14:00.7311603+01:00",
+    "lastSeenStr": "1 day ago",
+    "addedAt": "2026-01-03T11:52:54.6355216+01:00",
+    "spotCount": 7,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "4M5DX",
+    "lastSeen": "2026-01-16T18:00:56.2035102+01:00",
+    "lastSeenStr": "5 hours ago",
+    "addedAt": "2026-01-02T03:52:32.3719323+01:00",
+    "spotCount": 122,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "KC4USV",
+    "lastSeen": "2025-11-20T20:30:25.441016+01:00",
+    "lastSeenStr": "57 days ago",
+    "addedAt": "2025-11-18T08:54:05.466599+01:00",
+    "spotCount": 1,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "EG6WWA",
+    "lastSeen": "2026-01-16T18:32:23.9241737+01:00",
+    "lastSeenStr": "5 hours ago",
+    "addedAt": "2026-01-02T15:22:31.2337634+01:00",
+    "spotCount": 615,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "E25KAE",
+    "lastSeen": "2025-12-31T17:14:51.0797061+01:00",
+    "lastSeenStr": "16 days ago",
+    "addedAt": "2025-12-20T12:12:38.7346482+01:00",
+    "spotCount": 26,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "EG99WWA",
+    "lastSeen": "2026-01-07T19:10:48.3920346+01:00",
+    "lastSeenStr": "9 days ago",
+    "addedAt": "2026-01-07T19:10:48.3894105+01:00",
+    "spotCount": 1,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "I31WWA",
+    "lastSeen": "2026-01-02T14:36:18.3676114+01:00",
+    "lastSeenStr": "14 days ago",
+    "addedAt": "2026-01-02T14:36:18.3644877+01:00",
+    "spotCount": 1,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "GB6WWWA",
+    "lastSeen": "2026-01-10T12:50:33.3684933+01:00",
+    "lastSeenStr": "6 days ago",
+    "addedAt": "2026-01-10T12:50:33.3657983+01:00",
+    "spotCount": 1,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "AT4WWA",
+    "lastSeen": "2026-01-11T12:55:31.1910234+01:00",
+    "lastSeenStr": "5 days ago",
+    "addedAt": "2026-01-02T15:24:21.6167159+01:00",
+    "spotCount": 29,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "LW0WWA",
+    "lastSeen": "2026-01-10T16:36:24.7908466+01:00",
+    "lastSeenStr": "6 days ago",
+    "addedAt": "2026-01-10T16:36:24.7860292+01:00",
+    "spotCount": 1,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "3G0YR",
+    "lastSeen": "2025-11-26T18:38:20.5221616+01:00",
+    "lastSeenStr": "51 days ago",
+    "addedAt": "2025-11-16T13:40:47.8008906+01:00",
+    "spotCount": 1,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "TM7WWA",
+    "lastSeen": "2026-01-16T23:00:31.8780112+01:00",
+    "lastSeenStr": "40 minutes ago",
+    "addedAt": "2026-01-02T07:22:23.5880081+01:00",
+    "spotCount": 2939,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "PC2WWA",
+    "lastSeen": "2026-01-14T10:52:11.8261303+01:00",
+    "lastSeenStr": "2 days ago",
+    "addedAt": "2026-01-06T16:19:41.156115+01:00",
+    "spotCount": 2,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "EI2WWA",
+    "lastSeen": "2026-01-16T22:32:12.0194577+01:00",
+    "lastSeenStr": "1 hour ago",
+    "addedAt": "2026-01-16T22:32:12.0161555+01:00",
+    "spotCount": 1,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "AT7WWA",
+    "lastSeen": "2026-01-16T18:47:39.2486825+01:00",
+    "lastSeenStr": "4 hours ago",
+    "addedAt": "2026-01-02T11:50:49.5858454+01:00",
+    "spotCount": 545,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "G2WWA",
+    "lastSeen": "2026-01-11T18:17:06.9024082+01:00",
+    "lastSeenStr": "5 days ago",
+    "addedAt": "2026-01-02T22:49:42.8928095+01:00",
+    "spotCount": 9,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "I1WWA",
+    "lastSeen": "2026-01-11T17:45:48.2309806+01:00",
+    "lastSeenStr": "5 days ago",
+    "addedAt": "2026-01-02T20:18:50.6361545+01:00",
+    "spotCount": 9,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "EA6WWA",
+    "lastSeen": "2026-01-15T12:37:47.1177222+01:00",
+    "lastSeenStr": "1 day ago",
+    "addedAt": "2026-01-09T17:58:01.7119066+01:00",
+    "spotCount": 3,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "Z30WWA",
+    "lastSeen": "2026-01-16T21:21:40.68767+01:00",
+    "lastSeenStr": "2 hours ago",
+    "addedAt": "2026-01-02T06:13:14.9295663+01:00",
+    "spotCount": 1659,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "HZ1WWA",
+    "lastSeen": "2026-01-16T18:39:55.0441334+01:00",
+    "lastSeenStr": "5 hours ago",
+    "addedAt": "2026-01-09T13:08:57.7754899+01:00",
+    "spotCount": 424,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "IR0WWA",
+    "lastSeen": "2026-01-16T21:20:57.3092155+01:00",
+    "lastSeenStr": "2 hours ago",
+    "addedAt": "2026-01-02T08:47:37.7034341+01:00",
+    "spotCount": 1666,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "DX1WWA",
+    "lastSeen": "2026-01-09T17:35:52.3825064+01:00",
+    "lastSeenStr": "7 days ago",
+    "addedAt": "2026-01-09T17:35:52.3783969+01:00",
+    "spotCount": 1,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "3W9A",
+    "lastSeen": "2026-01-10T15:04:23.0656154+01:00",
+    "lastSeenStr": "6 days ago",
+    "addedAt": "2025-10-23T20:42:24.5787678+02:00",
+    "spotCount": 146,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "HQ9X",
+    "lastSeen": "0001-01-01T00:00:00Z",
+    "lastSeenStr": "Never",
+    "addedAt": "2025-11-25T20:31:23.932942+01:00",
+    "spotCount": 0,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "HB8WWA",
+    "lastSeen": "2026-01-09T18:28:09.1412521+01:00",
+    "lastSeenStr": "7 days ago",
+    "addedAt": "2026-01-09T18:28:09.1379438+01:00",
     "spotCount": 1,
     "playSound": true,
     "isContest": true
@@ -2702,100 +1640,1207 @@
   {
     "callsign": "ZS7ANF",
     "lastSeen": "2026-01-10T20:38:11.6055238+01:00",
-    "lastSeenStr": "3 days ago",
+    "lastSeenStr": "6 days ago",
     "addedAt": "2025-11-10T20:27:11.9406856+01:00",
     "spotCount": 61,
     "playSound": true,
     "isContest": false
   },
   {
-    "callsign": "W4I",
-    "lastSeen": "2026-01-14T08:47:47.1989942+01:00",
-    "lastSeenStr": "Just now",
-    "addedAt": "2026-01-02T03:52:32.3085524+01:00",
-    "spotCount": 2427,
+    "callsign": "C6AQQ",
+    "lastSeen": "0001-01-01T00:00:00Z",
+    "lastSeenStr": "Never",
+    "addedAt": "2025-11-25T20:30:44.0738984+01:00",
+    "spotCount": 0,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "EA0WWA",
+    "lastSeen": "2026-01-14T12:03:02.2067375+01:00",
+    "lastSeenStr": "2 days ago",
+    "addedAt": "2026-01-06T12:13:06.0586693+01:00",
+    "spotCount": 2,
     "playSound": true,
     "isContest": true
   },
   {
-    "callsign": "3DA0",
-    "lastSeen": "2026-01-03T22:20:18.1790414+01:00",
+    "callsign": "T88AC",
+    "lastSeen": "2025-12-17T14:25:57.7368909+01:00",
+    "lastSeenStr": "30 days ago",
+    "addedAt": "2025-12-11T20:56:20.7397456+01:00",
+    "spotCount": 87,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "J38WG",
+    "lastSeen": "2026-01-16T01:10:30.6144649+01:00",
+    "lastSeenStr": "22 hours ago",
+    "addedAt": "2025-12-22T17:25:44.595895+02:00",
+    "spotCount": 962,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "VK0TBC",
+    "lastSeen": "0001-01-01T00:00:00Z",
+    "lastSeenStr": "Never",
+    "addedAt": "2026-01-10T17:28:46.889538+01:00",
+    "spotCount": 0,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "II7WWA",
+    "lastSeen": "2026-01-16T22:52:27.6098582+01:00",
+    "lastSeenStr": "48 minutes ago",
+    "addedAt": "2026-01-02T04:00:41.7705151+01:00",
+    "spotCount": 3296,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "XU7GNY",
+    "lastSeen": "0001-01-01T00:00:00Z",
+    "lastSeenStr": "Never",
+    "addedAt": "2025-12-22T17:25:34.2618321+02:00",
+    "spotCount": 0,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "5H3MB",
+    "lastSeen": "2025-11-17T20:39:09.7164823+01:00",
+    "lastSeenStr": "60 days ago",
+    "addedAt": "2025-10-18T17:18:42.8402097+02:00",
+    "spotCount": 233,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "HB9WWA",
+    "lastSeen": "2026-01-16T22:54:11.2540687+01:00",
+    "lastSeenStr": "47 minutes ago",
+    "addedAt": "2026-01-02T07:00:06.6245598+01:00",
+    "spotCount": 2871,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "BY8MA",
+    "lastSeen": "2026-01-16T21:23:59.0562343+01:00",
+    "lastSeenStr": "2 hours ago",
+    "addedAt": "2026-01-02T03:52:32.4454154+01:00",
+    "spotCount": 1025,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "EL2BG",
+    "lastSeen": "2026-01-16T18:11:48.2091476+01:00",
+    "lastSeenStr": "5 hours ago",
+    "addedAt": "2025-10-18T17:18:10.2000017+02:00",
+    "spotCount": 591,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "XW4KV",
+    "lastSeen": "2026-01-16T12:44:36.9835587+01:00",
+    "lastSeenStr": "10 hours ago",
+    "addedAt": "2025-12-11T20:54:19.3067736+01:00",
+    "spotCount": 516,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "VP8LP",
+    "lastSeen": "2026-01-06T18:16:07.796921+01:00",
     "lastSeenStr": "10 days ago",
-    "addedAt": "2025-12-29T20:50:01.2803029+01:00",
-    "spotCount": 13,
+    "addedAt": "2025-10-18T17:18:49.0576187+02:00",
+    "spotCount": 118,
     "playSound": true,
     "isContest": false
   },
   {
-    "callsign": "S21SDX",
-    "lastSeen": "2025-11-13T11:53:16.5941729+01:00",
-    "lastSeenStr": "61 days ago",
-    "addedAt": "2025-11-10T20:27:00.4756217+01:00",
-    "spotCount": 15,
-    "playSound": true,
-    "isContest": false
-  },
-  {
-    "callsign": "YU45WWA",
-    "lastSeen": "2026-01-13T21:19:16.6327367+01:00",
-    "lastSeenStr": "11 hours ago",
-    "addedAt": "2026-01-05T19:42:08.1119644+01:00",
-    "spotCount": 3,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "GB8WWA",
-    "lastSeen": "2026-01-12T21:50:01.7790919+01:00",
-    "lastSeenStr": "1 day ago",
-    "addedAt": "2026-01-02T16:57:35.6324862+01:00",
-    "spotCount": 138,
-    "playSound": true,
-    "isContest": true
-  },
-  {
-    "callsign": "UT2WWA",
-    "lastSeen": "2026-01-02T15:37:14.9320519+01:00",
-    "lastSeenStr": "11 days ago",
-    "addedAt": "2026-01-02T15:37:14.9293+01:00",
+    "callsign": "E70WWA",
+    "lastSeen": "2026-01-16T22:20:57.8707538+01:00",
+    "lastSeenStr": "1 hour ago",
+    "addedAt": "2026-01-16T22:20:57.8668493+01:00",
     "spotCount": 1,
     "playSound": true,
     "isContest": true
   },
   {
-    "callsign": "PC26WWA",
-    "lastSeen": "2026-01-13T23:08:29.075106+01:00",
-    "lastSeenStr": "9 hours ago",
-    "addedAt": "2026-01-02T10:54:34.5662399+01:00",
-    "spotCount": 196,
+    "callsign": "GB1WWA",
+    "lastSeen": "2026-01-07T14:50:54.2709564+01:00",
+    "lastSeenStr": "9 days ago",
+    "addedAt": "2026-01-02T15:48:38.575121+01:00",
+    "spotCount": 14,
     "playSound": true,
     "isContest": true
   },
   {
-    "callsign": "BA7CK",
-    "lastSeen": "2026-01-14T08:29:53.1592513+01:00",
-    "lastSeenStr": "15 minutes ago",
-    "addedAt": "2026-01-02T03:52:32.3978418+01:00",
-    "spotCount": 126,
+    "callsign": "II59WWA",
+    "lastSeen": "2026-01-02T17:09:11.2763512+01:00",
+    "lastSeenStr": "14 days ago",
+    "addedAt": "2026-01-02T17:09:11.2735628+01:00",
+    "spotCount": 1,
     "playSound": true,
     "isContest": true
+  },
+  {
+    "callsign": "PJ4K",
+    "lastSeen": "2026-01-06T22:32:32.7934796+01:00",
+    "lastSeenStr": "10 days ago",
+    "addedAt": "2025-11-11T18:57:27.014291+01:00",
+    "spotCount": 41,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "AT44I",
+    "lastSeen": "2026-01-16T17:48:33.2149849+01:00",
+    "lastSeenStr": "5 hours ago",
+    "addedAt": "2025-11-14T18:55:03.3702844+01:00",
+    "spotCount": 94,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "BH9CA",
+    "lastSeen": "2026-01-15T23:21:27.4758208+01:00",
+    "lastSeenStr": "1 day ago",
+    "addedAt": "2026-01-02T03:52:32.4111169+01:00",
+    "spotCount": 130,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "EG8WW",
+    "lastSeen": "2026-01-16T21:09:43.3693669+01:00",
+    "lastSeenStr": "2 hours ago",
+    "addedAt": "2026-01-03T09:40:36.186703+01:00",
+    "spotCount": 1487,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "VC1WWA",
+    "lastSeen": "2026-01-16T19:38:03.1654552+01:00",
+    "lastSeenStr": "4 hours ago",
+    "addedAt": "2026-01-02T15:02:17.3638433+01:00",
+    "spotCount": 34,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "I0WWA",
+    "lastSeen": "2026-01-10T07:52:52.2552166+01:00",
+    "lastSeenStr": "6 days ago",
+    "addedAt": "2026-01-06T11:54:11.995716+01:00",
+    "spotCount": 2,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "II8WWA",
+    "lastSeen": "2026-01-16T21:20:46.0937287+01:00",
+    "lastSeenStr": "2 hours ago",
+    "addedAt": "2026-01-02T09:10:48.0166905+01:00",
+    "spotCount": 2130,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "RW1F",
+    "lastSeen": "2026-01-16T23:52:09.06099+01:00",
+    "lastSeenStr": "Just now",
+    "addedAt": "2026-01-02T03:52:32.3513599+01:00",
+    "spotCount": 1613,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "ZW5B",
+    "lastSeen": "2026-01-16T21:15:19.7158146+01:00",
+    "lastSeenStr": "2 hours ago",
+    "addedAt": "2026-01-02T03:52:32.4781453+01:00",
+    "spotCount": 1530,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "V6HUCHIDA",
+    "lastSeen": "0001-01-01T00:00:00Z",
+    "lastSeenStr": "Never",
+    "addedAt": "2025-12-11T20:57:18.0361298+01:00",
+    "spotCount": 0,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "V51",
+    "lastSeen": "2026-01-16T20:23:06.1848698+01:00",
+    "lastSeenStr": "3 hours ago",
+    "addedAt": "2025-12-25T13:02:01.3019789+02:00",
+    "spotCount": 241,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "C8K",
+    "lastSeen": "0001-01-01T00:00:00Z",
+    "lastSeenStr": "Never",
+    "addedAt": "2025-10-18T17:18:39.8627992+02:00",
+    "spotCount": 0,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "GD2WWA",
+    "lastSeen": "2026-01-09T21:16:53.9756628+01:00",
+    "lastSeenStr": "7 days ago",
+    "addedAt": "2026-01-09T21:11:36.3072044+01:00",
+    "spotCount": 2,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "YU0WWA",
+    "lastSeen": "2026-01-03T15:38:25.8181746+01:00",
+    "lastSeenStr": "13 days ago",
+    "addedAt": "2026-01-03T15:32:32.5527795+01:00",
+    "spotCount": 3,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "IB9WWA",
+    "lastSeen": "2026-01-02T15:05:44.3700589+01:00",
+    "lastSeenStr": "14 days ago",
+    "addedAt": "2026-01-02T15:05:44.3672991+01:00",
+    "spotCount": 1,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "A43WWA",
+    "lastSeen": "2026-01-16T21:21:27.0085591+01:00",
+    "lastSeenStr": "2 hours ago",
+    "addedAt": "2026-01-02T08:25:59.6426837+01:00",
+    "spotCount": 2516,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "BY5HB",
+    "lastSeen": "2026-01-16T23:54:27.093134+01:00",
+    "lastSeenStr": "Just now",
+    "addedAt": "2026-01-05T01:18:54.1399948+01:00",
+    "spotCount": 1166,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "DA0WWWA",
+    "lastSeen": "2026-01-06T00:18:59.4910854+01:00",
+    "lastSeenStr": "10 days ago",
+    "addedAt": "2026-01-06T00:18:59.4873996+01:00",
+    "spotCount": 1,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "BY6SX",
+    "lastSeen": "2026-01-16T13:44:59.5850715+01:00",
+    "lastSeenStr": "9 hours ago",
+    "addedAt": "2026-01-02T03:52:32.441172+01:00",
+    "spotCount": 248,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "V85NPV",
+    "lastSeen": "2026-01-16T16:38:45.7411506+01:00",
+    "lastSeenStr": "7 hours ago",
+    "addedAt": "2025-10-18T17:18:15.8781583+02:00",
+    "spotCount": 140,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "DB2WWA",
+    "lastSeen": "2026-01-06T17:03:21.8895692+01:00",
+    "lastSeenStr": "10 days ago",
+    "addedAt": "2026-01-06T17:03:21.8857163+01:00",
+    "spotCount": 1,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "IB4WWA",
+    "lastSeen": "2026-01-04T21:39:41.0387244+01:00",
+    "lastSeenStr": "12 days ago",
+    "addedAt": "2026-01-04T21:39:41.0354351+01:00",
+    "spotCount": 1,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "YO0WWA",
+    "lastSeen": "2026-01-16T23:29:01.8250599+01:00",
+    "lastSeenStr": "12 minutes ago",
+    "addedAt": "2026-01-02T07:19:11.6718387+01:00",
+    "spotCount": 3873,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "UP7WWWA",
+    "lastSeen": "2026-01-09T15:06:02.3568665+01:00",
+    "lastSeenStr": "7 days ago",
+    "addedAt": "2026-01-09T15:06:02.3535997+01:00",
+    "spotCount": 1,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "N2RJ",
+    "lastSeen": "2026-01-16T05:11:23.9584845+01:00",
+    "lastSeenStr": "18 hours ago",
+    "addedAt": "2026-01-04T18:52:11.3865393+01:00",
+    "spotCount": 55,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "GB8WWA",
+    "lastSeen": "2026-01-14T20:22:19.1095017+01:00",
+    "lastSeenStr": "2 days ago",
+    "addedAt": "2026-01-02T16:57:35.6324862+01:00",
+    "spotCount": 141,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "8R1WA",
+    "lastSeen": "0001-01-01T00:00:00Z",
+    "lastSeenStr": "Never",
+    "addedAt": "2026-01-12T23:03:01.8893576+01:00",
+    "spotCount": 0,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "DB6WWA",
+    "lastSeen": "2026-01-06T16:53:24.2430472+01:00",
+    "lastSeenStr": "10 days ago",
+    "addedAt": "2026-01-06T16:53:24.239411+01:00",
+    "spotCount": 1,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "IN3WWA",
+    "lastSeen": "2026-01-04T13:27:34.2501157+01:00",
+    "lastSeenStr": "12 days ago",
+    "addedAt": "2026-01-02T13:01:47.4857188+01:00",
+    "spotCount": 3,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "I2WWA",
+    "lastSeen": "2026-01-10T12:16:32.2701483+01:00",
+    "lastSeenStr": "6 days ago",
+    "addedAt": "2026-01-02T15:36:12.0911409+01:00",
+    "spotCount": 5,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "TM29WWA",
+    "lastSeen": "2026-01-16T22:46:25.4498168+01:00",
+    "lastSeenStr": "54 minutes ago",
+    "addedAt": "2026-01-02T06:39:16.4795172+01:00",
+    "spotCount": 2674,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "IZ0WWA",
+    "lastSeen": "2026-01-16T01:47:02.4897945+01:00",
+    "lastSeenStr": "21 hours ago",
+    "addedAt": "2026-01-04T17:57:50.7651094+01:00",
+    "spotCount": 7,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "YL73R",
+    "lastSeen": "2026-01-16T21:38:35.5392113+01:00",
+    "lastSeenStr": "2 hours ago",
+    "addedAt": "2026-01-10T23:44:25.8890338+01:00",
+    "spotCount": 884,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "I7WWA",
+    "lastSeen": "2026-01-14T11:15:01.4092612+01:00",
+    "lastSeenStr": "2 days ago",
+    "addedAt": "2026-01-03T17:59:30.8359372+01:00",
+    "spotCount": 2,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "LZ1WWA",
+    "lastSeen": "2026-01-09T14:24:31.6546616+01:00",
+    "lastSeenStr": "7 days ago",
+    "addedAt": "2026-01-06T13:40:59.0479538+01:00",
+    "spotCount": 2,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "YJ0CA",
+    "lastSeen": "2025-10-23T09:14:00.5419174+02:00",
+    "lastSeenStr": "85 days ago",
+    "addedAt": "2025-10-18T17:17:33.3921665+02:00",
+    "spotCount": 1,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "TZ4AM",
+    "lastSeen": "2026-01-16T23:25:12.8817579+01:00",
+    "lastSeenStr": "16 minutes ago",
+    "addedAt": "2025-10-18T17:19:00.3154177+02:00",
+    "spotCount": 770,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "T7WWA",
+    "lastSeen": "2026-01-02T10:53:05.0526181+01:00",
+    "lastSeenStr": "14 days ago",
+    "addedAt": "2026-01-02T10:53:05.049378+01:00",
+    "spotCount": 1,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "CV5WWA",
+    "lastSeen": "2026-01-09T18:32:36.9391161+01:00",
+    "lastSeenStr": "7 days ago",
+    "addedAt": "2026-01-09T18:32:36.9364143+01:00",
+    "spotCount": 1,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "P44W",
+    "lastSeen": "0001-01-01T00:00:00Z",
+    "lastSeenStr": "Never",
+    "addedAt": "2025-11-18T08:38:26.4401444+01:00",
+    "spotCount": 0,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "TM26WWA",
+    "lastSeen": "2026-01-04T22:07:26.6961962+01:00",
+    "lastSeenStr": "12 days ago",
+    "addedAt": "2026-01-04T22:07:26.6908195+01:00",
+    "spotCount": 1,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "5J0EA",
+    "lastSeen": "2025-11-26T19:05:59.3367587+01:00",
+    "lastSeenStr": "51 days ago",
+    "addedAt": "2025-10-18T17:17:51.0758741+02:00",
+    "spotCount": 53,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "A52AA",
+    "lastSeen": "0001-01-01T00:00:00Z",
+    "lastSeenStr": "Never",
+    "addedAt": "2025-10-28T22:44:18.1202597+01:00",
+    "spotCount": 0,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "DM0WWA",
+    "lastSeen": "2026-01-02T20:59:46.6471759+01:00",
+    "lastSeenStr": "14 days ago",
+    "addedAt": "2026-01-02T20:59:46.6445011+01:00",
+    "spotCount": 1,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "US4WWA",
+    "lastSeen": "2026-01-03T23:21:41.980027+01:00",
+    "lastSeenStr": "13 days ago",
+    "addedAt": "2026-01-03T23:21:41.9763908+01:00",
+    "spotCount": 1,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "D4W",
+    "lastSeen": "2026-01-11T17:10:42.0966977+01:00",
+    "lastSeenStr": "5 days ago",
+    "addedAt": "2026-01-02T03:52:32.4517307+01:00",
+    "spotCount": 110,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "3B9KW",
+    "lastSeen": "0001-01-01T00:00:00Z",
+    "lastSeenStr": "Never",
+    "addedAt": "2025-11-25T20:29:53.0219945+01:00",
+    "spotCount": 0,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "N4W",
+    "lastSeen": "2026-01-16T20:15:36.3142117+01:00",
+    "lastSeenStr": "3 hours ago",
+    "addedAt": "2026-01-02T03:52:32.3265733+01:00",
+    "spotCount": 1533,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "ZL7/LZ1GC",
+    "lastSeen": "2025-11-20T11:13:27.5589025+01:00",
+    "lastSeenStr": "57 days ago",
+    "addedAt": "2025-11-03T20:44:07.0333965+01:00",
+    "spotCount": 582,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "MD4WWA",
+    "lastSeen": "2026-01-02T22:56:12.5436141+01:00",
+    "lastSeenStr": "14 days ago",
+    "addedAt": "2026-01-02T22:56:12.5410086+01:00",
+    "spotCount": 1,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "N3WWA",
+    "lastSeen": "2026-01-15T20:36:01.5453527+01:00",
+    "lastSeenStr": "1 day ago",
+    "addedAt": "2026-01-02T17:03:44.7728806+01:00",
+    "spotCount": 5,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "E51MWA",
+    "lastSeen": "0001-01-01T00:00:00Z",
+    "lastSeenStr": "Never",
+    "addedAt": "2025-10-18T17:17:43.6895454+02:00",
+    "spotCount": 0,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "TW1WWA",
+    "lastSeen": "2026-01-04T10:51:07.1792714+01:00",
+    "lastSeenStr": "12 days ago",
+    "addedAt": "2026-01-04T10:51:07.1746633+01:00",
+    "spotCount": 1,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "HP3",
+    "lastSeen": "2026-01-16T08:28:39.2123128+01:00",
+    "lastSeenStr": "15 hours ago",
+    "addedAt": "2025-11-18T08:38:19.7574794+01:00",
+    "spotCount": 92,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "5V7RU",
+    "lastSeen": "2025-11-18T20:13:54.5939468+01:00",
+    "lastSeenStr": "59 days ago",
+    "addedAt": "2025-11-03T20:43:40.9865712+01:00",
+    "spotCount": 2065,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "AT21WWA",
+    "lastSeen": "2026-01-10T12:02:16.0095395+01:00",
+    "lastSeenStr": "6 days ago",
+    "addedAt": "2026-01-10T12:02:16.0053998+01:00",
+    "spotCount": 1,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "6W1RD",
+    "lastSeen": "2025-11-21T19:53:28.7049173+01:00",
+    "lastSeenStr": "56 days ago",
+    "addedAt": "2025-11-02T16:13:09.7633704+01:00",
+    "spotCount": 59,
+    "playSound": true,
+    "isContest": false
   },
   {
     "callsign": "YJ0GC",
     "lastSeen": "2025-12-04T12:52:44.0078091+01:00",
-    "lastSeenStr": "40 days ago",
+    "lastSeenStr": "43 days ago",
     "addedAt": "2025-12-03T21:32:15.5679645+01:00",
     "spotCount": 1,
     "playSound": true,
     "isContest": false
   },
   {
-    "callsign": "AT44I",
-    "lastSeen": "2025-12-29T21:52:57.7673524+01:00",
-    "lastSeenStr": "15 days ago",
-    "addedAt": "2025-11-14T18:55:03.3702844+01:00",
-    "spotCount": 88,
+    "callsign": "TM77WWA",
+    "lastSeen": "2026-01-10T11:35:53.7585477+01:00",
+    "lastSeenStr": "6 days ago",
+    "addedAt": "2026-01-10T11:32:21.6071193+01:00",
+    "spotCount": 2,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "CQ7WWA",
+    "lastSeen": "2026-01-16T22:07:05.3858328+01:00",
+    "lastSeenStr": "1 hour ago",
+    "addedAt": "2026-01-02T09:25:26.8989534+01:00",
+    "spotCount": 4114,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "I5WWA",
+    "lastSeen": "2026-01-11T07:14:07.9140698+01:00",
+    "lastSeenStr": "5 days ago",
+    "addedAt": "2026-01-04T16:45:02.8659179+01:00",
+    "spotCount": 8,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "E2WWA",
+    "lastSeen": "2026-01-16T21:17:25.1838213+01:00",
+    "lastSeenStr": "2 hours ago",
+    "addedAt": "2026-01-02T03:53:03.9404172+01:00",
+    "spotCount": 1580,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "B4WWA",
+    "lastSeen": "2026-01-13T21:57:21.3651706+01:00",
+    "lastSeenStr": "3 days ago",
+    "addedAt": "2026-01-02T16:18:55.8161034+01:00",
+    "spotCount": 4,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "PD26WWA",
+    "lastSeen": "2026-01-14T20:17:37.2004244+01:00",
+    "lastSeenStr": "2 days ago",
+    "addedAt": "2026-01-02T11:32:42.3192129+01:00",
+    "spotCount": 36,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "N2WWA",
+    "lastSeen": "2026-01-07T07:48:00.0552745+01:00",
+    "lastSeenStr": "9 days ago",
+    "addedAt": "2026-01-02T19:51:22.2775738+01:00",
+    "spotCount": 5,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "GB5WWA",
+    "lastSeen": "2026-01-16T18:45:55.8933479+01:00",
+    "lastSeenStr": "4 hours ago",
+    "addedAt": "2026-01-02T11:45:40.3855086+01:00",
+    "spotCount": 99,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "3DA0",
+    "lastSeen": "2026-01-15T11:48:43.9156418+01:00",
+    "lastSeenStr": "1 day ago",
+    "addedAt": "2025-12-29T20:50:01.2803029+01:00",
+    "spotCount": 15,
     "playSound": true,
     "isContest": false
+  },
+  {
+    "callsign": "9Y9DX",
+    "lastSeen": "2025-12-23T19:04:36.5932723+02:00",
+    "lastSeenStr": "24 days ago",
+    "addedAt": "2025-12-11T20:56:32.6534285+01:00",
+    "spotCount": 6,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "I9WWA",
+    "lastSeen": "2026-01-15T07:08:37.0949601+01:00",
+    "lastSeenStr": "1 day ago",
+    "addedAt": "2026-01-03T17:02:48.5682433+01:00",
+    "spotCount": 4,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "CR6WWA",
+    "lastSeen": "2026-01-16T23:54:44.4365064+01:00",
+    "lastSeenStr": "Just now",
+    "addedAt": "2026-01-02T10:32:50.7648706+01:00",
+    "spotCount": 4225,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "YI1MB",
+    "lastSeen": "2025-11-01T11:07:08.2392713+01:00",
+    "lastSeenStr": "76 days ago",
+    "addedAt": "2025-10-18T17:18:18.825584+02:00",
+    "spotCount": 1,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "P40AA",
+    "lastSeen": "2026-01-16T22:43:50.5857256+01:00",
+    "lastSeenStr": "57 minutes ago",
+    "addedAt": "2026-01-05T00:46:23.4079079+01:00",
+    "spotCount": 518,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "3B8WWA",
+    "lastSeen": "2026-01-16T20:13:30.9515957+01:00",
+    "lastSeenStr": "3 hours ago",
+    "addedAt": "2026-01-02T08:44:21.122356+01:00",
+    "spotCount": 296,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "SN6WWA",
+    "lastSeen": "2026-01-16T18:23:01.5854187+01:00",
+    "lastSeenStr": "5 hours ago",
+    "addedAt": "2026-01-02T10:26:35.8091591+01:00",
+    "spotCount": 99,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "S9BV",
+    "lastSeen": "0001-01-01T00:00:00Z",
+    "lastSeenStr": "Never",
+    "addedAt": "2025-12-11T20:57:01.4962264+01:00",
+    "spotCount": 0,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "SP4WWA",
+    "lastSeen": "2026-01-03T13:55:30.0969401+01:00",
+    "lastSeenStr": "13 days ago",
+    "addedAt": "2026-01-03T13:55:30.0930298+01:00",
+    "spotCount": 1,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "KE5EE",
+    "lastSeen": "2026-01-10T13:26:22.8644019+01:00",
+    "lastSeenStr": "6 days ago",
+    "addedAt": "2025-12-31T13:55:36.4147592+01:00",
+    "spotCount": 2,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "UT2WWA",
+    "lastSeen": "2026-01-02T15:37:14.9320519+01:00",
+    "lastSeenStr": "14 days ago",
+    "addedAt": "2026-01-02T15:37:14.9293+01:00",
+    "spotCount": 1,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "KP4ES",
+    "lastSeen": "2026-01-10T11:17:51.1166274+01:00",
+    "lastSeenStr": "6 days ago",
+    "addedAt": "2025-12-26T16:09:15.2635554+02:00",
+    "spotCount": 148,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "3G9S",
+    "lastSeen": "2026-01-16T19:32:08.8703332+01:00",
+    "lastSeenStr": "4 hours ago",
+    "addedAt": "2026-01-05T00:46:54.3239078+01:00",
+    "spotCount": 236,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "YU45WWA",
+    "lastSeen": "2026-01-13T21:19:16.6327367+01:00",
+    "lastSeenStr": "3 days ago",
+    "addedAt": "2026-01-05T19:42:08.1119644+01:00",
+    "spotCount": 3,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "N9W",
+    "lastSeen": "2026-01-16T22:29:51.648904+01:00",
+    "lastSeenStr": "1 hour ago",
+    "addedAt": "2026-01-02T03:52:32.3455264+01:00",
+    "spotCount": 2008,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "TT3WWA",
+    "lastSeen": "2026-01-13T06:51:07.5269574+01:00",
+    "lastSeenStr": "3 days ago",
+    "addedAt": "2026-01-04T13:18:47.8131004+01:00",
+    "spotCount": 61,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "BY1RX",
+    "lastSeen": "2026-01-16T09:33:50.5697004+01:00",
+    "lastSeenStr": "14 hours ago",
+    "addedAt": "2026-01-02T03:52:32.4254096+01:00",
+    "spotCount": 1055,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "II6WWA",
+    "lastSeen": "2026-01-16T23:42:22.0204292+01:00",
+    "lastSeenStr": "Just now",
+    "addedAt": "2026-01-02T05:00:19.6623784+01:00",
+    "spotCount": 5196,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "F4HQLCQ7WWA",
+    "lastSeen": "2026-01-06T17:23:24.5805895+01:00",
+    "lastSeenStr": "10 days ago",
+    "addedAt": "2026-01-06T17:23:24.5754003+01:00",
+    "spotCount": 1,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "VE1WWA",
+    "lastSeen": "2026-01-08T21:24:09.47877+01:00",
+    "lastSeenStr": "8 days ago",
+    "addedAt": "2026-01-06T11:22:22.8705152+01:00",
+    "spotCount": 2,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "H44MS",
+    "lastSeen": "2025-11-21T10:36:09.233589+01:00",
+    "lastSeenStr": "56 days ago",
+    "addedAt": "2025-10-18T17:16:49.1572859+02:00",
+    "spotCount": 73,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "ZC4RH",
+    "lastSeen": "2025-11-08T08:25:39.5696597+01:00",
+    "lastSeenStr": "69 days ago",
+    "addedAt": "2025-10-28T22:43:16.3202825+01:00",
+    "spotCount": 14,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "4M5A",
+    "lastSeen": "2026-01-16T19:22:03.17227+01:00",
+    "lastSeenStr": "4 hours ago",
+    "addedAt": "2026-01-02T03:52:32.364621+01:00",
+    "spotCount": 53,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "DO0WWA",
+    "lastSeen": "2026-01-04T16:21:37.7789691+01:00",
+    "lastSeenStr": "12 days ago",
+    "addedAt": "2026-01-04T16:21:37.7743588+01:00",
+    "spotCount": 1,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "SN1WWA",
+    "lastSeen": "2026-01-16T20:35:24.6257001+01:00",
+    "lastSeenStr": "3 hours ago",
+    "addedAt": "2026-01-09T01:19:34.7987633+01:00",
+    "spotCount": 81,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "UP7WWA",
+    "lastSeen": "2026-01-16T23:53:03.5208092+01:00",
+    "lastSeenStr": "Just now",
+    "addedAt": "2026-01-02T03:57:54.3344753+01:00",
+    "spotCount": 3379,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "XF4B",
+    "lastSeen": "2026-01-02T10:57:21.718927+01:00",
+    "lastSeenStr": "14 days ago",
+    "addedAt": "2025-12-30T00:37:02.1950945+01:00",
+    "spotCount": 10,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "EO1WWA",
+    "lastSeen": "2026-01-04T16:12:04.464638+01:00",
+    "lastSeenStr": "12 days ago",
+    "addedAt": "2026-01-04T16:12:04.4618581+01:00",
+    "spotCount": 1,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "TT1GD",
+    "lastSeen": "2025-12-30T08:38:56.4852045+01:00",
+    "lastSeenStr": "17 days ago",
+    "addedAt": "2025-12-04T12:41:47.7065212+01:00",
+    "spotCount": 835,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "EG5WWA",
+    "lastSeen": "2026-01-16T21:26:24.3080918+01:00",
+    "lastSeenStr": "2 hours ago",
+    "addedAt": "2026-01-02T06:32:18.3923029+01:00",
+    "spotCount": 1124,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "EG9WWA",
+    "lastSeen": "2026-01-16T20:16:02.6343732+01:00",
+    "lastSeenStr": "3 hours ago",
+    "addedAt": "2026-01-02T08:45:43.1665274+01:00",
+    "spotCount": 437,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "PE26WWA",
+    "lastSeen": "2026-01-16T21:14:18.8400642+01:00",
+    "lastSeenStr": "2 hours ago",
+    "addedAt": "2026-01-02T12:01:49.5283656+01:00",
+    "spotCount": 289,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "II1WWA",
+    "lastSeen": "2026-01-16T22:26:48.3990146+01:00",
+    "lastSeenStr": "1 hour ago",
+    "addedAt": "2026-01-02T07:28:10.4883654+01:00",
+    "spotCount": 4701,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "PZ5OZ",
+    "lastSeen": "2026-01-02T14:01:34.9550152+01:00",
+    "lastSeenStr": "14 days ago",
+    "addedAt": "2025-12-11T20:56:39.1883984+01:00",
+    "spotCount": 284,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "GW2WWA",
+    "lastSeen": "2026-01-07T22:17:21.3860297+01:00",
+    "lastSeenStr": "9 days ago",
+    "addedAt": "2026-01-06T09:11:25.7356458+01:00",
+    "spotCount": 2,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "4U1A",
+    "lastSeen": "2026-01-16T16:41:53.8907635+01:00",
+    "lastSeenStr": "6 hours ago",
+    "addedAt": "2026-01-02T03:52:32.3788517+01:00",
+    "spotCount": 210,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "H5WWA",
+    "lastSeen": "2026-01-04T14:08:10.6045841+01:00",
+    "lastSeenStr": "12 days ago",
+    "addedAt": "2026-01-04T14:03:58.0703927+01:00",
+    "spotCount": 2,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "N6W",
+    "lastSeen": "2026-01-15T04:41:32.6720896+01:00",
+    "lastSeenStr": "1 day ago",
+    "addedAt": "2026-01-02T03:52:32.3323646+01:00",
+    "spotCount": 541,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "OX7AM",
+    "lastSeen": "0001-01-01T00:00:00Z",
+    "lastSeenStr": "Never",
+    "addedAt": "2025-11-25T20:31:59.3717367+01:00",
+    "spotCount": 0,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "OP2WWA",
+    "lastSeen": "2026-01-04T15:39:53.4585841+01:00",
+    "lastSeenStr": "12 days ago",
+    "addedAt": "2026-01-04T15:39:53.4550896+01:00",
+    "spotCount": 1,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "TL8BNW",
+    "lastSeen": "2026-01-16T22:37:44.4245637+01:00",
+    "lastSeenStr": "1 hour ago",
+    "addedAt": "2026-01-11T00:08:03.8783802+01:00",
+    "spotCount": 42,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "EC6WWA",
+    "lastSeen": "2026-01-03T18:45:16.6265095+01:00",
+    "lastSeenStr": "13 days ago",
+    "addedAt": "2026-01-03T18:45:16.6232442+01:00",
+    "spotCount": 1,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "DP0GVN",
+    "lastSeen": "2025-12-15T21:45:58.2905292+01:00",
+    "lastSeenStr": "32 days ago",
+    "addedAt": "2025-10-20T07:00:51.7088369+02:00",
+    "spotCount": 294,
+    "playSound": true,
+    "isContest": false
+  },
+  {
+    "callsign": "II0WWA",
+    "lastSeen": "2026-01-16T22:50:53.650545+01:00",
+    "lastSeenStr": "50 minutes ago",
+    "addedAt": "2026-01-02T07:20:50.6074249+01:00",
+    "spotCount": 4182,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "W2WWA",
+    "lastSeen": "2026-01-04T19:39:08.236259+01:00",
+    "lastSeenStr": "12 days ago",
+    "addedAt": "2026-01-04T19:39:08.2317399+01:00",
+    "spotCount": 1,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "EM0WWA",
+    "lastSeen": "2026-01-16T23:54:36.0739983+01:00",
+    "lastSeenStr": "Just now",
+    "addedAt": "2026-01-02T06:20:32.395419+01:00",
+    "spotCount": 6006,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "EG3WWA",
+    "lastSeen": "2026-01-16T23:18:12.5760434+01:00",
+    "lastSeenStr": "23 minutes ago",
+    "addedAt": "2026-01-02T09:43:30.5108072+01:00",
+    "spotCount": 1803,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "R1WWA",
+    "lastSeen": "2026-01-16T12:38:07.0328132+01:00",
+    "lastSeenStr": "11 hours ago",
+    "addedAt": "2026-01-02T13:57:38.164607+01:00",
+    "spotCount": 9,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "TM2GWWA",
+    "lastSeen": "2026-01-09T23:10:20.9309331+01:00",
+    "lastSeenStr": "7 days ago",
+    "addedAt": "2026-01-09T23:10:20.9282377+01:00",
+    "spotCount": 1,
+    "playSound": true,
+    "isContest": true
+  },
+  {
+    "callsign": "LR1WWA",
+    "lastSeen": "2026-01-16T22:29:00.3709382+01:00",
+    "lastSeenStr": "1 hour ago",
+    "addedAt": "2026-01-02T14:01:20.9478509+01:00",
+    "spotCount": 1164,
+    "playSound": true,
+    "isContest": true
   }
 ]

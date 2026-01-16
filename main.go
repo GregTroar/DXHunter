@@ -118,7 +118,7 @@ func main() {
 	FlexClient := NewFlexClient(*fRepo, TCPServer, nil, nil)
 
 	// Initialize HTTP Server for Dashboard
-	HTTPServer := NewHTTPServer(fRepo, cRepo, TCPServer, TCPClient, FlexClient, "8080")
+	HTTPServer := NewHTTPServer(fRepo, cRepo, TCPServer, TCPClient, FlexClient, "8080", cfgPath)
 	InitLogHook()
 
 	log.Info("Running FlexDXCluster version 2.1")

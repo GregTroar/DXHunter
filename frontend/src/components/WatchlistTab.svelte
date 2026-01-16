@@ -49,6 +49,7 @@
     }, 10000);
     
     window.addEventListener('watchlistAlert', handleWatchlistAlert);
+    window.addEventListener('toggleContestMode', toggleContestMode);
     
     // ✅ NOUVEAU : Écouter les changements de bande du FlexRadio
     window.addEventListener('flexBandChange', handleFlexBandChange);
@@ -60,6 +61,7 @@
     }
     window.removeEventListener('watchlistAlert', handleWatchlistAlert);
     window.removeEventListener('flexBandChange', handleFlexBandChange);
+    window.removeEventListener('toggleContestMode', toggleContestMode);
   });
   
   function handleWatchlistAlert(event) {
@@ -289,6 +291,51 @@ function countWatchlistSpotsByBand(wlSpots, band, onlyNotWorked) {
   function toggleNotWorked() {
     showOnlyNotWorked = !showOnlyNotWorked;
   }
+
+  // Dans la section <script> de WatchlistTab.svelte, ajoutez :
+  async function toggleContestMode() {
+    try {
+      // Envoyer la requête au backend pour basculer le mode
+      const response = await fetch('/api/contest/toggle', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        // Mettre à jour l'état local avec la réponse du serveur
+        contestMode = data.data.contestMode;
+        contestPrefix = data.data.contestPrefix || "";
+        contestCallsigns = data.data.contestCallsigns || [];
+        
+        // Afficher un toast
+        dispatch('toast', { 
+          message: `Switched to ${contestMode ? 'Contest' : 'Normal'} Mode`, 
+          type: 'success' 
+        });
+        
+        // Rafraîchir les données
+        await fetchWatchlistSpots();
+        
+        // Réinitialiser les filtres de bande si on quitte le mode contest
+        if (!contestMode && selectedBand !== 'ALL') {
+          selectedBand = 'ALL';
+        }
+      } else {
+        dispatch('toast', { 
+          message: data.error || 'Failed to switch mode', 
+          type: 'error' 
+        });
+      }
+    } catch (error) {
+      console.error('Error toggling contest mode:', error);
+      dispatch('toast', { 
+        message: `Error: ${error.message}`, 
+        type: 'error' 
+      });
+    }
+  }
+
 </script>
 
 <div class="h-full flex flex-col" style="height: 100%; max-height: 100%;">
@@ -296,6 +343,24 @@ function countWatchlistSpotsByBand(wlSpots, band, onlyNotWorked) {
     <div class="flex items-center justify-between mb-2">
       <h2 class="text-lg font-bold">Watchlist</h2>
       <div class="flex gap-2">
+        <!-- Bouton de basculement Contest Mode -->
+        <button 
+          on:click={() => toggleContestMode()}
+          class="px-3 py-1.5 text-xs rounded transition-colors flex items-center gap-2 {contestMode ? 'bg-yellow-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}"
+          title="{contestMode ? 'Switch to Normal Mode' : 'Switch to Contest Mode'}">
+          {#if contestMode}
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+            </svg>
+            Contest Mode
+          {:else}
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            Normal Mode
+          {/if}
+        </button>
+        
         {#if contestMode && (contestPrefix || (contestCallsigns && contestCallsigns.length > 0))}
           <span class="px-2 py-1 bg-yellow-600/20 text-yellow-400 rounded text-xs font-semibold flex items-center gap-1">
             <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
