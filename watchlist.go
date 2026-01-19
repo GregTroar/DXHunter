@@ -15,7 +15,6 @@ type WatchlistEntry struct {
 	LastSeenStr   string       `json:"lastSeenStr"`
 	AddedAt       time.Time    `json:"addedAt"`
 	SpotCount     int          `json:"spotCount"`
-	PlaySound     bool         `json:"playSound"`
 	IsContest     bool         `json:"isContest"`
 	ActiveSpotIDs map[int]bool `json:"-"`
 }
@@ -129,7 +128,6 @@ func (w *Watchlist) addWithContestFlag(callsign string, isContest bool) error {
 		LastSeen:      time.Time{},
 		LastSeenStr:   "Never",
 		SpotCount:     0,
-		PlaySound:     true,
 		IsContest:     isContest,
 		ActiveSpotIDs: make(map[int]bool),
 	}
@@ -161,29 +159,6 @@ func (w *Watchlist) Remove(callsign string) error {
 
 	if err := w.saveUnsafe(); err != nil {
 		Log.Errorf("Failed to save watchlist after removing %s: %v", callsign, err)
-		return err
-	}
-
-	return nil
-}
-
-func (w *Watchlist) UpdateSound(callsign string, playSound bool) error {
-	w.mutex.Lock()
-	defer w.mutex.Unlock()
-
-	callsign = strings.ToUpper(strings.TrimSpace(callsign))
-
-	entry, exists := w.entries[callsign]
-	if !exists {
-		Log.Warnf("Attempted to update sound for non-existent callsign: %s", callsign)
-		return fmt.Errorf("callsign not in watchlist")
-	}
-
-	entry.PlaySound = playSound
-	Log.Debugf("Updated sound setting for %s to %v", callsign, playSound)
-
-	if err := w.saveUnsafe(); err != nil {
-		Log.Errorf("Failed to save watchlist after updating sound for %s: %v", callsign, err)
 		return err
 	}
 
@@ -348,7 +323,6 @@ func (w *Watchlist) GetAllWithActiveStatus() []map[string]interface{} {
 			"lastSeenStr":    entry.LastSeenStr,
 			"addedAt":        entry.AddedAt,
 			"spotCount":      entry.SpotCount,
-			"playSound":      entry.PlaySound,
 			"hasActiveSpots": len(entry.ActiveSpotIDs) > 0,
 			"activeCount":    len(entry.ActiveSpotIDs),
 		}

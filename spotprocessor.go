@@ -118,21 +118,6 @@ func (sp *SpotProcessor) processSpot(spot TelnetSpot) {
 			if entry != nil {
 				Log.Infof("🎯 Watchlist match: %s (LastSeen: %s)",
 					flexSpot.DX, entry.LastSeenStr)
-
-				// Send notification to websocket clients for sound alert
-				if entry.PlaySound && sp.HTTPServer != nil {
-					sp.HTTPServer.broadcast <- WSMessage{
-						Type: "watchlistAlert",
-						Data: map[string]interface{}{
-							"callsign":    flexSpot.DX,
-							"frequency":   flexSpot.FrequencyMhz,
-							"band":        flexSpot.Band,
-							"mode":        flexSpot.Mode,
-							"countryName": flexSpot.CountryName,
-							"playSound":   entry.PlaySound,
-						},
-					}
-				}
 			}
 		}
 	}

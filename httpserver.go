@@ -172,7 +172,6 @@ func (s *HTTPServer) setupRoutes() {
 	api.HandleFunc("/watchlist/spots", s.getWatchlistSpotsWithStatus).Methods("GET", "OPTIONS")
 	api.HandleFunc("/watchlist/add", s.addToWatchlist).Methods("POST", "OPTIONS")
 	api.HandleFunc("/watchlist/remove", s.removeFromWatchlist).Methods("DELETE", "OPTIONS")
-	api.HandleFunc("/watchlist/update-sound", s.updateWatchlistSound).Methods("POST", "OPTIONS")
 	api.HandleFunc("/stats/spots", s.getSpotProcessingStats).Methods("GET", "OPTIONS")
 	api.HandleFunc("/logs", s.getLogs).Methods("GET", "OPTIONS")
 	api.HandleFunc("/contest/toggle", s.toggleContestMode).Methods("POST", "OPTIONS")
@@ -774,35 +773,6 @@ func (s *HTTPServer) removeFromWatchlist(w http.ResponseWriter, r *http.Request)
 	s.broadcast <- WSMessage{Type: "watchlist", Data: s.Watchlist.GetAll()}
 
 	s.sendJSON(w, APIResponse{Success: true, Message: "Callsign removed from watchlist"})
-}
-
-func (s *HTTPServer) updateWatchlistSound(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		Callsign  string `json:"callsign"`
-		PlaySound bool   `json:"playSound"`
-	}
-
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		s.sendJSON(w, APIResponse{Success: false, Error: "Invalid request"})
-		return
-	}
-
-	if req.Callsign == "" {
-		s.sendJSON(w, APIResponse{Success: false, Error: "Callsign is required"})
-		return
-	}
-
-	if err := s.Watchlist.UpdateSound(req.Callsign, req.PlaySound); err != nil {
-		s.sendJSON(w, APIResponse{Success: false, Error: err.Error()})
-		return
-	}
-
-	s.Log.Debugf("Updated sound setting for %s to %v", req.Callsign, req.PlaySound)
-
-	// Broadcast updated watchlist to all clients
-	s.broadcast <- WSMessage{Type: "watchlist", Data: s.Watchlist.GetAll()}
-
-	s.sendJSON(w, APIResponse{Success: true, Message: "Sound setting updated"})
 }
 
 func (s *HTTPServer) getWatchlistSpotsWithStatus(w http.ResponseWriter, r *http.Request) {

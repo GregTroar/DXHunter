@@ -1,6 +1,5 @@
 <script>
   import { onMount, onDestroy } from 'svelte';
-  import { soundManager } from './lib/soundManager.js';
   import Header from './components/Header.svelte';
   import StatsCards from './components/StatsCards.svelte';
   import FilterBar from './components/FilterBar.svelte';
@@ -417,12 +416,7 @@ function applyFilters(allSpots, filters, wl) {
           detail: message.data
         });
         window.dispatchEvent(alertEvent);
-        
-        // Play sound if enabled
-        if (message.data.playSound) {
-          soundManager.playWatchlistAlert('medium');
-        }
-        
+             
         // Show toast notification
         showToast(
           `🎯 ${message.data.callsign} spotted on ${message.data.band} ${message.data.mode}!`,
@@ -563,8 +557,6 @@ async function shutdownApp() {
     try {
       await spotCache.init();
       
-      soundManager.setEnabled(false);
-
       // ✅ Charger les données du cache immédiatement
       const cachedSpots = await spotCache.getSpots();
       if (cachedSpots.length > 0) {
@@ -654,7 +646,6 @@ async function shutdownApp() {
     {solarData} 
     {wsStatus} 
     {cacheLoaded}
-    {soundManager}
     on:shutdown={shutdownApp}
   />
   

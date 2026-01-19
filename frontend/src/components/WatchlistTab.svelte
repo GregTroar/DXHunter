@@ -65,11 +65,6 @@
   });
   
   function handleWatchlistAlert(event) {
-    const { callsign, playSound } = event.detail;
-    
-    if (playSound) {
-      soundManager.playWatchlistAlert('medium');
-    }
     
     dispatch('toast', { 
       message: `🎯 ${callsign} spotted!`, 
@@ -495,14 +490,7 @@ function countWatchlistSpotsByBand(wlSpots, band, onlyNotWorked) {
               </div>
             </div>
             
-            <div class="flex gap-1">
-              <button
-                on:click={() => updateSound(entry.callsign, !entry.playSound)}
-                class="px-2 py-1 text-xs rounded transition-colors {entry.playSound ? 'bg-blue-600/20 text-blue-400' : 'bg-slate-700/50 text-slate-400'}"
-                title="{entry.playSound ? 'Disable' : 'Enable'} sound">
-                {entry.playSound ? '🔊' : '🔇'}
-              </button>
-              
+            <div class="flex gap-1">           
               <button 
                 on:click={() => removeFromWatchlist(entry.callsign)}
                 title="Remove from watchlist"

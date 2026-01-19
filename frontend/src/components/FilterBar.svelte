@@ -4,7 +4,6 @@
   export let spotFilters;
   export let spots;
   export let watchlist;
-  export let isFiltering;
   export let contestMode = false; 
   export let contestPrefix = "";     
   export let contestCallsigns = [];  

@@ -5,22 +5,9 @@
   export let solarData;
   export let wsStatus;
   export let cacheLoaded = false;
-  export let soundManager;
 
-  let soundEnabled = false; // ✅ Initialisé à false
-  
   const dispatch = createEventDispatcher();
 
-  // ✅ Synchroniser avec le soundManager au montage
-  onMount(() => {
-    soundEnabled = soundManager.isEnabled();
-  });
-
-  function toggleSound() {
-    soundEnabled = !soundEnabled;
-    soundManager.setEnabled(soundEnabled);
-  }
-  
   function getSFIColor(sfi) {
     const value = parseInt(sfi);
     if (isNaN(value)) return 'text-slate-500';
@@ -102,29 +89,6 @@
   
   <div class="flex items-center gap-2">
 <!-- Dans Header.svelte -->
-    {#if stats.contestMode}
-      <div 
-        role="button"
-        tabindex="0"
-        aria-label="Switch to Normal Mode"
-        class="px-3 py-1 bg-yellow-600/20 text-yellow-400 rounded text-xs font-semibold flex items-center gap-1 cursor-pointer hover:bg-yellow-600/30 transition-colors focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-opacity-50"
-        on:click={() => {
-          const event = new CustomEvent('toggleContestMode');
-          window.dispatchEvent(event);
-        }}
-        on:keydown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            const event = new CustomEvent('toggleContestMode');
-            window.dispatchEvent(event);
-          }
-        }}>
-        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-        </svg>
-        Contest Mode
-      </div>
-    {/if}
     {#if wsStatus === 'connected'}
       <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-500/20 text-green-400">
         <span class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
@@ -159,22 +123,6 @@
         </svg>
       </span>
     {/if}
-
-    <button 
-      on:click={toggleSound}
-      title="{soundEnabled ? 'Disable' : 'Enable'} sound alerts"
-      class="px-2.5 py-1 rounded transition-colors {soundEnabled ? 'bg-blue-600 hover:bg-blue-700' : 'bg-slate-700 hover:bg-slate-600'} flex items-center gap-1.5">
-      {#if soundEnabled}
-        <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-          <path fill-rule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243 1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828 1 1 0 010-1.415z" clip-rule="evenodd"></path>
-        </svg>
-      {:else}
-        <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-          <path fill-rule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM12.293 7.293a1 1 0 011.414 0L15 8.586l1.293-1.293a1 1 0 111.414 1.414L16.414 10l1.293 1.293a1 1 0 01-1.414 1.414L15 11.414l-1.293 1.293a1 1 0 01-1.414-1.414L13.586 10l-1.293-1.293a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-        </svg>
-      {/if}
-      <span class="text-xs hidden lg:inline">{soundEnabled ? 'ON' : 'OFF'}</span>
-    </button>
 
     <button 
       on:click={() => dispatch('shutdown')}
