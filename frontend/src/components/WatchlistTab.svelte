@@ -1,6 +1,5 @@
 <script>
   import { createEventDispatcher, onMount, onDestroy } from 'svelte';
-  import { soundManager } from '../lib/soundManager.js';
   
   export let watchlist;
   export let spots;
@@ -14,25 +13,40 @@
   let newCallsign = '';
   let watchlistSpots = [];
   let refreshInterval;
-  let selectedBand = 'ALL'; // ✅ NOUVEAU : Filtre de bande
- 
-  $: if (!contestMode && selectedBand !== 'ALL') {
-  selectedBand = 'ALL';
-}
-  let showOnlyNotWorked = false; // ✅ NOUVEAU : Filtre "Not Worked Only"
-
+  let selectedBand = 'ALL';
+  let showOnlyNotWorked = false;
+  
+  // ✅ NOUVEAU : Filtres de mode
+  let selectedMode = 'ALL'; // 'ALL', 'DIGI', 'SSB', 'CW'
+  
   // ✅ Liste des bandes disponibles
   const bands = ['ALL', '80M', '40M', '30M', '20M', 
                '17M', '15M', '12M', '10M'];
   
-  // ✅ SIMPLIFIÉ : Utiliser directement la watchlist du backend (qui filtre déjà selon contest mode)
-  // ✅ CORRIGÉ : Ajout de showOnlyNotWorked comme dépendance réactive
-  $: displayList = getDisplayList(watchlist, watchlistSpots, showOnlyActive, showOnlyNotWorked);
+  // ✅ Liste des modes disponibles
+  const modes = [
+    { value: 'ALL', label: 'All Modes' },
+    { value: 'DIGI', label: 'Digital (FT8/FT4/RTTY)' },
+    { value: 'SSB', label: 'SSB (USB/LSB)' },
+    { value: 'CW', label: 'CW' }
+  ];
+  
+  // ✅ Modes inclus dans chaque catégorie
+  const modeCategories = {
+    'DIGI': ['FT8', 'FT4', 'RTTY', 'PSK', 'JT65', 'JT9', 'MSK144'],
+    'SSB': ['SSB', 'USB', 'LSB', 'AM', 'FM'],
+    'CW': ['CW']
+  };
+  
+  $: if (!contestMode && selectedBand !== 'ALL') {
+    selectedBand = 'ALL';
+  }
+  
+  // ✅ CORRIGÉ : Ajouter selectedMode comme dépendance
+  $: displayList = getDisplayList(watchlist, watchlistSpots, showOnlyActive, showOnlyNotWorked, selectedMode);
   $: matchingSpots = watchlistSpots.length;
-  $: filteredSpots = selectedBand === 'ALL' 
-    ? matchingSpots 
-    : countWatchlistSpotsByBand(watchlistSpots, selectedBand, showOnlyNotWorked);
-
+  $: filteredSpots = countFilteredSpots(watchlistSpots, selectedBand, selectedMode, showOnlyNotWorked);
+  
   $: if (watchlist.length > 0) {
     fetchWatchlistSpots();
   }
@@ -65,6 +79,7 @@
   });
   
   function handleWatchlistAlert(event) {
+    const { callsign } = event.detail;
     
     dispatch('toast', { 
       message: `🎯 ${callsign} spotted!`, 
@@ -78,39 +93,92 @@
     
     if (band && band !== 'ALL') {
       selectedBand = band;
-      console.log(`FlexRadio band changed to ${band} (${frequency} MHz) - watchlist filter updated`);
+      console.log(`FlexRadio band changed to $${band} ($${frequency} MHz) - watchlist filter updated`);
     }
   }
   
-  // ✅ CORRIGÉ : Ajout du paramètre onlyNotWorked
-  function getDisplayList(wl, wlSpots, activeOnly, onlyNotWorked) {
-    let list = wl;
+  // ✅ NOUVELLE FONCTION : Compter les spots filtrés
+  function countFilteredSpots(wlSpots, band, mode, onlyNotWorked) {
+    let filtered = wlSpots;
     
-    // ✅ NOUVEAU : Si une bande spécifique est sélectionnée, ne montrer que les callsigns avec des spots sur cette bande
-    if (selectedBand !== 'ALL') {
-      list = wl.filter(entry => {
-        let spots = wlSpots.filter(s => 
-          (s.dx === entry.callsign || s.dx.startsWith(entry.callsign)) &&
-          s.band === selectedBand
-        );
-        // ✅ CORRIGÉ : Appliquer aussi le filtre "Not Worked"
-        if (onlyNotWorked) {
-          spots = spots.filter(s => !s.workedBandMode);
+    // Filtrer par bande
+    if (band !== 'ALL') {
+      filtered = filtered.filter(s => s.band === band);
+    }
+    
+    // Filtrer par mode
+    if (mode !== 'ALL') {
+      filtered = filtered.filter(s => {
+        const spotMode = s.mode || '';
+        if (mode === 'DIGI') {
+          return modeCategories.DIGI.includes(spotMode);
+        } else if (mode === 'SSB') {
+          return modeCategories.SSB.includes(spotMode);
+        } else if (mode === 'CW') {
+          return modeCategories.CW.includes(spotMode);
         }
-        return spots.length > 0;
-      });
-    } else if (activeOnly || onlyNotWorked) {
-      // ✅ CORRIGÉ : Combiner les filtres activeOnly et onlyNotWorked
-      list = wl.filter(entry => {
-        let spots = wlSpots.filter(s => s.dx === entry.callsign || s.dx.startsWith(entry.callsign));
-        // ✅ CORRIGÉ : Si "Not Worked" activé, ne garder que les callsigns avec des spots non contactés
-        if (onlyNotWorked) {
-          spots = spots.filter(s => !s.workedBandMode);
-        }
-        return spots.length > 0;
+        return true;
       });
     }
     
+    // Filtrer par "Not Worked"
+    if (onlyNotWorked) {
+      filtered = filtered.filter(s => !s.workedBandMode);
+    }
+    
+    return filtered.length;
+  }
+  
+  // ✅ MODIFIÉ : Ajouter le paramètre modeFilter
+  function getDisplayList(wl, wlSpots, activeOnly, onlyNotWorked, modeFilter) {
+    let list = wl;
+    
+    // Filtrer par bande ET mode
+    if (selectedBand !== 'ALL' || modeFilter !== 'ALL') {
+      list = wl.filter(entry => {
+        let spots = wlSpots.filter(s => 
+          (s.dx === entry.callsign || s.dx.startsWith(entry.callsign))
+        );
+        
+        // Filtrer par bande
+        if (selectedBand !== 'ALL') {
+          spots = spots.filter(s => s.band === selectedBand);
+        }
+        
+        // Filtrer par mode
+        if (modeFilter !== 'ALL') {
+          spots = spots.filter(s => {
+            const spotMode = s.mode || '';
+            if (modeFilter === 'DIGI') {
+              return modeCategories.DIGI.includes(spotMode);
+            } else if (modeFilter === 'SSB') {
+              return modeCategories.SSB.includes(spotMode);
+            } else if (modeFilter === 'CW') {
+              return modeCategories.CW.includes(spotMode);
+            }
+            return true;
+          });
+        }
+        
+        // Filtrer par "Not Worked"
+        if (onlyNotWorked) {
+          spots = spots.filter(s => !s.workedBandMode);
+        }
+        
+        return spots.length > 0;
+      });
+    } else if (activeOnly || onlyNotWorked) {
+      // Filtrer par activité ou "Not Worked"
+      list = wl.filter(entry => {
+        let spots = wlSpots.filter(s => s.dx === entry.callsign || s.dx.startsWith(entry.callsign));
+        
+        if (onlyNotWorked) {
+          spots = spots.filter(s => !s.workedBandMode);
+        }
+        
+        return spots.length > 0;
+      });
+    }
     
     return [...list].sort((a, b) => a.callsign.localeCompare(b.callsign, 'en', { numeric: true }));
   }
@@ -128,27 +196,33 @@
     }
   }
   
-function countWatchlistSpotsByBand(wlSpots, band, onlyNotWorked) {
-  let spots = wlSpots.filter(s => s.band === band);
-  
-  // ✅ Si "Not Worked" activé, ne compter que les non contactés
-  if (onlyNotWorked) {
-    spots = spots.filter(s => !s.workedBandMode);
-  }
-  
-  return spots.length;
-}
-
+  // ✅ MODIFIÉ : Ajouter le filtre de mode
   function getMatchingSpotsForCallsign(callsign) {
     let spots = watchlistSpots.filter(s => s.dx === callsign || s.dx.startsWith(callsign));
     
-    // ✅ NOUVEAU : Filtrer par bande sélectionnée
+    // Filtrer par bande
     if (selectedBand !== 'ALL') {
       spots = spots.filter(s => s.band === selectedBand);
     }
-
+    
+    // Filtrer par mode
+    if (selectedMode !== 'ALL') {
+      spots = spots.filter(s => {
+        const spotMode = s.mode || '';
+        if (selectedMode === 'DIGI') {
+          return modeCategories.DIGI.includes(spotMode);
+        } else if (selectedMode === 'SSB') {
+          return modeCategories.SSB.includes(spotMode);
+        } else if (selectedMode === 'CW') {
+          return modeCategories.CW.includes(spotMode);
+        }
+        return true;
+      });
+    }
+    
+    // Filtrer par "Not Worked"
     if (showOnlyNotWorked) {
-    spots = spots.filter(s => !s.workedBandMode);
+      spots = spots.filter(s => !s.workedBandMode);
     }
     
     const bandOrder = { '160M': 0, '80M': 1, '60M': 2, '40M': 3, '30M': 4, '20M': 5, '17M': 6, '15M': 7, '12M': 8, '10M': 9, '6M': 10 };
@@ -171,9 +245,6 @@ function countWatchlistSpotsByBand(wlSpots, band, onlyNotWorked) {
       const timeB = b.utcTime || "00:00";
       return timeB.localeCompare(timeA);
     });
-
-
-
   }
   
   async function addToWatchlist() {
@@ -226,23 +297,6 @@ function countWatchlistSpotsByBand(wlSpots, band, onlyNotWorked) {
     }
   }
   
-  async function updateSound(callsign, playSound) {
-    try {
-      const response = await fetch('/api/watchlist/update-sound', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ callsign, playSound })
-      });
-      
-      const data = await response.json();
-      if (data.success) {
-        dispatch('toast', { message: `Sound ${playSound ? 'enabled' : 'disabled'}`, type: 'success' });
-      }
-    } catch (error) {
-      console.error('Error updating sound:', error);
-    }
-  }
-  
   function handleKeyPress(e) {
     if (e.key === 'Enter') {
       e.preventDefault();
@@ -287,7 +341,6 @@ function countWatchlistSpotsByBand(wlSpots, band, onlyNotWorked) {
     showOnlyNotWorked = !showOnlyNotWorked;
   }
 
-  // Dans la section <script> de WatchlistTab.svelte, ajoutez :
   async function toggleContestMode() {
     try {
       // Envoyer la requête au backend pour basculer le mode
@@ -355,7 +408,6 @@ function countWatchlistSpotsByBand(wlSpots, band, onlyNotWorked) {
             Normal Mode
           {/if}
         </button>
-        
         {#if contestMode && (contestPrefix || (contestCallsigns && contestCallsigns.length > 0))}
           <span class="px-2 py-1 bg-yellow-600/20 text-yellow-400 rounded text-xs font-semibold flex items-center gap-1">
             <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
@@ -374,7 +426,7 @@ function countWatchlistSpotsByBand(wlSpots, band, onlyNotWorked) {
           {showOnlyActive ? 'Show All' : 'Active Only'}
         </button>
         
-        <!-- ✅ NOUVEAU : Bouton Not Worked Only -->
+        <!-- Bouton Not Worked Only -->
         <button 
           on:click={toggleNotWorked}
           class="px-3 py-1.5 text-xs rounded transition-colors flex items-center gap-2 {showOnlyNotWorked ? 'bg-orange-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'}">
@@ -385,36 +437,55 @@ function countWatchlistSpotsByBand(wlSpots, band, onlyNotWorked) {
         </button>
       </div>
     </div>
+    
     <div class="flex items-center gap-2 mb-3">
       <div class="flex items-center gap-1.5 text-xs">
         <span class="text-slate-400">Spots:</span>
         <span class="px-2 py-0.5 bg-slate-700/50 text-white rounded font-semibold">
           {matchingSpots}
         </span>
-        {#if selectedBand !== 'ALL' && filteredSpots !== matchingSpots}
+        {#if (selectedBand !== 'ALL' || selectedMode !== 'ALL') && filteredSpots !== matchingSpots}
           <span class="text-slate-500">•</span>
-          <span class="text-slate-400">{selectedBand}:</span>
+          <span class="text-slate-400">Filtered:</span>
           <span class="px-2 py-0.5 bg-blue-600/20 text-blue-400 rounded font-semibold border border-blue-500/30">
             {filteredSpots}
-        </span>
+          </span>
         {/if}
       </div>
     </div>
     
-    {#if contestMode}
-      <div class="mb-3">
-        <label for="band-filter" class="text-xs text-slate-400 mb-1 block">Filter by Band</label>
+    <!-- ✅ NOUVEAU : Filtres de bande et mode -->
+    <div class="grid grid-cols-2 gap-3 mb-3">
+      <!-- Filtre de bande (seulement en mode contest) -->
+      {#if contestMode}
+        <div>
+          <label for="band-filter" class="text-xs text-slate-400 mb-1 block">Band</label>
+          <select 
+            id="band-filter"
+            bind:value={selectedBand}
+            class="w-full px-3 py-2 bg-slate-700/50 border border-slate-600 rounded text-sm text-white focus:outline-none focus:border-blue-500">
+            {#each bands as band}
+              <option value={band}>{band === 'ALL' ? 'All Bands' : band}</option>
+            {/each}
+          </select>
+        </div>
+      {/if}
+      
+      <!-- Filtre de mode (toujours disponible) -->
+      <div class="{contestMode ? '' : 'col-span-2'}">
+        <label for="mode-filter" class="text-xs text-slate-400 mb-1 block">Mode</label>
         <select 
-          id="band-filter"
-          bind:value={selectedBand}
+          id="mode-filter"
+          bind:value={selectedMode}
           class="w-full px-3 py-2 bg-slate-700/50 border border-slate-600 rounded text-sm text-white focus:outline-none focus:border-blue-500">
-          {#each bands as band}
-            <option value={band}>{band === 'ALL' ? 'All Bands' : band}</option>
+          {#each modes as mode}
+            <option value={mode.value}>{mode.label}</option>
           {/each}
         </select>
       </div>
-    {/if}
+    </div>
     
+    <!-- Champ d'ajout de callsign -->
     <div class="flex gap-2">
       <input 
         type="text" 
@@ -438,8 +509,24 @@ function countWatchlistSpotsByBand(wlSpots, band, onlyNotWorked) {
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
         </svg>
-        <p class="text-sm">{showOnlyNotWorked ? 'No unworked spots for watchlist callsigns' : (showOnlyActive ? 'No active spots for watchlist callsigns' : 'No callsigns in watchlist')}</p>
-        <p class="text-xs mt-1">{showOnlyNotWorked ? 'Click "Not Worked" to see all spots' : (showOnlyActive ? 'Click "Active Only" to see all entries' : 'Add callsigns or prefixes to monitor')}</p>
+        <p class="text-sm">
+          {showOnlyNotWorked 
+            ? 'No unworked spots for watchlist callsigns' 
+            : (showOnlyActive 
+              ? 'No active spots for watchlist callsigns' 
+              : (selectedBand !== 'ALL' || selectedMode !== 'ALL'
+                ? 'No spots match the selected filters'
+                : 'No callsigns in watchlist'))}
+        </p>
+        <p class="text-xs mt-1">
+          {showOnlyNotWorked 
+            ? 'Click "Not Worked" to see all spots' 
+            : (showOnlyActive 
+              ? 'Click "Active Only" to see all entries' 
+              : (selectedBand !== 'ALL' || selectedMode !== 'ALL'
+                ? 'Try changing band or mode filters'
+                : 'Add callsigns or prefixes to monitor'))}
+        </p>
       </div>
     {:else}
       {#each displayList as entry}
@@ -459,10 +546,6 @@ function countWatchlistSpotsByBand(wlSpots, band, onlyNotWorked) {
                   <span class="px-1.5 py-0.5 bg-yellow-600/20 text-yellow-400 rounded text-xs font-semibold" title="Contest station - daily contacts allowed">
                     🏆 Contest
                   </span>
-                {/if}
-                
-                {#if entry.playSound}
-                  <span class="text-xs" title="Sound enabled">🔊</span>
                 {/if}
                 
                 {#if count > 0}
