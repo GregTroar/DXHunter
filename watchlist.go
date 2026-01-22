@@ -286,7 +286,7 @@ func (w *Watchlist) Matches(callsign string) bool {
 	callsign = strings.ToUpper(callsign)
 
 	for pattern := range w.entries {
-		if callsign == pattern || strings.HasPrefix(callsign, pattern) {
+		if callsign == pattern { // || strings.HasPrefix(callsign, pattern)
 			return true
 		}
 	}

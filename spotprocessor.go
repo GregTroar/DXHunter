@@ -112,13 +112,6 @@ func (sp *SpotProcessor) processSpot(spot TelnetSpot) {
 
 			// Mark as seen and update last seen time
 			sp.HTTPServer.Watchlist.MarkSeen(flexSpot.DX)
-
-			// Get entry to check if sound should be played
-			entry := sp.HTTPServer.Watchlist.GetEntry(flexSpot.DX)
-			if entry != nil {
-				Log.Infof("🎯 Watchlist match: %s (LastSeen: %s)",
-					flexSpot.DX, entry.LastSeenStr)
-			}
 		}
 	}
 

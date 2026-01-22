@@ -4,6 +4,7 @@
   export let watchlist;
   export let spots;
   export let showOnlyActive = false;
+  export let showOnlyNotWorked = false;
   export let contestMode = false;
   export let contestPrefix = "";
   export let contestCallsigns = [];
@@ -14,9 +15,8 @@
   let watchlistSpots = [];
   let refreshInterval;
   let selectedBand = 'ALL';
-  let showOnlyNotWorked = false;
+
   
-  // ✅ NOUVEAU : Filtres de mode
   let selectedMode = 'ALL'; // 'ALL', 'DIGI', 'SSB', 'CW'
   
   // ✅ Liste des bandes disponibles

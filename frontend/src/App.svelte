@@ -34,7 +34,8 @@
   let solarData = { sfi: 'N/A', sunspots: 'N/A', aIndex: 'N/A', kIndex: 'N/A' };
   
   let activeTab = 'stats';
-  let showOnlyActive = false; // ✅ État global pour persister entre les onglets
+  let showOnlyActive = false;
+  let showOnlyNotWorked = false;
   let wsStatus = 'disconnected';
   let errorMessage = '';
   let toastMessage = '';
@@ -389,8 +390,8 @@ function applyFilters(allSpots, filters, wl) {
         if (message.data) {
           logs = [...logs, message.data];
           // Garder seulement les 500 derniers
-          if (logs.length > 500) {
-            logs = logs.slice(-500);
+          if (logs.length > 2000) {
+            logs = logs.slice(-2000);
           }
         }
         break;
@@ -679,6 +680,7 @@ async function shutdownApp() {
       <Sidebar 
         bind:activeTab
         bind:showOnlyActive
+        bind:showOnlyNotWorked
         {topSpotters}
         {spots}
         {watchlist}
