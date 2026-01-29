@@ -34,7 +34,8 @@
   let solarData = { sfi: 'N/A', sunspots: 'N/A', aIndex: 'N/A', kIndex: 'N/A' };
   
   let activeTab = 'stats';
-  let showOnlyActive = false; // ✅ État global pour persister entre les onglets
+  let showOnlyActive = false;
+  let showOnlyNotWorked = false;
   let wsStatus = 'disconnected';
   let errorMessage = '';
   let toastMessage = '';
@@ -679,6 +680,7 @@ async function shutdownApp() {
       <Sidebar 
         bind:activeTab
         bind:showOnlyActive
+        bind:showOnlyNotWorked
         {topSpotters}
         {spots}
         {watchlist}

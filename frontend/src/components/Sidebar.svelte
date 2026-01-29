@@ -13,6 +13,7 @@
   export let logStats;
   export let dxccProgress;
   export let showOnlyActive = false;
+  export let showOnlyNotWorked = false;
   export let logs = [];
   export let contestMode = false;
   export let contestPrefix = "";
@@ -80,6 +81,7 @@
         {watchlist}
         {spots}
         bind:showOnlyActive
+        bind:showOnlyNotWorked
         {contestMode}
         {contestPrefix}
         {contestCallsigns}

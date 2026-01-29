@@ -986,7 +986,7 @@ func (s *HTTPServer) handleSendCallsign(w http.ResponseWriter, r *http.Request) 
 		}
 	}
 
-	if req.Frequency != "" && s.FlexClient != nil && s.FlexClient.IsConnected {
+	if req.Frequency != "" && s.FlexClient != nil && s.FlexClient.IsConnected && !Cfg.General.SendFreqModeToLog {
 		tuneCmd := fmt.Sprintf("C%v|slice tune 0 %s", CommandNumber, req.Frequency)
 		s.FlexClient.Write(tuneCmd)
 		CommandNumber++
