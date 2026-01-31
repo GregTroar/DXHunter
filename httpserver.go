@@ -175,11 +175,37 @@ func (s *HTTPServer) setupRoutes() {
 	api.HandleFunc("/stats/spots", s.getSpotProcessingStats).Methods("GET", "OPTIONS")
 	api.HandleFunc("/logs", s.getLogs).Methods("GET", "OPTIONS")
 	api.HandleFunc("/contest/toggle", s.toggleContestMode).Methods("POST", "OPTIONS")
+	api.HandleFunc("/telnet-command", s.handleTelnetCommand).Methods("POST", "OPTIONS")
 
 	// WebSocket endpoint
 	api.HandleFunc("/ws", s.handleWebSocket).Methods("GET")
 
 	s.setupStaticFiles()
+}
+
+func (s *HTTPServer) handleTelnetCommand(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Command string `json:"command"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		s.sendJSON(w, APIResponse{Success: false, Error: "Invalid request"})
+		return
+	}
+
+	if req.Command == "" {
+		s.sendJSON(w, APIResponse{Success: false, Error: "Command is required"})
+		return
+	}
+
+	// Envoyer la commande au client TCP
+	if s.TCPClient != nil && s.TCPClient.LoggedIn {
+		s.TCPClient.CmdChan <- req.Command
+		s.Log.Infof("Telnet command sent: %s", req.Command)
+		s.sendJSON(w, APIResponse{Success: true, Message: "Command sent to cluster"})
+	} else {
+		s.sendJSON(w, APIResponse{Success: false, Error: "Not connected to cluster"})
+	}
 }
 
 func (s *HTTPServer) toggleContestMode(w http.ResponseWriter, r *http.Request) {
@@ -301,15 +327,81 @@ func (s *HTTPServer) handleWebSocketClient(conn *websocket.Conn) {
 		s.Log.Infof("WebSocket client disconnected (remaining: %d)", clientCount)
 	}()
 
-	// Read messages from client (for ping/pong)
 	for {
-		_, _, err := conn.ReadMessage()
+		messageType, message, err := conn.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				s.Log.Errorf("WebSocket error: %v", err)
 			}
 			break
 		}
+
+		if messageType == websocket.TextMessage {
+			s.handleWebSocketMessage(conn, message)
+		}
+	}
+}
+
+func (s *HTTPServer) handleWebSocketMessage(conn *websocket.Conn, message []byte) {
+	var msg map[string]interface{}
+	if err := json.Unmarshal(message, &msg); err != nil {
+		s.Log.Errorf("Failed to parse WebSocket message: %v", err)
+		return
+	}
+
+	msgType, ok := msg["type"].(string)
+	if !ok {
+		s.Log.Errorf("WebSocket message missing type field")
+		return
+	}
+
+	switch msgType {
+	case "telnetCommand":
+		s.handleWebSocketTelnetCommand(conn, msg)
+	// Vous pouvez ajouter d'autres types de messages ici
+	default:
+		s.Log.Debugf("Unknown WebSocket message type: %s", msgType)
+	}
+}
+
+func (s *HTTPServer) handleWebSocketTelnetCommand(conn *websocket.Conn, msg map[string]interface{}) {
+	data, ok := msg["data"].(map[string]interface{})
+	if !ok {
+		s.Log.Errorf("Invalid telnetCommand data format")
+		return
+	}
+
+	command, ok := data["command"].(string)
+	if !ok || command == "" {
+		s.Log.Errorf("Telnet command missing or empty")
+		return
+	}
+
+	// Utiliser la même logique que l'API REST
+	if s.TCPClient != nil && s.TCPClient.LoggedIn {
+		s.TCPClient.CmdChan <- command
+		s.Log.Infof("Telnet command via WebSocket: %s", command)
+
+		// Envoyer une confirmation au client
+		response := WSMessage{
+			Type: "telnetCommandResponse",
+			Data: map[string]interface{}{
+				"success": true,
+				"command": command,
+				"message": "Command sent to cluster",
+			},
+		}
+		conn.WriteJSON(response)
+	} else {
+		response := WSMessage{
+			Type: "telnetCommandResponse",
+			Data: map[string]interface{}{
+				"success": false,
+				"command": command,
+				"message": "Not connected to cluster",
+			},
+		}
+		conn.WriteJSON(response)
 	}
 }
 

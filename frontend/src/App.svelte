@@ -327,7 +327,16 @@ function applyFilters(allSpots, filters, wl) {
     }
   
   function handleWebSocketMessage(message) {
+
     switch (message.type) {
+    case 'telnetCommandResponse':
+      const { success, command, message: responseMsg } = message.data;
+      if (success) {
+        showToast(`✅ Command executed: ${command}`, 'success');
+      } else {
+        showToast(`❌ Failed: ${responseMsg}`, 'error');
+      }
+      break;
     case 'stats':
       stats = message.data;
 
@@ -436,6 +445,33 @@ function applyFilters(allSpots, filters, wl) {
     }
   }
   
+  function handleSendCommand(e) {
+    const { command } = e.detail;
+    
+    // Envoyer via WebSocket
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({
+        type: 'telnetCommand',
+        data: { command }
+      }));
+      showToast(`📡 Sent: ${command}`, 'radio');
+    } else {
+      showToast('❌ Not connected to server', 'error');
+    }
+  }
+
+  function sendTelnetCommand(command) {
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({
+        type: 'telnetCommand',
+        data: { command }
+      }));
+      showToast(`📡 Sent: ${command}`, 'radio');
+    } else {
+      showToast('❌ Not connected to server', 'error');
+    }
+  }
+
   function showToast(message, type = 'info') {
     toastMessage = message;
     toastType = type;
@@ -599,8 +635,14 @@ async function shutdownApp() {
     const handleSendSpot = (e) => {
       sendCallsign(e.detail.callsign, e.detail.frequency, e.detail.mode);
     };
+
+    const handleSendCommandEvent = (e) => {
+      handleSendCommand(e);
+    };
+
     window.addEventListener('sendSpot', handleSendSpot);
-    
+    window.addEventListener('sendCommand', handleSendCommandEvent);
+
     return () => {
       spotWorker.terminate();
       spotCache.close();
@@ -608,6 +650,7 @@ async function shutdownApp() {
       if (reconnectTimer) clearTimeout(reconnectTimer);
       clearInterval(solarInterval);
       window.removeEventListener('sendSpot', handleSendSpot);
+      window.removeEventListener('sendCommand', handleSendCommandEvent);
     };
   });
 
@@ -691,8 +734,10 @@ async function shutdownApp() {
         {contestMode}
         {contestPrefix}
         {contestCallsigns}
+        wsStatus={wsStatus}
         on:toast={(e) => showToast(e.detail.message, e.detail.type)}
         on:clearLogs={() => logs = []}
+        on:sendCommand={handleSendCommand}
       />
     </div>
   </div>
