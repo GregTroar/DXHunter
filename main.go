@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -74,12 +73,6 @@ func main() {
 
 	NewConfig(cfgPath)
 
-	fmt.Printf("\n=== CONTEST MODE CONFIG ===\n")
-	fmt.Printf("Contest Mode: %v\n", Cfg.General.ContestMode)
-	fmt.Printf("Contest Prefix: %s\n", Cfg.General.ContestPrefix)
-	fmt.Printf("Contest Callsigns: %v\n", Cfg.General.ContestCallsigns)
-	fmt.Printf("===========================\n\n")
-
 	configWatcher, err := NewConfigWatcher(cfgPath)
 	if err != nil {
 		log.Fatalf("Could not create config watcher: %v", err)
@@ -112,13 +105,16 @@ func main() {
 	// ✅ Créer le canal pour le traitement centralisé des spots
 	SpotChanToHTTPServer := make(chan TelnetSpot, 100)
 
+	// Créer le canal console (partagé entre TCPClient et HTTPServer)
+	consoleChan := make(chan string, 100)
+
 	// Initialize servers and clients
 	TCPServer := NewTCPServer(Cfg.TelnetServer.Host, Cfg.TelnetServer.Port)
-	TCPClient := NewTCPClient(TCPServer, Countries, cRepo, SpotChanToHTTPServer)
+	TCPClient := NewTCPClient(TCPServer, Countries, cRepo, SpotChanToHTTPServer, consoleChan)
 	FlexClient := NewFlexClient(*fRepo, TCPServer, nil, nil)
 
 	// Initialize HTTP Server for Dashboard
-	HTTPServer := NewHTTPServer(fRepo, cRepo, TCPServer, TCPClient, FlexClient, "8080", cfgPath)
+	HTTPServer := NewHTTPServer(fRepo, cRepo, TCPServer, TCPClient, FlexClient, "8080", cfgPath, consoleChan)
 	InitLogHook()
 
 	log.Info("Running FlexDXCluster version 2.1")

@@ -9,6 +9,7 @@ import (
 	"io/fs"
 	"net/http"
 	"os"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -47,6 +48,7 @@ type HTTPServer struct {
 	broadcast       chan WSMessage
 	Watchlist       *Watchlist
 	ConfigPath      string
+	ConsoleChan     chan string
 }
 
 type Stats struct {
@@ -121,7 +123,7 @@ var upgrader = websocket.Upgrader{
 // ============================================================================
 
 func NewHTTPServer(flexRepo *FlexDXClusterRepository, contactRepo *Log4OMContactsRepository,
-	tcpServer *TCPServer, tcpClient *TCPClient, flexClient *FlexClient, port string, configPath string) *HTTPServer {
+	tcpServer *TCPServer, tcpClient *TCPClient, flexClient *FlexClient, port string, configPath string, consoleChan chan string) *HTTPServer {
 
 	server := &HTTPServer{
 		Router:          mux.NewRouter(),
@@ -134,6 +136,7 @@ func NewHTTPServer(flexRepo *FlexDXClusterRepository, contactRepo *Log4OMContact
 		Log:             Log,
 		wsClients:       make(map[*websocket.Conn]bool),
 		broadcast:       make(chan WSMessage, 256),
+		ConsoleChan:     consoleChan,
 		Watchlist:       NewWatchlist("watchlist.json"),
 		lastQSOCount:    0,
 		lastBandOpening: make(map[string]time.Time),
@@ -143,6 +146,7 @@ func NewHTTPServer(flexRepo *FlexDXClusterRepository, contactRepo *Log4OMContact
 	server.setupRoutes()
 	go server.handleBroadcasts()
 	go server.broadcastUpdates()
+	go server.handleConsoleMessages()
 
 	return server
 }
@@ -245,6 +249,33 @@ func (s *HTTPServer) filterWatchlistEntries(entries []WatchlistEntry, contestMod
 // WEBSOCKET HANDLERS
 // ============================================================================
 
+func (s *HTTPServer) handleConsoleMessages() {
+	// Regex pour détecter les spots DX
+	spotDetectRe := regexp.MustCompile(`(?i)^DX\sde\s`)
+	shortSpotDetectRe := regexp.MustCompile(`^\d+\.\d+\s+[\w\d\/]+\s+\d{2}-\w{3}-\d{4}`)
+
+	for msg := range s.ConsoleChan {
+		cleanMsg := strings.TrimSpace(msg)
+		if cleanMsg == "" {
+			continue
+		}
+
+		// Filtrer les spots DX
+		if spotDetectRe.MatchString(cleanMsg) || shortSpotDetectRe.MatchString(cleanMsg) {
+			continue
+		}
+
+		// Broadcaster les réponses non-spot
+		s.broadcast <- WSMessage{
+			Type: "telnetResponse",
+			Data: map[string]interface{}{
+				"message":   cleanMsg,
+				"timestamp": time.Now().Format("15:04:05"),
+			},
+		}
+	}
+}
+
 func (s *HTTPServer) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -332,6 +363,17 @@ func (s *HTTPServer) handleWSTelnetCommand(conn *websocket.Conn, data map[string
 		},
 	}
 	s.safeWrite(conn, response)
+
+	if err == nil {
+		s.broadcast <- WSMessage{
+			Type: "telnetResponse",
+			Data: map[string]interface{}{
+				"message":   "> " + command,
+				"timestamp": time.Now().Format("15:04:05"),
+				"isCommand": true,
+			},
+		}
+	}
 }
 
 func (s *HTTPServer) safeWrite(conn *websocket.Conn, msg WSMessage) error {

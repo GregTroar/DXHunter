@@ -54,6 +54,7 @@ type TCPClient struct {
 	CmdChan              chan string
 	SpotChanToFlex       chan TelnetSpot
 	SpotChanToHTTPServer chan TelnetSpot
+	ConsoleChan          chan string
 	Log                  *log.Logger
 	Config               *Config
 	Countries            Countries
@@ -68,7 +69,7 @@ type TCPClient struct {
 	maxReconnectDelay    time.Duration
 }
 
-func NewTCPClient(TCPServer *TCPServer, Countries Countries, contactRepo *Log4OMContactsRepository, spotChanToHTTPServer chan TelnetSpot) *TCPClient {
+func NewTCPClient(TCPServer *TCPServer, Countries Countries, contactRepo *Log4OMContactsRepository, spotChanToHTTPServer chan TelnetSpot, consoleChan chan string) *TCPClient {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	return &TCPClient{
@@ -79,6 +80,7 @@ func NewTCPClient(TCPServer *TCPServer, Countries Countries, contactRepo *Log4OM
 		MsgChan:              TCPServer.MsgChan,
 		CmdChan:              TCPServer.CmdChan,
 		SpotChanToHTTPServer: spotChanToHTTPServer,
+		ConsoleChan:          consoleChan,
 		SpotChanToFlex:       make(chan TelnetSpot, SpotChannelBuffer),
 		TCPServer:            *TCPServer,
 		Countries:            Countries,
@@ -289,30 +291,30 @@ func (c *TCPClient) ReadLine() {
 		}
 
 		if c.LoggedIn {
-			// Check for cancellation before reading
 			select {
 			case <-c.ctx.Done():
 				return
 			default:
 			}
 
-			// Lecture avec timeout pour détecter les connexions mortes
 			c.Conn.SetReadDeadline(time.Now().Add(ReadTimeout))
 			message, err := c.Reader.ReadBytes('\n')
 			if err != nil {
 				Log.Errorf("Error reading message: %s", err)
 				return
 			}
-			c.Conn.SetReadDeadline(time.Time{}) // Reset deadline
+			c.Conn.SetReadDeadline(time.Time{})
 
 			messageString := string(message)
 
 			if messageString != "" {
+				// Handle password prompt
 				if strings.Contains(messageString, "password") {
 					Log.Debug("Found password prompt...sending password...")
 					c.Write([]byte(c.Password + "\r\n"))
 				}
 
+				// Handle welcome message
 				if strings.Contains(messageString, "Hello") || strings.Contains(messageString, "Welcome") {
 					go c.SetFilters()
 					if Cfg.Cluster.Command != "" {
@@ -320,11 +322,26 @@ func (c *TCPClient) ReadLine() {
 						Log.Debugf("Sending Command: %s", Cfg.Cluster.Command)
 					}
 				}
-				if strings.Contains(messageString, "DX") || shortSpotDetectRe.MatchString(messageString) {
+
+				// Check if it's a DX spot
+				isDXSpot := strings.Contains(messageString, "DX") || shortSpotDetectRe.MatchString(messageString)
+
+				if isDXSpot {
 					IncrementSpotsReceived()
 					ProcessTelnetSpot(spotRe, spotReShort, messageString, c.SpotChanToFlex, c.SpotChanToHTTPServer, c.Countries, c.ContactRepo)
 				}
-				// Send the spot message to TCP server
+
+				// ═══════════════════════════════════════════════════════════
+				// NOUVEAU: Envoyer TOUTES les lignes à la console
+				// (y compris les spots, pour un vrai terminal feeling)
+				// ═══════════════════════════════════════════════════════════
+				select {
+				case c.ConsoleChan <- messageString:
+				default:
+					// Channel plein, on drop le message (évite le blocage)
+				}
+
+				// Send to TCP server (existing behavior)
 				select {
 				case c.MsgChan <- messageString:
 				case <-c.ctx.Done():

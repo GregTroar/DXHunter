@@ -337,6 +337,13 @@ function applyFilters(allSpots, filters, wl) {
         showToast(`❌ Failed: ${responseMsg}`, 'error');
       }
       break;
+    case 'telnetResponse':
+      // Dispatcher un event custom pour que ConsoleTab puisse l'écouter
+      const telnetEvent = new CustomEvent('telnetResponse', {
+        detail: message.data  // {message: "...", timestamp: "...", isCommand: bool}
+      });
+      window.dispatchEvent(telnetEvent);
+      break;    
     case 'stats':
       stats = message.data;
 
