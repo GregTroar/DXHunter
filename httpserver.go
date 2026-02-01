@@ -17,12 +17,12 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
-	"gopkg.in/yaml.v2"
 )
 
 //go:embed frontend/dist/*
 var frontendFiles embed.FS
 var httpServerInstance *HTTPServer
+var writeMutex sync.Mutex
 
 type HTTPServer struct {
 	Router          *mux.Router
@@ -244,29 +244,6 @@ func (s *HTTPServer) toggleContestMode(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (s *HTTPServer) saveConfig() error {
-	Mutex.Lock()
-	defer Mutex.Unlock()
-
-	if s.ConfigPath == "" {
-		return fmt.Errorf("config path not set")
-	}
-
-	// Créer le fichier YAML
-	data, err := yaml.Marshal(&Cfg)
-	if err != nil {
-		return fmt.Errorf("failed to marshal config: %v", err)
-	}
-
-	// Écrire dans le fichier
-	if err := os.WriteFile(s.ConfigPath, data, 0644); err != nil {
-		return fmt.Errorf("failed to write config file: %v", err)
-	}
-
-	s.Log.Infof("Configuration saved to %s", s.ConfigPath)
-	return nil
-}
-
 func (s *HTTPServer) setupStaticFiles() {
 	// Obtenir le sous-système de fichiers depuis dist/
 	distFS, err := fs.Sub(frontendFiles, "frontend/dist")
@@ -364,6 +341,13 @@ func (s *HTTPServer) handleWebSocketMessage(conn *websocket.Conn, message []byte
 	}
 }
 
+func (s *HTTPServer) safeWrite(conn *websocket.Conn, msg WSMessage) error {
+	writeMutex.Lock()
+	defer writeMutex.Unlock()
+
+	return conn.WriteJSON(msg)
+}
+
 func (s *HTTPServer) handleWebSocketTelnetCommand(conn *websocket.Conn, msg map[string]interface{}) {
 	data, ok := msg["data"].(map[string]interface{})
 	if !ok {
@@ -391,7 +375,7 @@ func (s *HTTPServer) handleWebSocketTelnetCommand(conn *websocket.Conn, msg map[
 				"message": "Command sent to cluster",
 			},
 		}
-		conn.WriteJSON(response)
+		s.safeWrite(conn, response)
 	} else {
 		response := WSMessage{
 			Type: "telnetCommandResponse",
@@ -401,29 +385,29 @@ func (s *HTTPServer) handleWebSocketTelnetCommand(conn *websocket.Conn, msg map[
 				"message": "Not connected to cluster",
 			},
 		}
-		conn.WriteJSON(response)
+		s.safeWrite(conn, response)
 	}
 }
 
 func (s *HTTPServer) sendInitialData(conn *websocket.Conn) {
 	// Send initial stats
 	stats := s.calculateStats()
-	conn.WriteJSON(WSMessage{Type: "stats", Data: stats})
+	s.safeWrite(conn, WSMessage{Type: "stats", Data: stats})
 
 	// Send initial spots
 	spots := s.FlexRepo.GetAllSpots("0")
-	conn.WriteJSON(WSMessage{Type: "spots", Data: spots})
+	s.safeWrite(conn, WSMessage{Type: "spots", Data: spots})
 
 	// Send initial watchlist
 	watchlist := s.Watchlist.GetAll()
-	conn.WriteJSON(WSMessage{Type: "watchlist", Data: watchlist})
+	s.safeWrite(conn, WSMessage{Type: "watchlist", Data: watchlist})
 
 	// Send initial log data
 	qsos := s.ContactRepo.GetRecentQSOs("19")
-	conn.WriteJSON(WSMessage{Type: "log", Data: qsos})
+	s.safeWrite(conn, WSMessage{Type: "log", Data: qsos})
 
 	logStats := s.ContactRepo.GetQSOStats()
-	conn.WriteJSON(WSMessage{Type: "logStats", Data: logStats})
+	s.safeWrite(conn, WSMessage{Type: "logStats", Data: logStats})
 
 	dxccCount := s.ContactRepo.GetDXCCCount()
 	dxccData := map[string]interface{}{
@@ -431,11 +415,11 @@ func (s *HTTPServer) sendInitialData(conn *websocket.Conn) {
 		"total":      340,
 		"percentage": float64(dxccCount) / 340.0 * 100.0,
 	}
-	conn.WriteJSON(WSMessage{Type: "dxccProgress", Data: dxccData})
+	s.safeWrite(conn, WSMessage{Type: "dxccProgress", Data: dxccData})
 
 	if logBuffer != nil {
 		logs := logBuffer.GetAll()
-		conn.WriteJSON(WSMessage{Type: "appLogs", Data: logs})
+		s.safeWrite(conn, WSMessage{Type: "appLogs", Data: logs})
 	}
 }
 
@@ -443,7 +427,7 @@ func (s *HTTPServer) handleBroadcasts() {
 	for msg := range s.broadcast {
 		s.wsMutex.RLock()
 		for client := range s.wsClients {
-			err := client.WriteJSON(msg)
+			err := s.safeWrite(client, msg)
 			if err != nil {
 				s.Log.Errorf("WebSocket write error: %v", err)
 				client.Close()
