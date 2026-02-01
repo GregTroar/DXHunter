@@ -22,6 +22,7 @@
     connectedClients: 0,
     totalContacts: 0,
     clusterStatus: 'disconnected',
+    clusterType: 'unknown',
     flexStatus: 'disconnected',
     myCallsign: '',
     filters: { skimmer: false, ft8: false, ft4: false }
@@ -730,6 +731,7 @@ async function shutdownApp() {
         {contestPrefix}
         {contestCallsigns}
         wsStatus={wsStatus}
+        clusterType={stats.clusterType || 'unknown'}
         on:toast={(e) => showToast(e.detail.message, e.detail.type)}
         on:clearLogs={() => logs = []}
         on:sendCommand={handleSendCommand}

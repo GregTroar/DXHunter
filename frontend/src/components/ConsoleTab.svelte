@@ -2,6 +2,7 @@
   import { createEventDispatcher, onMount, onDestroy } from 'svelte';
   
   export let wsStatus = 'disconnected';
+  export let clusterType = 'unknown';
   
   const dispatch = createEventDispatcher();
   
@@ -17,17 +18,56 @@
   const MAX_CONSOLE_LINES = 500;
   
   // Commandes prédéfinies
-const commonCommands = [
-  { cmd: 'SET/NOFILTER', label: 'No Filter', desc: 'Remove all filters' },
-  { cmd: 'SET/FILTER DOC/PASS 1A,3A,4O,9A,9H,C3,CT,CU,DL,E7,EA,EA6,EI,ER,ES,EU,F,G,GD,GI,GJ,GM,GU,GW,HA,HB,HB0,HV,I,IS,IT9,JW,JX,LA,LX,LY,LZ,OE,OH,OH0,OJ0,OK,OM,ON,OY,OZ,PA,S5,SM,SP,SV,SV5,SV9,T7,TA1,TF,TK,UA,UR,YL,YO,YU,Z6', label: 'EU Only', desc: 'Show Spots from Europe' },
-  { cmd: 'SH/WWV', label: 'WWV', desc: 'Propagation Data' },
-  { cmd: 'SH/WCY', label: 'WCY', desc: 'Geomagnetic Data' },
-  { cmd: 'SET/SKIMMER', label: 'Skimmer ON', desc: 'Activate Skimmer' },
-  { cmd: 'SET/NOSKIMMER', label: 'Skimmer OFF', desc: 'Deactivate Skimmer' },
-  { cmd: 'SET/FT8', label: 'FT8 ON', desc: 'Activate FT8' },
-  { cmd: 'SET/NOFT8', label: 'FT8 OFF', desc: 'Deactivate FT8' },
-  { cmd: 'HELP', label: 'Help', desc: 'Help' }
-];
+  const commandsByCluster = {
+    dxspider: [
+      { cmd: 'SET/NAME', label: 'Set Name', desc: 'Set your Name' },
+      { cmd: 'SET/QTH', label: 'Set City', desc: 'Set your City' },
+      { cmd: 'WHO', label: 'Online Users', desc: 'Who is Online' },
+      { cmd: 'SET/SKIMMER CW FT8', label: 'Skimmer ON (FTx-CW)', desc: 'Activate Skimmers' },
+      { cmd: 'SET/SKIMMER CW', label: 'Skimmer ON (CW)', desc: 'Activate Skimmers' },
+      { cmd: 'UNSET/SKIMMER', label: 'Skimmer OFF', desc: 'Deactivate Skimmer' },
+      { cmd: 'CLEAR/SPOTS ALL', label: 'No Filters', desc: 'Clear all Filters' },
+      { cmd: 'SHOW/FILTER', label: 'Show Filters', desc: 'Show Current Filters' },
+      { cmd: 'REJECT/SPOTS ON HF/CW', label: 'Reject CW', desc: 'Reject all CW HF Spots' },
+      { cmd: 'REJECT/SPOTS ON HF/SSB', label: 'Reject SSB', desc: 'Reject all SSB HF Spots' },
+      { cmd: 'HELP', label: 'Help', desc: 'Help' }
+    ],
+    cc_cluster: [
+      { cmd: 'SET/NAME', label: 'Set Name', desc: 'Set your Name' },
+      { cmd: 'SET/QTH', label: 'Set QTH', desc: 'Set your City' },
+      { cmd: 'WHO', label: 'Online Users/Nodes', desc: 'Who is Online' },
+      { cmd: 'SHOW/USERS', label: 'Online Users', desc: 'Who is Online' },
+      { cmd: 'SHOW/FILTER', label: 'Show Filters', desc: 'Show Current Filters' },
+      { cmd: 'SET/NOFILTER', label: 'No Filter', desc: 'Remove all filters' },
+      { cmd: 'SET/FILTER DOC/PASS 1A,3A,4O,9A,9H,C3,CT,CU,DL,E7,EA,EA6,EI,ER,ES,EU,F,G,GD,GI,GJ,GM,GU,GW,HA,HB,HB0,HV,I,IS,IT9,JW,JX,LA,LX,LY,LZ,OE,OH,OH0,OJ0,OK,OM,ON,OY,OZ,PA,S5,SM,SP,SV,SV5,SV9,T7,TA1,TF,TK,UA,UR,YL,YO,YU,Z6', label: 'EU Only', desc: 'Show Spots from Europe' },
+      { cmd: 'SH/WWV', label: 'WWV', desc: 'Propagation Data' },
+      { cmd: 'SH/WCY', label: 'WCY', desc: 'Geomagnetic Data' },
+      { cmd: 'SET/SKIMMER', label: 'Skimmer ON', desc: 'Activate Skimmer' },
+      { cmd: 'SET/NOSKIMMER', label: 'Skimmer OFF', desc: 'Deactivate Skimmer' },
+      { cmd: 'SET/FT8', label: 'FT8 ON', desc: 'Activate FT8' },
+      { cmd: 'SET/NOFT8', label: 'FT8 OFF', desc: 'Deactivate FT8' },
+      { cmd: 'HELP', label: 'Help', desc: 'Help' }
+    ],
+    ar_cluster: [
+      { cmd: 'SET STATION NAME', label: 'Set Name', desc: 'Set your Name' },
+      { cmd: 'SET STATION QTH', label: 'Set QTH', desc: 'Set your City' },
+      { cmd: 'HELP', label: 'Help', desc: 'Help' }
+    ],
+    unknown: [
+      { cmd: 'SH/DX', label: 'Show DX', desc: 'Show recent spots' },
+      { cmd: 'SH/WWV', label: 'WWV', desc: 'Propagation Data' },
+      { cmd: 'HELP', label: 'Help', desc: 'Help' }
+    ]
+  };
+
+    const clusterTypeLabels = {
+    dxspider: 'DX Spider',
+    cc_cluster: 'CC Cluster', 
+    ar_cluster: 'AR Cluster',
+    unknown: 'Unknown'
+  };
+
+  $: commonCommands = commandsByCluster[clusterType] || commandsByCluster.unknown;
   
   // ═══════════════════════════════════════════════════════════
   // NOUVEAU: Écouter les messages WebSocket
@@ -180,6 +220,12 @@ const commonCommands = [
             {wsStatus === 'connected' ? 'Connected' : 'Disconnected'}
           </span>
         </div>
+
+        {#if wsStatus === 'connected'}
+          <span class="text-xs px-2 py-0.5 bg-purple-900/50 text-purple-300 rounded border border-purple-700/50">
+            {clusterTypeLabels[clusterType] || 'Unknown'}
+          </span>
+        {/if}
         
         <!-- Auto-scroll toggle -->
         <button

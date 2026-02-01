@@ -68,6 +68,7 @@ type Stats struct {
 	ContestMode      bool     `json:"contestMode"`
 	ContestPrefix    string   `json:"contestPrefix"`
 	ContestCallsigns []string `json:"contestCallsigns"`
+	ClusterType      string   `json:"clusterType"`
 }
 
 type Filters struct {
@@ -926,8 +927,10 @@ func (s *HTTPServer) calculateStats() Stats {
 	}
 
 	clusterStatus := "disconnected"
+	clusterType := "unknown"
 	if s.isClusterConnected() {
 		clusterStatus = "connected"
+		clusterType = s.TCPClient.ClusterType
 	}
 
 	flexStatus := "disconnected"
@@ -943,6 +946,7 @@ func (s *HTTPServer) calculateStats() Stats {
 		ConnectedClients: len(s.TCPServer.Clients),
 		TotalContacts:    s.ContactRepo.CountEntries(),
 		ClusterStatus:    clusterStatus,
+		ClusterType:      clusterType,
 		FlexStatus:       flexStatus,
 		MyCallsign:       Cfg.General.Callsign,
 		Filters: Filters{

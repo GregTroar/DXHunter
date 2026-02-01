@@ -20,6 +20,7 @@
   export let contestPrefix = "";
   export let contestCallsigns = [];
   export let wsStatus = 'disconnected';
+  export let clusterType = 'unknown';
   
   const dispatch = createEventDispatcher();
   
@@ -112,6 +113,7 @@
     {:else if activeTab === 'console'}
       <ConsoleTab 
         {wsStatus}
+        {clusterType}
         on:sendCommand={(e) => dispatch('sendCommand', e.detail)}
       />
     {/if}

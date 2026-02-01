@@ -60,6 +60,7 @@ type TCPClient struct {
 	Countries            Countries
 	LoginRe              *regexp.Regexp
 	PasswordRe           *regexp.Regexp
+	ClusterType          string
 	ContactRepo          *Log4OMContactsRepository
 	ctx                  context.Context
 	cancel               context.CancelFunc
@@ -81,6 +82,7 @@ func NewTCPClient(TCPServer *TCPServer, Countries Countries, contactRepo *Log4OM
 		CmdChan:              TCPServer.CmdChan,
 		SpotChanToHTTPServer: spotChanToHTTPServer,
 		ConsoleChan:          consoleChan,
+		ClusterType:          "unknown",
 		SpotChanToFlex:       make(chan TelnetSpot, SpotChannelBuffer),
 		TCPServer:            *TCPServer,
 		Countries:            Countries,
@@ -278,9 +280,24 @@ func (c *TCPClient) ReadLine() {
 				Log.Errorf("Error reading login prompt: %s", err)
 				return
 			}
-			c.Conn.SetReadDeadline(time.Time{}) // Reset deadline
+			c.Conn.SetReadDeadline(time.Time{})
 
-			if strings.Contains(string(message), Cfg.Cluster.LoginPrompt) || strings.Contains(string(message), "login:") {
+			messageString := string(message)
+
+			// ═══════════════════════════════════════════════════════════
+			// Détecter le type de cluster AVANT le login aussi
+			// ═══════════════════════════════════════════════════════════
+			if c.ClusterType == "" || c.ClusterType == "unknown" {
+				c.detectClusterType(messageString)
+			}
+
+			// Envoyer à la console (même avant login)
+			select {
+			case c.ConsoleChan <- messageString:
+			default:
+			}
+
+			if strings.Contains(messageString, Cfg.Cluster.LoginPrompt) || strings.Contains(messageString, "login:") {
 				time.Sleep(time.Second * 1)
 				Log.Debug("Found login prompt...sending callsign")
 				c.Write([]byte(c.Login + "\n\r"))
@@ -299,6 +316,7 @@ func (c *TCPClient) ReadLine() {
 
 			c.Conn.SetReadDeadline(time.Now().Add(ReadTimeout))
 			message, err := c.Reader.ReadBytes('\n')
+			fmt.Println(string(message))
 			if err != nil {
 				Log.Errorf("Error reading message: %s", err)
 				return
@@ -323,6 +341,14 @@ func (c *TCPClient) ReadLine() {
 					}
 				}
 
+				// ═══════════════════════════════════════════════════════════
+				// Détecter le type de cluster sur TOUTES les lignes
+				// (seulement si pas encore détecté)
+				// ═══════════════════════════════════════════════════════════
+				if c.ClusterType == "" || c.ClusterType == "unknown" {
+					c.detectClusterType(messageString)
+				}
+
 				// Check if it's a DX spot
 				isDXSpot := strings.Contains(messageString, "DX") || shortSpotDetectRe.MatchString(messageString)
 
@@ -331,17 +357,13 @@ func (c *TCPClient) ReadLine() {
 					ProcessTelnetSpot(spotRe, spotReShort, messageString, c.SpotChanToFlex, c.SpotChanToHTTPServer, c.Countries, c.ContactRepo)
 				}
 
-				// ═══════════════════════════════════════════════════════════
-				// NOUVEAU: Envoyer TOUTES les lignes à la console
-				// (y compris les spots, pour un vrai terminal feeling)
-				// ═══════════════════════════════════════════════════════════
+				// Envoyer à la console
 				select {
 				case c.ConsoleChan <- messageString:
 				default:
-					// Channel plein, on drop le message (évite le blocage)
 				}
 
-				// Send to TCP server (existing behavior)
+				// Send to TCP server
 				select {
 				case c.MsgChan <- messageString:
 				case <-c.ctx.Done():
@@ -350,6 +372,23 @@ func (c *TCPClient) ReadLine() {
 			}
 		}
 	}
+}
+
+func (c *TCPClient) detectClusterType(line string) {
+	lineLower := strings.ToLower(line)
+
+	switch {
+	case strings.Contains(lineLower, "dxspider"):
+		c.ClusterType = "dxspider"
+		Log.Infof("✅ Detected cluster type: DX Spider")
+	case strings.Contains(lineLower, "cc cluster") || strings.Contains(lineLower, "cc-cluster") || strings.Contains(lineLower, "cccmds"):
+		c.ClusterType = "cc_cluster"
+		Log.Infof("✅ Detected cluster type: CC Cluster")
+	case strings.Contains(lineLower, "ar-cluster") || strings.Contains(lineLower, "ar cluster") || strings.Contains(lineLower, "arcluster"):
+		c.ClusterType = "ar_cluster"
+		Log.Infof("✅ Detected cluster type: AR Cluster")
+	}
+	// Si rien détecté, on laisse "unknown" ou "" et on continue à chercher
 }
 
 // Write sends raw data to remove telnet server
