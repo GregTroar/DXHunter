@@ -448,28 +448,16 @@ function applyFilters(allSpots, filters, wl) {
   function handleSendCommand(e) {
     const { command } = e.detail;
     
-    // Envoyer via WebSocket
-    if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify({
-        type: 'telnetCommand',
-        data: { command }
-      }));
-      showToast(`📡 Sent: ${command}`, 'radio');
-    } else {
+    if (ws?.readyState !== WebSocket.OPEN) {
       showToast('❌ Not connected to server', 'error');
+      return;
     }
-  }
-
-  function sendTelnetCommand(command) {
-    if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify({
-        type: 'telnetCommand',
-        data: { command }
-      }));
-      showToast(`📡 Sent: ${command}`, 'radio');
-    } else {
-      showToast('❌ Not connected to server', 'error');
-    }
+    
+    ws.send(JSON.stringify({
+      type: 'telnetCommand',
+      data: { command }
+    }));
+    showToast(`📡 Sent: ${command}`, 'radio');
   }
 
   function showToast(message, type = 'info') {

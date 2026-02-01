@@ -24,6 +24,10 @@ var frontendFiles embed.FS
 var httpServerInstance *HTTPServer
 var writeMutex sync.Mutex
 
+// ============================================================================
+// TYPES
+// ============================================================================
+
 type HTTPServer struct {
 	Router          *mux.Router
 	FlexRepo        *FlexDXClusterRepository
@@ -83,10 +87,6 @@ type WSMessage struct {
 	Data interface{} `json:"data"`
 }
 
-type SendCallsignRequest struct {
-	Callsign string `json:"callsign"`
-}
-
 type WatchlistSpot struct {
 	DX              string `json:"dx"`
 	FrequencyMhz    string `json:"frequencyMhz"`
@@ -102,25 +102,23 @@ type WatchlistSpot struct {
 	WorkedBandMode  bool   `json:"workedBandMode"`
 }
 
-type RemoteControlRequestFreq struct {
+type RemoteControlRequest struct {
 	XMLName              xml.Name `xml:"RemoteControlRequest"`
 	MessageId            string   `xml:"MessageId"`
 	RemoteControlMessage string   `xml:"RemoteControlMessage"`
-	Frequency            string   `xml:"Frequency"`
-}
-
-type RemoteControlRequestMode struct {
-	XMLName              xml.Name `xml:"RemoteControlRequest"`
-	MessageId            string   `xml:"MessageId"`
-	RemoteControlMessage string   `xml:"RemoteControlMessage"`
-	Mode                 string   `xml:"Mode"`
+	Frequency            string   `xml:"Frequency,omitempty"`
+	Mode                 string   `xml:"Mode,omitempty"`
 }
 
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
-		return true // Allow all origins in development
+		return true
 	},
 }
+
+// ============================================================================
+// CONSTRUCTOR & SETUP
+// ============================================================================
 
 func NewHTTPServer(flexRepo *FlexDXClusterRepository, contactRepo *Log4OMContactsRepository,
 	tcpServer *TCPServer, tcpClient *TCPClient, flexClient *FlexClient, port string, configPath string) *HTTPServer {
@@ -142,7 +140,6 @@ func NewHTTPServer(flexRepo *FlexDXClusterRepository, contactRepo *Log4OMContact
 	}
 
 	httpServerInstance = server
-
 	server.setupRoutes()
 	go server.handleBroadcasts()
 	go server.broadcastUpdates()
@@ -151,126 +148,102 @@ func NewHTTPServer(flexRepo *FlexDXClusterRepository, contactRepo *Log4OMContact
 }
 
 func (s *HTTPServer) setupRoutes() {
-	// Enable CORS
 	s.Router.Use(s.corsMiddleware)
 
-	// API Routes
 	api := s.Router.PathPrefix("/api").Subrouter()
 
+	// Stats & Data
 	api.HandleFunc("/stats", s.getStats).Methods("GET", "OPTIONS")
+	api.HandleFunc("/stats/spots", s.getSpotProcessingStats).Methods("GET", "OPTIONS")
 	api.HandleFunc("/spots", s.getSpots).Methods("GET", "OPTIONS")
 	api.HandleFunc("/spots/{id}", s.getSpotByID).Methods("GET", "OPTIONS")
 	api.HandleFunc("/contacts", s.getContacts).Methods("GET", "OPTIONS")
-	api.HandleFunc("/filters", s.updateFilters).Methods("POST", "OPTIONS")
-	api.HandleFunc("/shutdown", s.shutdownApp).Methods("POST", "OPTIONS")
-	api.HandleFunc("/send-callsign", s.handleSendCallsign).Methods("POST", "OPTIONS")
-	api.HandleFunc("/watchlist", s.getWatchlist).Methods("GET", "OPTIONS")
-	api.HandleFunc("/solar", s.HandleSolarData).Methods("GET", "OPTIONS")
+
+	// Log data
 	api.HandleFunc("/log/recent", s.getRecentQSOs).Methods("GET", "OPTIONS")
 	api.HandleFunc("/log/stats", s.getLogStats).Methods("GET", "OPTIONS")
 	api.HandleFunc("/log/dxcc-progress", s.getDXCCProgress).Methods("GET", "OPTIONS")
+	api.HandleFunc("/logs", s.getLogs).Methods("GET", "OPTIONS")
+
+	// Watchlist
+	api.HandleFunc("/watchlist", s.getWatchlist).Methods("GET", "OPTIONS")
 	api.HandleFunc("/watchlist/spots", s.getWatchlistSpotsWithStatus).Methods("GET", "OPTIONS")
 	api.HandleFunc("/watchlist/add", s.addToWatchlist).Methods("POST", "OPTIONS")
 	api.HandleFunc("/watchlist/remove", s.removeFromWatchlist).Methods("DELETE", "OPTIONS")
-	api.HandleFunc("/stats/spots", s.getSpotProcessingStats).Methods("GET", "OPTIONS")
-	api.HandleFunc("/logs", s.getLogs).Methods("GET", "OPTIONS")
-	api.HandleFunc("/contest/toggle", s.toggleContestMode).Methods("POST", "OPTIONS")
-	api.HandleFunc("/telnet-command", s.handleTelnetCommand).Methods("POST", "OPTIONS")
 
-	// WebSocket endpoint
+	// Actions
+	api.HandleFunc("/filters", s.updateFilters).Methods("POST", "OPTIONS")
+	api.HandleFunc("/send-callsign", s.handleSendCallsign).Methods("POST", "OPTIONS")
+	api.HandleFunc("/contest/toggle", s.toggleContestMode).Methods("POST", "OPTIONS")
+	api.HandleFunc("/shutdown", s.shutdownApp).Methods("POST", "OPTIONS")
+
+	// External data
+	api.HandleFunc("/solar", s.HandleSolarData).Methods("GET", "OPTIONS")
+
+	// WebSocket (seul point d'entrée pour les commandes Telnet maintenant)
 	api.HandleFunc("/ws", s.handleWebSocket).Methods("GET")
 
 	s.setupStaticFiles()
 }
 
-func (s *HTTPServer) handleTelnetCommand(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		Command string `json:"command"`
-	}
+// ============================================================================
+// HELPERS - Réutilisables pour réduire la duplication
+// ============================================================================
 
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		s.sendJSON(w, APIResponse{Success: false, Error: "Invalid request"})
-		return
-	}
-
-	if req.Command == "" {
-		s.sendJSON(w, APIResponse{Success: false, Error: "Command is required"})
-		return
-	}
-
-	// Envoyer la commande au client TCP
-	if s.TCPClient != nil && s.TCPClient.LoggedIn {
-		s.TCPClient.CmdChan <- req.Command
-		s.Log.Infof("Telnet command sent: %s", req.Command)
-		s.sendJSON(w, APIResponse{Success: true, Message: "Command sent to cluster"})
-	} else {
-		s.sendJSON(w, APIResponse{Success: false, Error: "Not connected to cluster"})
-	}
+// decodeJSONBody décode le body JSON et retourne une erreur si échec
+func (s *HTTPServer) decodeJSONBody(r *http.Request, v interface{}) error {
+	return json.NewDecoder(r.Body).Decode(v)
 }
 
-func (s *HTTPServer) toggleContestMode(w http.ResponseWriter, r *http.Request) {
-	// Basculer le mode contest
-	Cfg.General.ContestMode = !Cfg.General.ContestMode
+// sendError envoie une réponse d'erreur JSON
+func (s *HTTPServer) sendError(w http.ResponseWriter, message string) {
+	s.sendJSON(w, APIResponse{Success: false, Error: message})
+}
 
-	s.Log.Infof("Contest mode toggled to: %v", Cfg.General.ContestMode)
+// sendSuccess envoie une réponse de succès JSON
+func (s *HTTPServer) sendSuccess(w http.ResponseWriter, data interface{}, message string) {
+	s.sendJSON(w, APIResponse{Success: true, Data: data, Message: message})
+}
 
-	// Si on passe en mode contest, ajouter automatiquement les callsigns contest
-	if Cfg.General.ContestMode && s.Watchlist != nil {
-		addedCount := 0
-		for _, callsign := range Cfg.General.ContestCallsigns {
-			if err := s.Watchlist.AddContest(callsign); err == nil {
-				addedCount++
-			}
+func (s *HTTPServer) sendJSON(w http.ResponseWriter, data interface{}) {
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(data)
+}
+
+// isClusterConnected vérifie si le client TCP est connecté
+func (s *HTTPServer) isClusterConnected() bool {
+	return s.TCPClient != nil && s.TCPClient.LoggedIn
+}
+
+// isFlexConnected vérifie si le FlexRadio est connecté
+func (s *HTTPServer) isFlexConnected() bool {
+	return s.FlexClient != nil && s.FlexClient.IsConnected
+}
+
+// sendTelnetCommand envoie une commande au cluster (utilisé par WebSocket uniquement)
+func (s *HTTPServer) sendTelnetCommand(command string) error {
+	if !s.isClusterConnected() {
+		return fmt.Errorf("not connected to cluster")
+	}
+	s.TCPClient.CmdChan <- command
+	s.Log.Infof("Telnet command sent: %s", command)
+	return nil
+}
+
+// filterWatchlistEntries filtre les entrées watchlist selon le mode contest
+func (s *HTTPServer) filterWatchlistEntries(entries []WatchlistEntry, contestMode bool) []WatchlistEntry {
+	filtered := make([]WatchlistEntry, 0, len(entries))
+	for _, entry := range entries {
+		if entry.IsContest == contestMode {
+			filtered = append(filtered, entry)
 		}
-		s.Log.Infof("Added %d contest callsigns to watchlist", addedCount)
 	}
-
-	// Broadcast la mise à jour à tous les clients WebSocket
-	stats := s.calculateStats()
-	s.broadcast <- WSMessage{Type: "stats", Data: stats}
-
-	// Broadcast aussi la watchlist mise à jour
-	watchlist := s.Watchlist.GetAll()
-	s.broadcast <- WSMessage{Type: "watchlist", Data: watchlist}
-
-	s.sendJSON(w, APIResponse{
-		Success: true,
-		Message: fmt.Sprintf("Contest mode %s", map[bool]string{true: "enabled", false: "disabled"}[Cfg.General.ContestMode]),
-		Data: map[string]interface{}{
-			"contestMode":      Cfg.General.ContestMode,
-			"contestPrefix":    Cfg.General.ContestPrefix,
-			"contestCallsigns": Cfg.General.ContestCallsigns,
-		},
-	})
+	return filtered
 }
 
-func (s *HTTPServer) setupStaticFiles() {
-	// Obtenir le sous-système de fichiers depuis dist/
-	distFS, err := fs.Sub(frontendFiles, "frontend/dist")
-	if err != nil {
-		s.Log.Fatal("Cannot load frontend files:", err)
-	}
-
-	spaHandler := http.FileServer(http.FS(distFS))
-	s.Router.PathPrefix("/").Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
-		path := r.URL.Path
-
-		// Vérifier si le fichier existe
-		if path != "/" {
-			file, err := distFS.Open(strings.TrimPrefix(path, "/"))
-			if err == nil {
-				file.Close()
-				spaHandler.ServeHTTP(w, r)
-				return
-			}
-		}
-
-		// Si pas trouvé ou racine, servir index.html
-		r.URL.Path = "/"
-		spaHandler.ServeHTTP(w, r)
-	}))
-}
+// ============================================================================
+// WEBSOCKET HANDLERS
+// ============================================================================
 
 func (s *HTTPServer) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
@@ -286,10 +259,7 @@ func (s *HTTPServer) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 
 	s.Log.Infof("New WebSocket client connected (total: %d)", clientCount)
 
-	// Send initial data
 	s.sendInitialData(conn)
-
-	// Keep connection alive and handle client messages
 	go s.handleWebSocketClient(conn)
 }
 
@@ -320,115 +290,93 @@ func (s *HTTPServer) handleWebSocketClient(conn *websocket.Conn) {
 }
 
 func (s *HTTPServer) handleWebSocketMessage(conn *websocket.Conn, message []byte) {
-	var msg map[string]interface{}
+	var msg struct {
+		Type string                 `json:"type"`
+		Data map[string]interface{} `json:"data"`
+	}
+
 	if err := json.Unmarshal(message, &msg); err != nil {
 		s.Log.Errorf("Failed to parse WebSocket message: %v", err)
 		return
 	}
 
-	msgType, ok := msg["type"].(string)
-	if !ok {
-		s.Log.Errorf("WebSocket message missing type field")
+	switch msg.Type {
+	case "telnetCommand":
+		s.handleWSTelnetCommand(conn, msg.Data)
+	default:
+		s.Log.Debugf("Unknown WebSocket message type: %s", msg.Type)
+	}
+}
+
+func (s *HTTPServer) handleWSTelnetCommand(conn *websocket.Conn, data map[string]interface{}) {
+	command, ok := data["command"].(string)
+	if !ok || command == "" {
+		s.safeWrite(conn, WSMessage{
+			Type: "telnetCommandResponse",
+			Data: map[string]interface{}{
+				"success": false,
+				"message": "Command is required",
+			},
+		})
 		return
 	}
 
-	switch msgType {
-	case "telnetCommand":
-		s.handleWebSocketTelnetCommand(conn, msg)
-	// Vous pouvez ajouter d'autres types de messages ici
-	default:
-		s.Log.Debugf("Unknown WebSocket message type: %s", msgType)
+	err := s.sendTelnetCommand(command)
+
+	response := WSMessage{
+		Type: "telnetCommandResponse",
+		Data: map[string]interface{}{
+			"success": err == nil,
+			"command": command,
+			"message": map[bool]string{true: "Command sent to cluster", false: "Not connected to cluster"}[err == nil],
+		},
 	}
+	s.safeWrite(conn, response)
 }
 
 func (s *HTTPServer) safeWrite(conn *websocket.Conn, msg WSMessage) error {
 	writeMutex.Lock()
 	defer writeMutex.Unlock()
-
 	return conn.WriteJSON(msg)
 }
 
-func (s *HTTPServer) handleWebSocketTelnetCommand(conn *websocket.Conn, msg map[string]interface{}) {
-	data, ok := msg["data"].(map[string]interface{})
-	if !ok {
-		s.Log.Errorf("Invalid telnetCommand data format")
-		return
-	}
-
-	command, ok := data["command"].(string)
-	if !ok || command == "" {
-		s.Log.Errorf("Telnet command missing or empty")
-		return
-	}
-
-	// Utiliser la même logique que l'API REST
-	if s.TCPClient != nil && s.TCPClient.LoggedIn {
-		s.TCPClient.CmdChan <- command
-		s.Log.Infof("Telnet command via WebSocket: %s", command)
-
-		// Envoyer une confirmation au client
-		response := WSMessage{
-			Type: "telnetCommandResponse",
-			Data: map[string]interface{}{
-				"success": true,
-				"command": command,
-				"message": "Command sent to cluster",
-			},
-		}
-		s.safeWrite(conn, response)
-	} else {
-		response := WSMessage{
-			Type: "telnetCommandResponse",
-			Data: map[string]interface{}{
-				"success": false,
-				"command": command,
-				"message": "Not connected to cluster",
-			},
-		}
-		s.safeWrite(conn, response)
-	}
-}
-
 func (s *HTTPServer) sendInitialData(conn *websocket.Conn) {
-	// Send initial stats
-	stats := s.calculateStats()
-	s.safeWrite(conn, WSMessage{Type: "stats", Data: stats})
+	// Stats
+	s.safeWrite(conn, WSMessage{Type: "stats", Data: s.calculateStats()})
 
-	// Send initial spots
-	spots := s.FlexRepo.GetAllSpots("0")
-	s.safeWrite(conn, WSMessage{Type: "spots", Data: spots})
+	// Spots
+	s.safeWrite(conn, WSMessage{Type: "spots", Data: s.FlexRepo.GetAllSpots("0")})
 
-	// Send initial watchlist
-	watchlist := s.Watchlist.GetAll()
-	s.safeWrite(conn, WSMessage{Type: "watchlist", Data: watchlist})
+	// Watchlist
+	s.safeWrite(conn, WSMessage{Type: "watchlist", Data: s.Watchlist.GetAll()})
 
-	// Send initial log data
-	qsos := s.ContactRepo.GetRecentQSOs("19")
-	s.safeWrite(conn, WSMessage{Type: "log", Data: qsos})
+	// Log data
+	s.safeWrite(conn, WSMessage{Type: "log", Data: s.ContactRepo.GetRecentQSOs("19")})
+	s.safeWrite(conn, WSMessage{Type: "logStats", Data: s.ContactRepo.GetQSOStats()})
 
-	logStats := s.ContactRepo.GetQSOStats()
-	s.safeWrite(conn, WSMessage{Type: "logStats", Data: logStats})
-
+	// DXCC Progress
 	dxccCount := s.ContactRepo.GetDXCCCount()
-	dxccData := map[string]interface{}{
+	s.safeWrite(conn, WSMessage{Type: "dxccProgress", Data: map[string]interface{}{
 		"worked":     dxccCount,
 		"total":      340,
 		"percentage": float64(dxccCount) / 340.0 * 100.0,
-	}
-	s.safeWrite(conn, WSMessage{Type: "dxccProgress", Data: dxccData})
+	}})
 
+	// App logs
 	if logBuffer != nil {
-		logs := logBuffer.GetAll()
-		s.safeWrite(conn, WSMessage{Type: "appLogs", Data: logs})
+		s.safeWrite(conn, WSMessage{Type: "appLogs", Data: logBuffer.GetAll()})
 	}
 }
+
+// ============================================================================
+// BROADCAST LOOP
+// ============================================================================
 
 func (s *HTTPServer) handleBroadcasts() {
 	for msg := range s.broadcast {
 		s.wsMutex.RLock()
 		for client := range s.wsClients {
-			err := s.safeWrite(client, msg)
-			if err != nil {
+			if err := s.safeWrite(client, msg); err != nil {
 				s.Log.Errorf("WebSocket write error: %v", err)
 				client.Close()
 				s.wsMutex.RUnlock()
@@ -445,44 +393,27 @@ func (s *HTTPServer) handleBroadcasts() {
 func (s *HTTPServer) broadcastUpdates() {
 	statsTicker := time.NewTicker(1 * time.Second)
 	logTicker := time.NewTicker(5 * time.Second)
-	cleanupTicker := time.NewTicker(5 * time.Minute)
 	watchlistSaveTicker := time.NewTicker(20 * time.Second)
 
 	defer statsTicker.Stop()
 	defer logTicker.Stop()
-	defer cleanupTicker.Stop()
 	defer watchlistSaveTicker.Stop()
 
 	for {
 		select {
 		case <-statsTicker.C:
-			s.wsMutex.RLock()
-			clientCount := len(s.wsClients)
-			s.wsMutex.RUnlock()
-
-			if clientCount == 0 {
+			if s.clientCount() == 0 {
 				continue
 			}
-
-			// Broadcast stats
-			stats := s.calculateStats()
-			s.broadcast <- WSMessage{Type: "stats", Data: stats}
-
-			// Broadcast spots
+			s.broadcast <- WSMessage{Type: "stats", Data: s.calculateStats()}
 			spots := s.FlexRepo.GetAllSpots("0")
 			s.checkBandOpening(spots)
 			s.broadcast <- WSMessage{Type: "spots", Data: spots}
 
 		case <-logTicker.C:
-			s.wsMutex.RLock()
-			clientCount := len(s.wsClients)
-			s.wsMutex.RUnlock()
-
-			if clientCount == 0 {
+			if s.clientCount() == 0 {
 				continue
 			}
-
-			// Broadcast log data every 10 seconds
 			qsos := s.ContactRepo.GetRecentQSOs("19")
 			s.broadcast <- WSMessage{Type: "log", Data: qsos}
 
@@ -491,16 +422,13 @@ func (s *HTTPServer) broadcastUpdates() {
 			s.broadcast <- WSMessage{Type: "logStats", Data: stats}
 
 			dxccCount := s.ContactRepo.GetDXCCCount()
-			dxccData := map[string]interface{}{
+			s.broadcast <- WSMessage{Type: "dxccProgress", Data: map[string]interface{}{
 				"worked":     dxccCount,
 				"total":      340,
 				"percentage": float64(dxccCount) / 340.0 * 100.0,
-			}
-
-			s.broadcast <- WSMessage{Type: "dxccProgress", Data: dxccData}
+			}}
 
 		case <-watchlistSaveTicker.C:
-			// Sauvegarder la watchlist périodiquement
 			if s.Watchlist != nil {
 				s.Watchlist.save()
 			}
@@ -508,28 +436,487 @@ func (s *HTTPServer) broadcastUpdates() {
 	}
 }
 
-func (s *HTTPServer) getLogs(w http.ResponseWriter, r *http.Request) {
-	if logBuffer == nil {
-		s.sendJSON(w, APIResponse{Success: true, Data: []LogEntry{}})
-		return
-	}
+func (s *HTTPServer) clientCount() int {
+	s.wsMutex.RLock()
+	defer s.wsMutex.RUnlock()
+	return len(s.wsClients)
+}
 
-	logs := logBuffer.GetAll()
-	s.sendJSON(w, APIResponse{Success: true, Data: logs})
+// ============================================================================
+// API HANDLERS - Stats & Data
+// ============================================================================
+
+func (s *HTTPServer) getStats(w http.ResponseWriter, r *http.Request) {
+	s.sendSuccess(w, s.calculateStats(), "")
 }
 
 func (s *HTTPServer) getSpotProcessingStats(w http.ResponseWriter, r *http.Request) {
 	received, processed, rejected := GetSpotStats()
-	successRate := GetSpotSuccessRate()
-
-	stats := map[string]interface{}{
+	s.sendSuccess(w, map[string]interface{}{
 		"received":    received,
 		"processed":   processed,
 		"rejected":    rejected,
-		"successRate": successRate,
+		"successRate": GetSpotSuccessRate(),
+	}, "")
+}
+
+func (s *HTTPServer) getSpots(w http.ResponseWriter, r *http.Request) {
+	limit := r.URL.Query().Get("limit")
+	if limit == "" {
+		limit = "50"
+	}
+	s.sendSuccess(w, s.FlexRepo.GetAllSpots(limit), "")
+}
+
+func (s *HTTPServer) getSpotByID(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	spot, err := s.FlexRepo.FindSpotByFlexSpotNumber(vars["id"])
+	if err != nil {
+		s.sendError(w, "Spot not found")
+		return
+	}
+	s.sendSuccess(w, spot, "")
+}
+
+func (s *HTTPServer) getContacts(w http.ResponseWriter, r *http.Request) {
+	s.sendSuccess(w, map[string]interface{}{"totalContacts": s.ContactRepo.CountEntries()}, "")
+}
+
+func (s *HTTPServer) getLogs(w http.ResponseWriter, r *http.Request) {
+	if logBuffer == nil {
+		s.sendSuccess(w, []LogEntry{}, "")
+		return
+	}
+	s.sendSuccess(w, logBuffer.GetAll(), "")
+}
+
+// ============================================================================
+// API HANDLERS - Log Data
+// ============================================================================
+
+func (s *HTTPServer) getRecentQSOs(w http.ResponseWriter, r *http.Request) {
+	limit := r.URL.Query().Get("limit")
+	if limit == "" {
+		limit = "50"
+	}
+	s.sendSuccess(w, s.ContactRepo.GetRecentQSOs(limit), "")
+}
+
+func (s *HTTPServer) getLogStats(w http.ResponseWriter, r *http.Request) {
+	s.sendSuccess(w, s.ContactRepo.GetQSOStats(), "")
+}
+
+func (s *HTTPServer) getDXCCProgress(w http.ResponseWriter, r *http.Request) {
+	count := s.ContactRepo.GetDXCCCount()
+	s.sendSuccess(w, map[string]interface{}{
+		"worked":     count,
+		"total":      340,
+		"percentage": float64(count) / 340.0 * 100.0,
+	}, "")
+}
+
+// ============================================================================
+// API HANDLERS - Watchlist
+// ============================================================================
+
+func (s *HTTPServer) getWatchlist(w http.ResponseWriter, r *http.Request) {
+	entries := s.filterWatchlistEntries(s.Watchlist.GetAll(), Cfg.General.ContestMode)
+	s.sendSuccess(w, entries, "")
+}
+
+func (s *HTTPServer) addToWatchlist(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Callsign string `json:"callsign"`
 	}
 
-	s.sendJSON(w, APIResponse{Success: true, Data: stats})
+	if err := s.decodeJSONBody(r, &req); err != nil {
+		s.sendError(w, "Invalid request")
+		return
+	}
+
+	if req.Callsign == "" {
+		s.sendError(w, "Callsign is required")
+		return
+	}
+
+	if err := s.Watchlist.Add(req.Callsign); err != nil {
+		s.sendError(w, err.Error())
+		return
+	}
+
+	s.Log.Infof("Added %s to watchlist", req.Callsign)
+	s.broadcast <- WSMessage{Type: "watchlist", Data: s.Watchlist.GetAll()}
+	s.sendSuccess(w, nil, "Callsign added to watchlist")
+}
+
+func (s *HTTPServer) removeFromWatchlist(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Callsign string `json:"callsign"`
+	}
+
+	if err := s.decodeJSONBody(r, &req); err != nil {
+		s.sendError(w, "Invalid request")
+		return
+	}
+
+	if req.Callsign == "" {
+		s.sendError(w, "Callsign is required")
+		return
+	}
+
+	if err := s.Watchlist.Remove(req.Callsign); err != nil {
+		s.sendError(w, err.Error())
+		return
+	}
+
+	s.Log.Debugf("Removed %s from watchlist", req.Callsign)
+	s.broadcast <- WSMessage{Type: "watchlist", Data: s.Watchlist.GetAll()}
+	s.sendSuccess(w, nil, "Callsign removed from watchlist")
+}
+
+func (s *HTTPServer) getWatchlistSpotsWithStatus(w http.ResponseWriter, r *http.Request) {
+	allSpots := s.FlexRepo.GetAllSpots("0")
+	watchlistEntries := s.filterWatchlistEntries(s.Watchlist.GetAll(), Cfg.General.ContestMode)
+
+	// Créer une map des callsigns watchlist pour recherche rapide
+	watchlistCallsigns := make(map[string]bool)
+	for _, entry := range watchlistEntries {
+		watchlistCallsigns[entry.Callsign] = true
+	}
+
+	// Filtrer les spots qui correspondent à la watchlist
+	var relevantSpots []FlexSpot
+	for _, spot := range allSpots {
+		for callsign := range watchlistCallsigns {
+			if spot.DX == callsign || strings.HasPrefix(spot.DX, callsign) {
+				relevantSpots = append(relevantSpots, spot)
+				break
+			}
+		}
+	}
+
+	// Grouper par Band/Mode
+	type BandModeKey struct {
+		Band string
+		Mode string
+	}
+
+	spotsByBandMode := make(map[BandModeKey][]FlexSpot)
+	for _, spot := range relevantSpots {
+		key := BandModeKey{Band: spot.Band, Mode: spot.Mode}
+		spotsByBandMode[key] = append(spotsByBandMode[key], spot)
+	}
+
+	// Construire le résultat
+	var watchlistSpots []WatchlistSpot
+	for key, spots := range spotsByBandMode {
+		// Collecter les callsigns uniques
+		callsignSet := make(map[string]bool)
+		for _, spot := range spots {
+			callsignSet[spot.DX] = true
+		}
+
+		// Séparer contest/normal
+		var contestCallsigns, normalCallsigns []string
+		for callsign := range callsignSet {
+			entry := s.Watchlist.GetEntry(callsign)
+			if entry != nil && entry.IsContest {
+				contestCallsigns = append(contestCallsigns, callsign)
+			} else {
+				normalCallsigns = append(normalCallsigns, callsign)
+			}
+		}
+
+		// Récupérer les statuts worked
+		workedMap := make(map[string]bool)
+
+		if len(contestCallsigns) > 0 {
+			for callsign, worked := range s.ContactRepo.GetWorkedCallsignsBandModeToday(contestCallsigns, key.Band, key.Mode) {
+				workedMap[callsign] = worked
+			}
+		}
+
+		if len(normalCallsigns) > 0 {
+			for callsign, worked := range s.ContactRepo.GetWorkedCallsignsBandMode(normalCallsigns, key.Band, key.Mode) {
+				workedMap[callsign] = worked
+			}
+		}
+
+		// Créer les WatchlistSpot
+		for _, spot := range spots {
+			watchlistSpots = append(watchlistSpots, WatchlistSpot{
+				DX:              spot.DX,
+				FrequencyMhz:    spot.FrequencyMhz,
+				Band:            spot.Band,
+				Mode:            spot.Mode,
+				SpotterCallsign: spot.SpotterCallsign,
+				UTCTime:         spot.UTCTime,
+				CountryName:     spot.CountryName,
+				NewDXCC:         spot.NewDXCC,
+				NewBand:         spot.NewBand,
+				NewMode:         spot.NewMode,
+				Worked:          spot.Worked,
+				WorkedBandMode:  workedMap[spot.DX],
+			})
+		}
+	}
+
+	s.sendSuccess(w, watchlistSpots, "")
+}
+
+// ============================================================================
+// API HANDLERS - Actions
+// ============================================================================
+
+func (s *HTTPServer) updateFilters(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Skimmer *bool `json:"skimmer,omitempty"`
+		FT8     *bool `json:"ft8,omitempty"`
+		FT4     *bool `json:"ft4,omitempty"`
+		Beacon  *bool `json:"beacon,omitempty"`
+	}
+
+	if err := s.decodeJSONBody(r, &req); err != nil {
+		s.sendError(w, "Invalid request")
+		return
+	}
+
+	type filterConfig struct {
+		value  *bool
+		cfgPtr *bool
+		onCmd  string
+		offCmd string
+	}
+
+	filters := []filterConfig{
+		{req.Skimmer, &Cfg.Cluster.Skimmer, "set/skimmer", "set/noskimmer"},
+		{req.FT8, &Cfg.Cluster.FT8, "set/ft8", "set/noft8"},
+		{req.FT4, &Cfg.Cluster.FT4, "set/ft4", "set/noft4"},
+		{req.Beacon, &Cfg.Cluster.Beacon, "set/beacon", "set/nobeacon"},
+	}
+
+	for _, f := range filters {
+		if f.value != nil {
+			*f.cfgPtr = *f.value
+			cmd := f.offCmd
+			if *f.value {
+				cmd = f.onCmd
+			}
+			s.TCPClient.CmdChan <- cmd
+		}
+	}
+
+	s.sendSuccess(w, map[string]string{"message": "Filters updated successfully"}, "")
+}
+
+func (s *HTTPServer) toggleContestMode(w http.ResponseWriter, r *http.Request) {
+	Cfg.General.ContestMode = !Cfg.General.ContestMode
+	s.Log.Infof("Contest mode toggled to: %v", Cfg.General.ContestMode)
+
+	if Cfg.General.ContestMode && s.Watchlist != nil {
+		addedCount := 0
+		for _, callsign := range Cfg.General.ContestCallsigns {
+			if err := s.Watchlist.AddContest(callsign); err == nil {
+				addedCount++
+			}
+		}
+		s.Log.Infof("Added %d contest callsigns to watchlist", addedCount)
+	}
+
+	// Broadcast updates
+	s.broadcast <- WSMessage{Type: "stats", Data: s.calculateStats()}
+	s.broadcast <- WSMessage{Type: "watchlist", Data: s.Watchlist.GetAll()}
+
+	status := "disabled"
+	if Cfg.General.ContestMode {
+		status = "enabled"
+	}
+
+	s.sendSuccess(w, map[string]interface{}{
+		"contestMode":      Cfg.General.ContestMode,
+		"contestPrefix":    Cfg.General.ContestPrefix,
+		"contestCallsigns": Cfg.General.ContestCallsigns,
+	}, fmt.Sprintf("Contest mode %s", status))
+}
+
+func (s *HTTPServer) handleSendCallsign(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Callsign  string `json:"callsign"`
+		Frequency string `json:"frequency"`
+		Mode      string `json:"mode"`
+	}
+
+	if err := s.decodeJSONBody(r, &req); err != nil {
+		s.sendError(w, "Invalid request")
+		return
+	}
+
+	if req.Callsign == "" {
+		s.sendError(w, "Callsign is required")
+		return
+	}
+
+	// Envoyer le callsign à Log4OM
+	SendUDPMessage([]byte("<CALLSIGN>" + req.Callsign))
+	s.Log.Debugf("Sent callsign %s to Log4OM via UDP (127.0.0.1:2241)", req.Callsign)
+
+	// Si configuré, envoyer freq/mode à Log4OM
+	if Cfg.General.SendFreqModeToLog {
+		s.sendFreqModeToLog4OM(req.Frequency, req.Mode)
+	} else if req.Frequency != "" && s.isFlexConnected() {
+		// Sinon, contrôler le FlexRadio directement
+		s.tuneFlexRadio(req.Frequency, req.Mode)
+	}
+
+	s.sendSuccess(w, map[string]string{
+		"callsign":  req.Callsign,
+		"frequency": req.Frequency,
+	}, "Callsign sent to Log4OM and radio tuned")
+}
+
+func (s *HTTPServer) sendFreqModeToLog4OM(frequency, mode string) {
+	freqLog4OM := strings.Replace(frequency, ".", "", 1)
+
+	// Frequency request
+	xmlFreq := RemoteControlRequest{
+		MessageId:            uuid.New().String(),
+		RemoteControlMessage: "SetTxFrequency",
+		Frequency:            freqLog4OM,
+	}
+	if xmlBytes, err := xml.MarshalIndent(xmlFreq, "", "  "); err == nil {
+		SendUDPMessage(xmlBytes)
+	} else {
+		s.Log.Errorf("Failed to marshal frequency XML: %v", err)
+	}
+
+	// Mode request
+	xmlMode := RemoteControlRequest{
+		MessageId:            uuid.New().String(),
+		RemoteControlMessage: "SetMode",
+		Mode:                 mode,
+	}
+	if xmlBytes, err := xml.MarshalIndent(xmlMode, "", "  "); err == nil {
+		SendUDPMessage(xmlBytes)
+	} else {
+		s.Log.Errorf("Failed to marshal mode XML: %v", err)
+	}
+}
+
+func (s *HTTPServer) tuneFlexRadio(frequency, mode string) {
+	tuneCmd := fmt.Sprintf("C%v|slice tune 0 %s", CommandNumber, frequency)
+	s.FlexClient.Write(tuneCmd)
+	CommandNumber++
+
+	time.Sleep(time.Millisecond * 500)
+
+	modeCmd := fmt.Sprintf("C%v|slice s 0 mode=%s", CommandNumber, mode)
+	s.FlexClient.Write(modeCmd)
+	CommandNumber++
+
+	s.Log.Infof("Sent TUNE command to Flex: %s", tuneCmd)
+
+	time.Sleep(time.Millisecond * 100)
+
+	s.FlexClient.ZoomPanadapter(mode, frequency)
+	s.FlexClient.AdjustAGC(mode)
+	s.Log.Infof("AGC Mode adjusted to mode: %s", mode)
+}
+
+func (s *HTTPServer) shutdownApp(w http.ResponseWriter, r *http.Request) {
+	s.Log.Info("Shutdown request received from dashboard")
+	s.sendSuccess(w, map[string]string{"message": "Shutting down FlexDXCluster"}, "")
+
+	go func() {
+		time.Sleep(500 * time.Millisecond)
+		GracefulShutdown(s.TCPClient, s.TCPServer, s.FlexClient, s.FlexRepo, s.ContactRepo)
+		os.Exit(0)
+	}()
+}
+
+// ============================================================================
+// API HANDLERS - External Data
+// ============================================================================
+
+func (s *HTTPServer) HandleSolarData(w http.ResponseWriter, r *http.Request) {
+	resp, err := http.Get("https://www.hamqsl.com/solarxml.php")
+	if err != nil {
+		s.Log.Errorf("Error fetching solar data: %v", err)
+		s.sendError(w, "Failed to fetch solar data")
+		return
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		s.Log.Errorf("Error reading solar data: %v", err)
+		s.sendError(w, "Failed to read solar data")
+		return
+	}
+
+	var solarXML SolarXML
+	if err := xml.Unmarshal(body, &solarXML); err != nil {
+		s.Log.Errorf("Error parsing solar XML: %v", err)
+		s.sendError(w, "Failed to parse solar data")
+		return
+	}
+
+	s.sendSuccess(w, map[string]interface{}{
+		"sfi":      solarXML.Data.SolarFlux,
+		"sunspots": solarXML.Data.Sunspots,
+		"aIndex":   solarXML.Data.AIndex,
+		"kIndex":   solarXML.Data.KIndex,
+		"updated":  solarXML.Data.Updated,
+	}, "")
+}
+
+// ============================================================================
+// STATS & MILESTONES
+// ============================================================================
+
+func (s *HTTPServer) calculateStats() Stats {
+	allSpots := s.FlexRepo.GetAllSpots("0")
+
+	newDXCCCount := 0
+	for _, spot := range allSpots {
+		if spot.NewDXCC {
+			newDXCCCount++
+		}
+	}
+
+	clusterStatus := "disconnected"
+	if s.isClusterConnected() {
+		clusterStatus = "connected"
+	}
+
+	flexStatus := "disconnected"
+	if s.isFlexConnected() {
+		flexStatus = "connected"
+	}
+
+	received, processed, rejected := GetSpotStats()
+
+	return Stats{
+		TotalSpots:       len(allSpots),
+		NewDXCC:          newDXCCCount,
+		ConnectedClients: len(s.TCPServer.Clients),
+		TotalContacts:    s.ContactRepo.CountEntries(),
+		ClusterStatus:    clusterStatus,
+		FlexStatus:       flexStatus,
+		MyCallsign:       Cfg.General.Callsign,
+		Filters: Filters{
+			Skimmer: Cfg.Cluster.Skimmer,
+			FT8:     Cfg.Cluster.FT8,
+			FT4:     Cfg.Cluster.FT4,
+			Beacon:  Cfg.Cluster.Beacon,
+		},
+		SpotsReceived:    received,
+		SpotsProcessed:   processed,
+		SpotsRejected:    rejected,
+		SpotSuccessRate:  GetSpotSuccessRate(),
+		ContestMode:      Cfg.General.ContestMode,
+		ContestPrefix:    Cfg.General.ContestPrefix,
+		ContestCallsigns: Cfg.General.ContestCallsigns,
+	}
 }
 
 func (s *HTTPServer) checkQSOMilestones(todayCount int) {
@@ -541,7 +928,6 @@ func (s *HTTPServer) checkQSOMilestones(todayCount int) {
 	}
 
 	milestones := []int{5, 10, 25, 50, 100, 200, 500}
-
 	for _, milestone := range milestones {
 		if todayCount >= milestone && s.lastQSOCount < milestone {
 			s.broadcast <- WSMessage{
@@ -567,15 +953,13 @@ func (s *HTTPServer) checkBandOpening(spots []FlexSpot) {
 		bandCounts[spot.Band]++
 	}
 
-	// ✅ Seulement surveiller 6M, 10M et 12M
 	monitoredBands := []string{"6M", "10M", "12M"}
-
 	now := time.Now()
+
 	for _, band := range monitoredBands {
 		count := bandCounts[band]
-		if count >= 20 { // Si 20+ spots sur une bande
+		if count >= 20 {
 			lastSeen, exists := s.lastBandOpening[band]
-			// Notifier si première fois ou si pas vu depuis 2 heures
 			if !exists || now.Sub(lastSeen) > 2*time.Hour {
 				s.lastBandOpening[band] = now
 				s.broadcast <- WSMessage{
@@ -592,80 +976,9 @@ func (s *HTTPServer) checkBandOpening(spots []FlexSpot) {
 	}
 }
 
-func (s *HTTPServer) getRecentQSOs(w http.ResponseWriter, r *http.Request) {
-	limitStr := r.URL.Query().Get("limit")
-	if limitStr == "" {
-		limitStr = "50"
-	}
-
-	qsos := s.ContactRepo.GetRecentQSOs(limitStr)
-	s.sendJSON(w, APIResponse{Success: true, Data: qsos})
-}
-
-func (s *HTTPServer) getLogStats(w http.ResponseWriter, r *http.Request) {
-	stats := s.ContactRepo.GetQSOStats()
-	s.sendJSON(w, APIResponse{Success: true, Data: stats})
-}
-
-func (s *HTTPServer) getDXCCProgress(w http.ResponseWriter, r *http.Request) {
-	workedCount := s.ContactRepo.GetDXCCCount()
-
-	data := map[string]interface{}{
-		"worked":     workedCount,
-		"total":      340,
-		"percentage": float64(workedCount) / 340.0 * 100.0,
-	}
-
-	s.sendJSON(w, APIResponse{Success: true, Data: data})
-}
-
-func (s *HTTPServer) calculateStats() Stats {
-	allSpots := s.FlexRepo.GetAllSpots("0")
-	contacts := s.ContactRepo.CountEntries()
-
-	newDXCCCount := 0
-	for _, spot := range allSpots {
-		if spot.NewDXCC {
-			newDXCCCount++
-		}
-	}
-
-	clusterStatus := "disconnected"
-	if s.TCPClient != nil && s.TCPClient.LoggedIn {
-		clusterStatus = "connected"
-	}
-
-	flexStatus := "disconnected"
-	if s.FlexClient != nil && s.FlexClient.IsConnected {
-		flexStatus = "connected"
-	}
-
-	received, processed, rejected := GetSpotStats()
-	successRate := GetSpotSuccessRate()
-
-	return Stats{
-		TotalSpots:       len(allSpots),
-		NewDXCC:          newDXCCCount,
-		ConnectedClients: len(s.TCPServer.Clients),
-		TotalContacts:    contacts,
-		ClusterStatus:    clusterStatus,
-		FlexStatus:       flexStatus,
-		MyCallsign:       Cfg.General.Callsign,
-		Filters: Filters{
-			Skimmer: Cfg.Cluster.Skimmer,
-			FT8:     Cfg.Cluster.FT8,
-			FT4:     Cfg.Cluster.FT4,
-			Beacon:  Cfg.Cluster.Beacon,
-		},
-		SpotsReceived:    received,
-		SpotsProcessed:   processed,
-		SpotsRejected:    rejected,
-		SpotSuccessRate:  successRate,
-		ContestMode:      Cfg.General.ContestMode,
-		ContestPrefix:    Cfg.General.ContestPrefix,
-		ContestCallsigns: Cfg.General.ContestCallsigns,
-	}
-}
+// ============================================================================
+// MIDDLEWARE & STATIC FILES
+// ============================================================================
 
 func (s *HTTPServer) corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -682,430 +995,28 @@ func (s *HTTPServer) corsMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func (s *HTTPServer) getStats(w http.ResponseWriter, r *http.Request) {
-	stats := s.calculateStats()
-	s.sendJSON(w, APIResponse{Success: true, Data: stats})
-}
-
-func (s *HTTPServer) getSpots(w http.ResponseWriter, r *http.Request) {
-	limitStr := r.URL.Query().Get("limit")
-	if limitStr == "" {
-		limitStr = "50"
-	}
-
-	spots := s.FlexRepo.GetAllSpots(limitStr)
-	s.sendJSON(w, APIResponse{Success: true, Data: spots})
-}
-
-func (s *HTTPServer) getSpotByID(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id := vars["id"]
-
-	spot, err := s.FlexRepo.FindSpotByFlexSpotNumber(id)
+func (s *HTTPServer) setupStaticFiles() {
+	distFS, err := fs.Sub(frontendFiles, "frontend/dist")
 	if err != nil {
-		s.sendJSON(w, APIResponse{Success: false, Error: "Spot not found"})
-		return
+		s.Log.Fatal("Cannot load frontend files:", err)
 	}
 
-	s.sendJSON(w, APIResponse{Success: true, Data: spot})
-}
+	spaHandler := http.FileServer(http.FS(distFS))
+	s.Router.PathPrefix("/").Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		path := r.URL.Path
 
-func (s *HTTPServer) getContacts(w http.ResponseWriter, r *http.Request) {
-	count := s.ContactRepo.CountEntries()
-	data := map[string]interface{}{"totalContacts": count}
-	s.sendJSON(w, APIResponse{Success: true, Data: data})
-}
-
-type FilterRequest struct {
-	Skimmer *bool `json:"skimmer,omitempty"`
-	FT8     *bool `json:"ft8,omitempty"`
-	FT4     *bool `json:"ft4,omitempty"`
-	Beacon  *bool `json:"beacon,omitempty"`
-}
-
-func (s *HTTPServer) updateFilters(w http.ResponseWriter, r *http.Request) {
-	var req FilterRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		s.sendJSON(w, APIResponse{Success: false, Error: "Invalid request"})
-		return
-	}
-
-	commands := []string{}
-
-	if req.Skimmer != nil {
-		if *req.Skimmer {
-			commands = append(commands, "set/skimmer")
-			Cfg.Cluster.Skimmer = true
-		} else {
-			commands = append(commands, "set/noskimmer")
-			Cfg.Cluster.Skimmer = false
-		}
-	}
-
-	if req.FT8 != nil {
-		if *req.FT8 {
-			commands = append(commands, "set/ft8")
-			Cfg.Cluster.FT8 = true
-		} else {
-			commands = append(commands, "set/noft8")
-			Cfg.Cluster.FT8 = false
-		}
-	}
-
-	if req.FT4 != nil {
-		if *req.FT4 {
-			commands = append(commands, "set/ft4")
-			Cfg.Cluster.FT4 = true
-		} else {
-			commands = append(commands, "set/noft4")
-			Cfg.Cluster.FT4 = false
-		}
-	}
-
-	if req.Beacon != nil {
-		if *req.Beacon {
-			commands = append(commands, "set/beacon")
-			Cfg.Cluster.Beacon = true
-		} else {
-			commands = append(commands, "set/nobeacon")
-			Cfg.Cluster.Beacon = false
-		}
-	}
-
-	for _, cmd := range commands {
-		s.TCPClient.CmdChan <- cmd
-	}
-
-	s.sendJSON(w, APIResponse{Success: true, Data: map[string]string{"message": "Filters updated successfully"}})
-}
-
-func filterWatchlistByMode(entries []WatchlistEntry, contestMode bool) []WatchlistEntry {
-	filtered := make([]WatchlistEntry, 0, len(entries))
-	for _, entry := range entries {
-		if entry.IsContest == contestMode {
-			filtered = append(filtered, entry)
-		}
-	}
-	return filtered
-}
-
-func (s *HTTPServer) getWatchlist(w http.ResponseWriter, r *http.Request) {
-	allCallsigns := s.Watchlist.GetAll()
-	filtered := filterWatchlistByMode(allCallsigns, Cfg.General.ContestMode)
-	s.sendJSON(w, APIResponse{Success: true, Data: filtered})
-}
-
-func (s *HTTPServer) addToWatchlist(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		Callsign string `json:"callsign"`
-	}
-
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		s.sendJSON(w, APIResponse{Success: false, Error: "Invalid request"})
-		return
-	}
-
-	if req.Callsign == "" {
-		s.sendJSON(w, APIResponse{Success: false, Error: "Callsign is required"})
-		return
-	}
-
-	if err := s.Watchlist.Add(req.Callsign); err != nil {
-		s.sendJSON(w, APIResponse{Success: false, Error: err.Error()})
-		return
-	}
-
-	s.Log.Infof("Added %s to watchlist", req.Callsign)
-
-	// Broadcast updated watchlist to all clients
-	s.broadcast <- WSMessage{Type: "watchlist", Data: s.Watchlist.GetAll()}
-
-	s.sendJSON(w, APIResponse{Success: true, Message: "Callsign added to watchlist"})
-}
-
-func (s *HTTPServer) removeFromWatchlist(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		Callsign string `json:"callsign"`
-	}
-
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		s.sendJSON(w, APIResponse{Success: false, Error: "Invalid request"})
-		return
-	}
-
-	if req.Callsign == "" {
-		s.sendJSON(w, APIResponse{Success: false, Error: "Callsign is required"})
-		return
-	}
-
-	if err := s.Watchlist.Remove(req.Callsign); err != nil {
-		s.sendJSON(w, APIResponse{Success: false, Error: err.Error()})
-		return
-	}
-
-	s.Log.Debugf("Removed %s from watchlist", req.Callsign)
-
-	// Broadcast updated watchlist to all clients
-	s.broadcast <- WSMessage{Type: "watchlist", Data: s.Watchlist.GetAll()}
-
-	s.sendJSON(w, APIResponse{Success: true, Message: "Callsign removed from watchlist"})
-}
-
-func (s *HTTPServer) getWatchlistSpotsWithStatus(w http.ResponseWriter, r *http.Request) {
-	allSpots := s.FlexRepo.GetAllSpots("0")
-	watchlistEntries := s.Watchlist.GetAll()
-
-	if Cfg.General.ContestMode {
-		contestEntries := make([]WatchlistEntry, 0)
-		for _, entry := range watchlistEntries {
-			if entry.IsContest {
-				contestEntries = append(contestEntries, entry)
-			}
-		}
-		watchlistEntries = contestEntries
-	} else {
-		// ✅ FIX : Mode normal - exclure contest
-		normalEntries := make([]WatchlistEntry, 0)
-		for _, entry := range watchlistEntries {
-			if !entry.IsContest {
-				normalEntries = append(normalEntries, entry)
-			}
-		}
-		watchlistEntries = normalEntries
-	}
-
-	watchlistCallsigns := make([]string, len(watchlistEntries))
-	for i, entry := range watchlistEntries {
-		watchlistCallsigns[i] = entry.Callsign
-	}
-
-	var relevantSpots []FlexSpot
-
-	for _, spot := range allSpots {
-		isInWatchlist := false
-
-		for _, pattern := range watchlistCallsigns {
-			if spot.DX == pattern || strings.HasPrefix(spot.DX, pattern) {
-				isInWatchlist = true
-				break
+		if path != "/" {
+			file, err := distFS.Open(strings.TrimPrefix(path, "/"))
+			if err == nil {
+				file.Close()
+				spaHandler.ServeHTTP(w, r)
+				return
 			}
 		}
 
-		if isInWatchlist {
-			relevantSpots = append(relevantSpots, spot)
-		}
-	}
-
-	type BandModeKey struct {
-		Band string
-		Mode string
-	}
-
-	spotsByBandMode := make(map[BandModeKey][]FlexSpot)
-
-	for _, spot := range relevantSpots {
-		key := BandModeKey{Band: spot.Band, Mode: spot.Mode}
-		spotsByBandMode[key] = append(spotsByBandMode[key], spot)
-	}
-
-	var watchlistSpots []WatchlistSpot
-
-	for key, spots := range spotsByBandMode {
-		callsignSet := make(map[string]bool)
-		for _, spot := range spots {
-			callsignSet[spot.DX] = true
-		}
-
-		callsigns := make([]string, 0, len(callsignSet))
-		for callsign := range callsignSet {
-			callsigns = append(callsigns, callsign)
-		}
-
-		// ✅ NOUVELLE LOGIQUE : Séparer les callsigns contest des callsigns normaux
-		// en vérifiant le flag IsContest de chaque entrée dans la watchlist
-		contestCallsigns := make([]string, 0)
-		normalCallsigns := make([]string, 0)
-
-		for _, callsign := range callsigns {
-			entry := s.Watchlist.GetEntry(callsign)
-			if entry != nil && entry.IsContest {
-				contestCallsigns = append(contestCallsigns, callsign)
-			} else {
-				normalCallsigns = append(normalCallsigns, callsign)
-			}
-		}
-
-		// Créer une map combinée des statuts worked
-		workedMap := make(map[string]bool)
-
-		// Pour les callsigns contest : vérifier uniquement aujourd'hui
-		if len(contestCallsigns) > 0 {
-			contestWorkedMap := s.ContactRepo.GetWorkedCallsignsBandModeToday(contestCallsigns, key.Band, key.Mode)
-			for callsign, worked := range contestWorkedMap {
-				workedMap[callsign] = worked
-			}
-			Log.Debugf("Contest callsigns in watchlist (%d): checking today only", len(contestCallsigns))
-		}
-
-		// Pour les callsigns normaux : vérifier tout l'historique
-		if len(normalCallsigns) > 0 {
-			normalWorkedMap := s.ContactRepo.GetWorkedCallsignsBandMode(normalCallsigns, key.Band, key.Mode)
-			for callsign, worked := range normalWorkedMap {
-				workedMap[callsign] = worked
-			}
-		}
-
-		for _, spot := range spots {
-			watchlistSpots = append(watchlistSpots, WatchlistSpot{
-				DX:              spot.DX,
-				FrequencyMhz:    spot.FrequencyMhz,
-				Band:            spot.Band,
-				Mode:            spot.Mode,
-				SpotterCallsign: spot.SpotterCallsign,
-				UTCTime:         spot.UTCTime,
-				CountryName:     spot.CountryName,
-				NewDXCC:         spot.NewDXCC,
-				NewBand:         spot.NewBand,
-				NewMode:         spot.NewMode,
-				Worked:          spot.Worked,
-				WorkedBandMode:  workedMap[spot.DX],
-			})
-		}
-	}
-
-	s.sendJSON(w, APIResponse{Success: true, Data: watchlistSpots})
-}
-
-func (s *HTTPServer) HandleSolarData(w http.ResponseWriter, r *http.Request) {
-	// Récupérer les données depuis hamqsl.com
-	resp, err := http.Get("https://www.hamqsl.com/solarxml.php")
-	if err != nil {
-		s.Log.Errorf("Error fetching solar data: %v", err)
-		s.sendJSON(w, APIResponse{Success: false, Error: "Failed to fetch solar data"})
-		return
-	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		s.Log.Errorf("Error reading solar data: %v", err)
-		s.sendJSON(w, APIResponse{Success: false, Error: "Failed to read solar data"})
-		return
-	}
-
-	var solarXML SolarXML
-	err = xml.Unmarshal(body, &solarXML)
-	if err != nil {
-		s.Log.Errorf("Error parsing solar XML: %v", err)
-		s.sendJSON(w, APIResponse{Success: false, Error: "Failed to parse solar data"})
-		return
-	}
-
-	response := map[string]interface{}{
-		"sfi":      solarXML.Data.SolarFlux,
-		"sunspots": solarXML.Data.Sunspots,
-		"aIndex":   solarXML.Data.AIndex,
-		"kIndex":   solarXML.Data.KIndex,
-		"updated":  solarXML.Data.Updated,
-	}
-
-	s.sendJSON(w, APIResponse{Success: true, Data: response})
-}
-
-func (s *HTTPServer) handleSendCallsign(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		Callsign  string `json:"callsign"`
-		Frequency string `json:"frequency"`
-		Mode      string `json:"mode"`
-	}
-
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		s.sendJSON(w, APIResponse{Success: false, Error: "Invalid request"})
-		return
-	}
-
-	if req.Callsign == "" {
-		s.sendJSON(w, APIResponse{Success: false, Error: "Callsign is required"})
-		return
-	}
-
-	SendUDPMessage([]byte("<CALLSIGN>" + req.Callsign))
-	s.Log.Debugf("Sent callsign %s to Log4OM via UDP (127.0.0.1:2241)", req.Callsign)
-
-	if Cfg.General.SendFreqModeToLog {
-		freqLog4OM := strings.Replace(req.Frequency, ".", "", 1)
-
-		xmlRequestFreq := RemoteControlRequestFreq{
-			MessageId:            uuid.New().String(), // Generate a new unique ID
-			RemoteControlMessage: "SetTxFrequency",    // Note: Typo matches your required format
-			Frequency:            freqLog4OM,
-		}
-
-		xmlRequestMode := RemoteControlRequestMode{
-			MessageId:            uuid.New().String(), // Generate a new unique ID
-			RemoteControlMessage: "SetMode",           // Note: Typo matches your required format
-			Mode:                 req.Mode,
-		}
-
-		xmlBytesFreq, err := xml.MarshalIndent(xmlRequestFreq, "", "  ")
-		if err != nil {
-			s.Log.Errorf("Failed to marshal XML: %v", err)
-		} else {
-			SendUDPMessage([]byte(xmlBytesFreq))
-		}
-
-		xmlBytesMode, err := xml.MarshalIndent(xmlRequestMode, "", "  ")
-		if err != nil {
-			s.Log.Errorf("Failed to marshal XML: %v", err)
-		} else {
-			SendUDPMessage([]byte(xmlBytesMode))
-		}
-	}
-
-	if req.Frequency != "" && s.FlexClient != nil && s.FlexClient.IsConnected && !Cfg.General.SendFreqModeToLog {
-		tuneCmd := fmt.Sprintf("C%v|slice tune 0 %s", CommandNumber, req.Frequency)
-		s.FlexClient.Write(tuneCmd)
-		CommandNumber++
-		time.Sleep(time.Millisecond * 500)
-		modeCmd := fmt.Sprintf("C%v|slice s 0 mode=%s", CommandNumber, req.Mode)
-		s.FlexClient.Write(modeCmd)
-		CommandNumber++
-		s.Log.Infof("Sent TUNE command to Flex: %s", tuneCmd)
-
-		time.Sleep(time.Millisecond * 100)
-
-		s.FlexClient.ZoomPanadapter(req.Mode, req.Frequency)
-		s.FlexClient.AdjustAGC(req.Mode)
-		s.Log.Infof("AGC Mode adjusted to mode: %s", req.Mode)
-
-	}
-
-	s.sendJSON(w, APIResponse{
-		Success: true,
-		Message: "Callsign sent to Log4OM and radio tuned",
-		Data:    map[string]string{"callsign": req.Callsign, "frequency": req.Frequency},
-	})
-}
-
-func (s *HTTPServer) sendJSON(w http.ResponseWriter, data interface{}) {
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(data)
-}
-
-// ✅ Fonction de shutdown propre
-func (s *HTTPServer) shutdownApp(w http.ResponseWriter, r *http.Request) {
-	s.Log.Info("Shutdown request received from dashboard")
-
-	s.sendJSON(w, APIResponse{Success: true, Data: map[string]string{"message": "Shutting down FlexDXCluster"}})
-
-	go func() {
-		time.Sleep(500 * time.Millisecond)
-
-		// ✅ Utiliser le shutdown centralisé
-		GracefulShutdown(s.TCPClient, s.TCPServer, s.FlexClient, s.FlexRepo, s.ContactRepo)
-
-		os.Exit(0)
-	}()
+		r.URL.Path = "/"
+		spaHandler.ServeHTTP(w, r)
+	}))
 }
 
 func (s *HTTPServer) Start() {
