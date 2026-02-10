@@ -120,6 +120,14 @@
     }
   }
   
+  $: if (watchlist.length > 0) {
+    // Charger les spots de watchlist immédiatement
+    setTimeout(() => {
+      const event = new CustomEvent('loadWatchlistSpots');
+      window.dispatchEvent(event);
+    }, 100);
+  }
+
 function applyFilters(allSpots, filters, wl) {
   const bandFiltersActive = filters.band160M || filters.band80M || filters.band60M || 
     filters.band40M || filters.band30M || filters.band20M || filters.band17M || 
