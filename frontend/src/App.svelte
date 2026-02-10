@@ -35,8 +35,8 @@
   let solarData = { sfi: 'N/A', sunspots: 'N/A', aIndex: 'N/A', kIndex: 'N/A' };
   
   let activeTab = 'stats';
-  let showOnlyActive = false;
-  let showOnlyNotWorked = false;
+  let showOnlyActive = true;
+  let showOnlyNotWorked = true;
   let wsStatus = 'disconnected';
   let errorMessage = '';
   let toastMessage = '';

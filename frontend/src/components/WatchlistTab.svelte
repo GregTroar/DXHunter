@@ -3,8 +3,8 @@
   
   export let watchlist;
   export let spots;
-  export let showOnlyActive = false;
-  export let showOnlyNotWorked = false;
+  export let showOnlyActive = true;
+  export let showOnlyNotWorked = true;
   export let contestMode = false;
   export let contestPrefix = "";
   export let contestCallsigns = [];

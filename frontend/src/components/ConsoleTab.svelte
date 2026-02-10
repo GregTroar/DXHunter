@@ -227,14 +227,14 @@
           </span>
         {/if}
         
-        <!-- Auto-scroll toggle -->
+        <!-- Auto-scroll toggle 
         <button
           on:click={toggleAutoScroll}
           class="px-2 py-1 text-xs rounded transition-colors {autoScroll ? 'bg-blue-600 text-white' : 'bg-slate-700 text-slate-400'}"
           title="Toggle auto-scroll"
         >
           Auto-scroll {autoScroll ? 'ON' : 'OFF'}
-        </button>
+        </button> -->
         
         <!-- Clear button -->
         <button

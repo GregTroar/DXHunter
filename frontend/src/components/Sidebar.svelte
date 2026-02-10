@@ -13,8 +13,8 @@
   export let recentQSOs;
   export let logStats;
   export let dxccProgress;
-  export let showOnlyActive = false;
-  export let showOnlyNotWorked = false;
+  export let showOnlyActive = true;
+  export let showOnlyNotWorked = true;
   export let logs = [];
   export let contestMode = false;
   export let contestPrefix = "";
