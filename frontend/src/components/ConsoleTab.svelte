@@ -33,15 +33,11 @@
       { cmd: 'HELP', label: 'Help', desc: 'Help' }
     ],
     cc_cluster: [
-      { cmd: 'SET/NAME', label: 'Set Name', desc: 'Set your Name' },
-      { cmd: 'SET/QTH', label: 'Set QTH', desc: 'Set your City' },
       { cmd: 'WHO', label: 'Online Users/Nodes', desc: 'Who is Online' },
       { cmd: 'SHOW/USERS', label: 'Online Users', desc: 'Who is Online' },
       { cmd: 'SHOW/FILTER', label: 'Show Filters', desc: 'Show Current Filters' },
       { cmd: 'SET/NOFILTER', label: 'No Filter', desc: 'Remove all filters' },
       { cmd: 'SET/FILTER DOC/PASS 1A,3A,4O,9A,9H,C3,CT,CU,DL,E7,EA,EA6,EI,ER,ES,EU,F,G,GD,GI,GJ,GM,GU,GW,HA,HB,HB0,HV,I,IS,IT9,JW,JX,LA,LX,LY,LZ,OE,OH,OH0,OJ0,OK,OM,ON,OY,OZ,PA,S5,SM,SP,SV,SV5,SV9,T7,TA1,TF,TK,UA,UR,YL,YO,YU,Z6', label: 'EU Only', desc: 'Show Spots from Europe' },
-      { cmd: 'SH/WWV', label: 'WWV', desc: 'Propagation Data' },
-      { cmd: 'SH/WCY', label: 'WCY', desc: 'Geomagnetic Data' },
       { cmd: 'SET/SKIMMER', label: 'Skimmer ON', desc: 'Activate Skimmer' },
       { cmd: 'SET/NOSKIMMER', label: 'Skimmer OFF', desc: 'Deactivate Skimmer' },
       { cmd: 'SET/FT8', label: 'FT8 ON', desc: 'Activate FT8' },

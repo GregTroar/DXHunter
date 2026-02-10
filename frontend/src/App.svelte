@@ -605,6 +605,14 @@ async function shutdownApp() {
         cacheLoaded = true;
         console.log('📦 Loaded data from cache');
       }
+
+      window.addEventListener('loadWatchlistSpots', () => {
+        if (watchlist.length > 0) {
+          // Déclencher le chargement via un event dispatché vers WatchlistTab
+          const event = new CustomEvent('fetchWatchlistSpots');
+          window.dispatchEvent(event);
+        }
+      });
       
       // Charger watchlist du cache
       const cachedWatchlist = await spotCache.getMetadata('watchlist');
