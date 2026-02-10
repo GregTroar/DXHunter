@@ -418,18 +418,25 @@ func (s *HTTPServer) sendInitialData(conn *websocket.Conn) {
 func (s *HTTPServer) handleBroadcasts() {
 	for msg := range s.broadcast {
 		s.wsMutex.RLock()
+		clientsToRemove := make([]*websocket.Conn, 0)
+
 		for client := range s.wsClients {
 			if err := s.safeWrite(client, msg); err != nil {
 				s.Log.Errorf("WebSocket write error: %v", err)
 				client.Close()
-				s.wsMutex.RUnlock()
-				s.wsMutex.Lock()
-				delete(s.wsClients, client)
-				s.wsMutex.Unlock()
-				s.wsMutex.RLock()
+				clientsToRemove = append(clientsToRemove, client)
 			}
 		}
 		s.wsMutex.RUnlock()
+
+		// Supprimer les clients défaillants
+		if len(clientsToRemove) > 0 {
+			s.wsMutex.Lock()
+			for _, client := range clientsToRemove {
+				delete(s.wsClients, client)
+			}
+			s.wsMutex.Unlock()
+		}
 	}
 }
 
@@ -437,10 +444,15 @@ func (s *HTTPServer) broadcastUpdates() {
 	statsTicker := time.NewTicker(1 * time.Second)
 	logTicker := time.NewTicker(5 * time.Second)
 	watchlistSaveTicker := time.NewTicker(20 * time.Second)
+	cleanupTicker := time.NewTicker(30 * time.Second) // ✅ Nouveau ticker pour le nettoyage
 
-	defer statsTicker.Stop()
-	defer logTicker.Stop()
-	defer watchlistSaveTicker.Stop()
+	defer func() {
+		statsTicker.Stop()
+		logTicker.Stop()
+		watchlistSaveTicker.Stop()
+		cleanupTicker.Stop()
+		Log.Info("Broadcast updates stopped")
+	}()
 
 	for {
 		select {
@@ -448,34 +460,128 @@ func (s *HTTPServer) broadcastUpdates() {
 			if s.clientCount() == 0 {
 				continue
 			}
-			s.broadcast <- WSMessage{Type: "stats", Data: s.calculateStats()}
+
+			// ✅ Stats avec timeout
+			statsMsg := WSMessage{Type: "stats", Data: s.calculateStats()}
+			select {
+			case s.broadcast <- statsMsg:
+				// Envoyé avec succès
+			case <-time.After(50 * time.Millisecond):
+				s.Log.Debug("Broadcast channel busy, dropping stats update")
+			}
+
+			// ✅ Spots avec timeout
 			spots := s.FlexRepo.GetAllSpots("0")
-			s.checkBandOpening(spots)
-			s.broadcast <- WSMessage{Type: "spots", Data: spots}
+			if len(spots) > 0 {
+				s.checkBandOpening(spots)
+				spotsMsg := WSMessage{Type: "spots", Data: spots}
+				select {
+				case s.broadcast <- spotsMsg:
+					// Envoyé avec succès
+				case <-time.After(50 * time.Millisecond):
+					s.Log.Debug("Broadcast channel busy, dropping spots update")
+				}
+			}
 
 		case <-logTicker.C:
 			if s.clientCount() == 0 {
 				continue
 			}
+
+			// ✅ Logs récents avec timeout
 			qsos := s.ContactRepo.GetRecentQSOs("19")
-			s.broadcast <- WSMessage{Type: "log", Data: qsos}
+			if len(qsos) > 0 {
+				qsosMsg := WSMessage{Type: "log", Data: qsos}
+				select {
+				case s.broadcast <- qsosMsg:
+					// Envoyé avec succès
+				case <-time.After(50 * time.Millisecond):
+					s.Log.Debug("Broadcast channel busy, dropping QSOs update")
+				}
+			}
 
+			// ✅ Stats de log avec timeout
 			stats := s.ContactRepo.GetQSOStats()
-			s.checkQSOMilestones(stats.Today)
-			s.broadcast <- WSMessage{Type: "logStats", Data: stats}
+			if stats.Today > 0 {
+				s.checkQSOMilestones(stats.Today)
+				logStatsMsg := WSMessage{Type: "logStats", Data: stats}
+				select {
+				case s.broadcast <- logStatsMsg:
+					// Envoyé avec succès
+				case <-time.After(50 * time.Millisecond):
+					s.Log.Debug("Broadcast channel busy, dropping log stats update")
+				}
+			}
 
+			// ✅ Progression DXCC avec timeout
 			dxccCount := s.ContactRepo.GetDXCCCount()
-			s.broadcast <- WSMessage{Type: "dxccProgress", Data: map[string]interface{}{
+			dxccMsg := WSMessage{Type: "dxccProgress", Data: map[string]interface{}{
 				"worked":     dxccCount,
 				"total":      340,
 				"percentage": float64(dxccCount) / 340.0 * 100.0,
 			}}
+			select {
+			case s.broadcast <- dxccMsg:
+				// Envoyé avec succès
+			case <-time.After(50 * time.Millisecond):
+				s.Log.Debug("Broadcast channel busy, dropping DXCC update")
+			}
 
 		case <-watchlistSaveTicker.C:
+			// ✅ Sauvegarde watchlist (pas de broadcast, donc pas de timeout)
 			if s.Watchlist != nil {
-				s.Watchlist.save()
+				if err := s.Watchlist.save(); err != nil {
+					s.Log.Errorf("Failed to save watchlist: %v", err)
+				}
+			}
+
+		case <-cleanupTicker.C:
+			// ✅ Nettoyage périodique pour éviter l'accumulation
+			s.cleanupBroadcastChannel()
+
+			// ✅ Log de statut pour débogage
+			s.wsMutex.RLock()
+			clientCount := len(s.wsClients)
+			s.wsMutex.RUnlock()
+
+			s.Log.Debugf("Broadcast status: %d clients, channel %d/%d",
+				clientCount, len(s.broadcast), cap(s.broadcast))
+		}
+	}
+}
+
+func (s *HTTPServer) cleanupBroadcastChannel() {
+	// Si le canal est presque plein, vider les anciens messages
+	if len(s.broadcast) > cap(s.broadcast)*3/4 { // > 75% plein
+		s.Log.Warnf("Broadcast channel almost full (%d/%d), cleaning up",
+			len(s.broadcast), cap(s.broadcast))
+
+		// Garder seulement les 50 derniers messages
+		keptMessages := make([]WSMessage, 0, 50)
+		for i := 0; i < 50 && len(s.broadcast) > 0; i++ {
+			select {
+			case msg := <-s.broadcast:
+				keptMessages = append(keptMessages, msg)
+			default:
+				break
 			}
 		}
+
+		// Vider complètement le canal
+		for len(s.broadcast) > 0 {
+			<-s.broadcast
+		}
+
+		// Remettre les messages gardés
+		for _, msg := range keptMessages {
+			select {
+			case s.broadcast <- msg:
+			default:
+				break
+			}
+		}
+
+		s.Log.Infof("Broadcast channel cleaned: kept %d messages", len(keptMessages))
 	}
 }
 
