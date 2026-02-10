@@ -42,7 +42,6 @@
     selectedBand = 'ALL';
   }
   
-  // ✅ CORRIGÉ : Ajouter selectedMode comme dépendance
   $: displayList = getDisplayList(watchlist, watchlistSpots, showOnlyActive, showOnlyNotWorked, selectedMode);
   $: matchingSpots = watchlistSpots.length;
   $: filteredSpots = countFilteredSpots(watchlistSpots, selectedBand, selectedMode, showOnlyNotWorked);
@@ -55,7 +54,11 @@
     fetchWatchlistSpots();
   }
   
-  onMount(() => {
+  onMount(async () => {
+    // Charger immédiatement les spots de watchlist
+    if (watchlist.length > 0) {
+      await fetchWatchlistSpots();
+    }
     refreshInterval = setInterval(() => {
       if (watchlist.length > 0) {
         fetchWatchlistSpots();
@@ -64,9 +67,13 @@
     
     window.addEventListener('watchlistAlert', handleWatchlistAlert);
     window.addEventListener('toggleContestMode', toggleContestMode);
-    
-    // ✅ NOUVEAU : Écouter les changements de bande du FlexRadio
     window.addEventListener('flexBandChange', handleFlexBandChange);
+    window.addEventListener('fetchWatchlistSpots', fetchWatchlistSpots);
+
+    if (watchlist.length > 0) {
+    fetchWatchlistSpots();
+    }
+
   });
   
   onDestroy(() => {
@@ -76,6 +83,9 @@
     window.removeEventListener('watchlistAlert', handleWatchlistAlert);
     window.removeEventListener('flexBandChange', handleFlexBandChange);
     window.removeEventListener('toggleContestMode', toggleContestMode);
+    window.addEventListener('fetchWatchlistSpots', fetchWatchlistSpots);
+
+
   });
   
   function handleWatchlistAlert(event) {
@@ -129,59 +139,58 @@
     return filtered.length;
   }
   
-  // ✅ MODIFIÉ : Ajouter le paramètre modeFilter
-  function getDisplayList(wl, wlSpots, activeOnly, onlyNotWorked, modeFilter) {
-    let list = wl;
-    
-    // Filtrer par bande ET mode
-    if (selectedBand !== 'ALL' || modeFilter !== 'ALL') {
-      list = wl.filter(entry => {
-        let spots = wlSpots.filter(s => 
-          (s.dx === entry.callsign || s.dx.startsWith(entry.callsign))
-        );
-        
-        // Filtrer par bande
-        if (selectedBand !== 'ALL') {
-          spots = spots.filter(s => s.band === selectedBand);
-        }
-        
-        // Filtrer par mode
-        if (modeFilter !== 'ALL') {
-          spots = spots.filter(s => {
-            const spotMode = s.mode || '';
-            if (modeFilter === 'DIGI') {
-              return modeCategories.DIGI.includes(spotMode);
-            } else if (modeFilter === 'SSB') {
-              return modeCategories.SSB.includes(spotMode);
-            } else if (modeFilter === 'CW') {
-              return modeCategories.CW.includes(spotMode);
-            }
-            return true;
-          });
-        }
-        
-        // Filtrer par "Not Worked"
-        if (onlyNotWorked) {
-          spots = spots.filter(s => !s.workedBandMode);
-        }
-        
-        return spots.length > 0;
-      });
-    } else if (activeOnly || onlyNotWorked) {
-      // Filtrer par activité ou "Not Worked"
-      list = wl.filter(entry => {
-        let spots = wlSpots.filter(s => s.dx === entry.callsign || s.dx.startsWith(entry.callsign));
-        
-        if (onlyNotWorked) {
-          spots = spots.filter(s => !s.workedBandMode);
-        }
-        
-        return spots.length > 0;
-      });
-    }
-    
-    return [...list].sort((a, b) => a.callsign.localeCompare(b.callsign, 'en', { numeric: true }));
+function getDisplayList(wl, wlSpots, activeOnly, onlyNotWorked, modeFilter) {
+  let list = wl;
+  
+  // Filtrer par bande ET mode
+  if (selectedBand !== 'ALL' || modeFilter !== 'ALL') {
+    list = wl.filter(entry => {
+      let spots = wlSpots.filter(s => 
+        (s.dx === entry.callsign || s.dx.startsWith(entry.callsign))
+      );
+      
+      // Filtrer par bande
+      if (selectedBand !== 'ALL') {
+        spots = spots.filter(s => s.band === selectedBand);
+      }
+      
+      // Filtrer par mode
+      if (modeFilter !== 'ALL') {
+        spots = spots.filter(s => {
+          const spotMode = s.mode || '';
+          if (modeFilter === 'DIGI') {
+            return modeCategories.DIGI.includes(spotMode);
+          } else if (modeFilter === 'SSB') {
+            return modeCategories.SSB.includes(spotMode);
+          } else if (modeFilter === 'CW') {
+            return modeCategories.CW.includes(spotMode);
+          }
+          return true;
+        });
+      }
+      
+      // Filtrer par "Not Worked"
+      if (onlyNotWorked) {
+        spots = spots.filter(s => !s.workedBandMode);
+      }
+      
+      return spots.length > 0;
+    });
+  } else if (activeOnly || onlyNotWorked) {
+    // Filtrer par activité ou "Not Worked"
+    list = wl.filter(entry => {
+      let spots = wlSpots.filter(s => s.dx === entry.callsign || s.dx.startsWith(entry.callsign));
+      
+      if (onlyNotWorked) {
+        spots = spots.filter(s => !s.workedBandMode);
+      }
+      
+      return spots.length > 0;
+    });
   }
+  
+  return [...list].sort((a, b) => a.callsign.localeCompare(b.callsign, 'en', { numeric: true }));
+}
   
   async function fetchWatchlistSpots() {
     try {
@@ -190,6 +199,7 @@
       
       if (json.success) {
         watchlistSpots = json.data || [];
+        console.log(`Loaded ${watchlistSpots.length} watchlist spots`);
       }
     } catch (error) {
       console.error('Error fetching watchlist spots:', error);
@@ -423,7 +433,7 @@
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
           </svg>
-          {showOnlyActive ? 'Show All' : 'Active Only'}
+          {showOnlyActive ? 'Active Only' : 'Show All'}
         </button>
         
         <!-- Bouton Not Worked Only -->
@@ -433,7 +443,7 @@
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
           </svg>
-          {showOnlyNotWorked ? 'Show All' : 'Not Worked'}
+          {showOnlyNotWorked ? 'Not Worked' : 'Show All'}
         </button>
       </div>
     </div>
