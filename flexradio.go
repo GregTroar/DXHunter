@@ -70,8 +70,8 @@ type FlexClient struct {
 	maxReconnectAttempts int
 	reconnectDelay       time.Duration
 	Enabled              bool
-	CurrentFrequency     float64 // ✅ NOUVEAU : Fréquence actuelle en MHz
-	CurrentBand          string  // ✅ NOUVEAU : Bande actuelle (20M, 40M, etc.)
+	CurrentFrequency     float64
+	CurrentBand          string
 	PanID                string
 }
 

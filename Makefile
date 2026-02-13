@@ -3,6 +3,8 @@ BINARY_NAME=FlexDXCluster.exe
 FRONTEND_DIR=frontend
 DIST_DIR=$(FRONTEND_DIR)/dist
 GO_FILES=$(shell find . -name '*.go' -not -path "./$(FRONTEND_DIR)/*")
+CGO_ENABLED ?= 1
+GOFLAGS = CGO_ENABLED=$(CGO_ENABLED)
 
 .PHONY: all build frontend backend run clean dev help install-deps
 

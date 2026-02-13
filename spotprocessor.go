@@ -195,7 +195,7 @@ func (sp *SpotProcessor) applySpotColors(flexSpot *FlexSpot, spot TelnetSpot) {
 			flexSpot.BackgroundColor = "#ff000000"
 		}
 	} else if spot.NewMode && !spot.NewBand {
-		flexSpot.Priority = "2"
+		flexSpot.Priority = "1"
 		flexSpot.Comment = flexSpot.Comment + " [New Mode]"
 		if Cfg.General.SpotColorNewMode != "" {
 			flexSpot.Color = Cfg.General.SpotColorNewMode
@@ -206,12 +206,12 @@ func (sp *SpotProcessor) applySpotColors(flexSpot *FlexSpot, spot TelnetSpot) {
 		}
 	} else if spot.NewBand && !spot.NewMode {
 		flexSpot.Color = "#fff9f508"
-		flexSpot.Priority = "3"
+		flexSpot.Priority = "1"
 		flexSpot.BackgroundColor = "#ff000000"
 		flexSpot.Comment = flexSpot.Comment + " [New Band]"
 	} else if !spot.NewBand && !spot.NewMode && !spot.NewDXCC && !spot.CallsignWorked && spot.NewSlot {
 		flexSpot.Color = "#ff91d2ff"
-		flexSpot.Priority = "5"
+		flexSpot.Priority = "2"
 		flexSpot.BackgroundColor = "#ff000000"
 		flexSpot.Comment = flexSpot.Comment + " [New Slot]"
 	}

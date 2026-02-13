@@ -33,7 +33,7 @@
       { cmd: 'HELP', label: 'Help', desc: 'Help' }
     ],
     cc_cluster: [
-      { cmd: 'WHO', label: 'Online Users/Nodes', desc: 'Who is Online' },
+      { cmd: 'WHO', label: 'Online Nodes', desc: 'Who is Online' },
       { cmd: 'SHOW/USERS', label: 'Online Users', desc: 'Who is Online' },
       { cmd: 'SHOW/FILTER', label: 'Show Filters', desc: 'Show Current Filters' },
       { cmd: 'SET/NOFILTER', label: 'No Filter', desc: 'Remove all filters' },
@@ -42,7 +42,9 @@
       { cmd: 'SET/NOSKIMMER', label: 'Skimmer OFF', desc: 'Deactivate Skimmer' },
       { cmd: 'SET/FT8', label: 'FT8 ON', desc: 'Activate FT8' },
       { cmd: 'SET/NOFT8', label: 'FT8 OFF', desc: 'Deactivate FT8' },
-      { cmd: 'HELP', label: 'Help', desc: 'Help' }
+      { cmd: 'SET/FT4', label: 'FT4 ON', desc: 'Activate FT4' },
+      { cmd: 'SET/NOFT4', label: 'FT4 OFF', desc: 'Deactivate FT4' },
+      { cmd: 'AN/F CC Cluster at cluster.f4bpo.com 7300 - RBN and FTx spots - F4BPO Greg - legreg002@hotmail.com', label: 'Announce', desc: 'Announce Full' }      
     ],
     ar_cluster: [
       { cmd: 'SET STATION NAME', label: 'Set Name', desc: 'Set your Name' },
