@@ -139,18 +139,15 @@ func (s *TCPServer) broadcastMessage(message string) {
 		return
 	}
 
-	// ✅ Si un client vient de se connecter (< 3 secondes), NE RIEN ENVOYER
-	for _, info := range s.Clients {
-		if time.Since(info.ConnectedAt) < 3*time.Second {
-			// ✅ Client trop récent, on DROP le spot
-			return
-		}
-	}
-
 	var failedClients []net.Conn
 
-	for client := range s.Clients {
-		_, err := client.Write([]byte(message + "\r\n"))
+	for client, info := range s.Clients {
+		// Skip les clients trop récents
+		if time.Since(info.ConnectedAt) < 5*time.Second {
+			continue // ← continue, pas return !
+		}
+
+		_, err := client.Write([]byte(strings.TrimSpace(message) + "\r\n"))
 		if err != nil {
 			Log.Warnf("Error sending to client %s: %v", client.RemoteAddr(), err)
 			failedClients = append(failedClients, client)
