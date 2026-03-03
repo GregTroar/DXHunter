@@ -105,8 +105,6 @@
             console.log("🏆 Using direct filter (Contest mode)");
             filteredSpots = applyFilters(spots, spotFilters, watchlist);
           } else {
-            // Autres filtres : utiliser le worker
-            console.log("⚙️ Using worker filter");
             filteredSpots = await spotWorker.filterSpots(spots, spotFilters, watchlist);
           }
         } catch (error) {
@@ -405,9 +403,61 @@ function applyFilters(allSpots, filters, wl) {
         spotCache.saveMetadata('watchlist', watchlist).catch(err => console.error('Cache save error:', err));
         break;
       case 'log':
+        const previousQSOs = recentQSOs;
         recentQSOs = message.data || [];
+
         if (recentQSOs.length > 0) {
           spotCache.saveQSOs(recentQSOs).catch(err => console.error('Cache save error:', err));
+        }
+
+        const latestQSO = recentQSOs[0];
+        const previousLatestQSO = previousQSOs[0];
+
+        if (latestQSO && (!previousLatestQSO || 
+            latestQSO.callsign !== previousLatestQSO.callsign ||
+            latestQSO.band !== previousLatestQSO.band ||
+            latestQSO.mode !== previousLatestQSO.mode)) {
+
+          const newQSO = {
+            ...latestQSO,
+            band: latestQSO.band?.toUpperCase(),
+            mode: latestQSO.mode?.toUpperCase(),
+            dxcc: latestQSO.dxcc?.toString(),
+          };
+
+          // Fonction de recalcul partagée
+          const recalcSpot = (spot) => {
+            const sameCallBandMode = 
+              spot.DX === newQSO.callsign && 
+              spot.Band === newQSO.band && 
+              spot.Mode === newQSO.mode;
+
+            if (sameCallBandMode) {
+              return { ...spot, Worked: true, NewBand: false, NewMode: false, NewDXCC: false, NewSlot: false };
+            }
+
+            if (spot.DXCC === newQSO.dxcc && spot.Band === newQSO.band && spot.Mode === newQSO.mode) {
+              return { ...spot, NewDXCC: false, NewBand: false, NewMode: false, NewSlot: false };
+            }
+
+            if (spot.DXCC === newQSO.dxcc && spot.Band === newQSO.band) {
+              return { ...spot, NewDXCC: false, NewBand: false };
+            }
+
+            if (spot.DXCC === newQSO.dxcc && spot.Mode === newQSO.mode) {
+              return { ...spot, NewDXCC: false, NewMode: false };
+            }
+
+            if (spot.DXCC === newQSO.dxcc) {
+              return { ...spot, NewDXCC: false };
+            }
+
+            return spot;
+          };
+
+          // ✅ Mettre à jour spots ET filteredSpots pour forcer le re-render
+          spots = spots.map(recalcSpot);
+          filteredSpots = filteredSpots.map(recalcSpot);
         }
         break;
       case 'appLog':

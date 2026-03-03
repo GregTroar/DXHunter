@@ -316,7 +316,7 @@ func (c *TCPClient) ReadLine() {
 
 			c.Conn.SetReadDeadline(time.Now().Add(ReadTimeout))
 			message, err := c.Reader.ReadBytes('\n')
-			Log.Debugf(string(message))
+			Log.Debugf(strings.TrimSpace(string(message)))
 			if err != nil {
 				Log.Errorf("Error reading message: %s", err)
 				return

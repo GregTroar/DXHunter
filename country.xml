@@ -2806,7 +2806,7 @@
 	  </CountryPrefixList>
 	</Country>
 	<Country>
-	  <ArrlPrefix>3Y/B</ArrlPrefix>
+	  <ArrlPrefix>3Y/B|3Y0K</ArrlPrefix>
 	  <Comment />
 	  <Continent>AF</Continent>
 	  <CountryName>Bouvet Island</CountryName>

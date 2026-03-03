@@ -199,7 +199,6 @@ function getDisplayList(wl, wlSpots, activeOnly, onlyNotWorked, modeFilter) {
       
       if (json.success) {
         watchlistSpots = json.data || [];
-        console.log(`Loaded ${watchlistSpots.length} watchlist spots`);
       }
     } catch (error) {
       console.error('Error fetching watchlist spots:', error);
