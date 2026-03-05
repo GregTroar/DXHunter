@@ -19,35 +19,38 @@
     });
   }
   
-  function getPriorityColor(spot) {
-    const inWatchlist = watchlist.some(entry => 
+  // Retourne un tableau de { label, classes } pour afficher plusieurs badges
+  function getStatusBadges(spot) {
+    const badges = [];
+
+    const inWatchlist = watchlist.some(entry =>
       spot.DX === entry.callsign || spot.DX.startsWith(entry.callsign)
     );
-    
-    if (inWatchlist) return 'bg-pink-500/20 text-pink-400 border-pink-500/50';
-    if (spot.DX === myCallsign) return 'bg-red-500/20 text-red-400 border-red-500/50';
-    if (spot.NewDXCC) return 'bg-green-500/20 text-green-400 border-green-500/50';
-    if (spot.NewBand && spot.NewMode) return 'bg-purple-500/20 text-purple-400 border-purple-500/50';
-    if (spot.NewBand) return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/50';
-    if (spot.NewMode) return 'bg-orange-500/20 text-orange-400 border-orange-500/50';
-    if (spot.Worked) return 'bg-cyan-500/20 text-cyan-400 border-cyan-500/50';
-    return 'bg-gray-500/20 text-gray-400 border-gray-500/50';
-  }
-  
-  function getStatusLabel(spot) {
-    const inWatchlist = watchlist.some(entry => 
-      spot.DX === entry.callsign || spot.DX.startsWith(entry.callsign)
-    );
-    
-    if (inWatchlist) return 'Watchlist';
-    if (spot.DX === myCallsign) return 'My Call';
-    if (spot.NewDXCC) return 'New DXCC';
-    if (spot.NewBand && spot.NewMode) return 'New B&M';
-    if (spot.NewBand) return 'New Band';
-    if (spot.NewMode) return 'New Mode';
-    if (spot.NewSlot) return 'New Slot';
-    if (spot.Worked) return 'Worked';
-    return '';
+
+    if (spot.DX === myCallsign) {
+      badges.push({ label: 'My Call', classes: 'bg-red-500/20 text-red-400 border-red-500/50' });
+      return badges;
+    }
+
+    if (inWatchlist) {
+      badges.push({ label: 'Watchlist', classes: 'bg-pink-500/20 text-pink-400 border-pink-500/50' });
+    }
+
+    if (spot.NewDXCC) {
+      badges.push({ label: 'New DXCC', classes: 'bg-green-500/20 text-green-400 border-green-500/50' });
+    } else if (spot.NewBand && spot.NewMode) {
+      badges.push({ label: 'New B&M', classes: 'bg-purple-500/20 text-purple-400 border-purple-500/50' });
+    } else if (spot.NewBand) {
+      badges.push({ label: 'New Band', classes: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/50' });
+    } else if (spot.NewMode) {
+      badges.push({ label: 'New Mode', classes: 'bg-orange-500/20 text-orange-400 border-orange-500/50' });
+    } else if (spot.NewSlot) {
+      badges.push({ label: 'New Slot', classes: 'bg-sky-500/20 text-sky-400 border-sky-500/50' });
+    } else if (spot.Worked && !inWatchlist) {
+      badges.push({ label: 'Worked', classes: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/50' });
+    }
+
+    return badges;
   }
   
   function getCleanComment(spot) {
@@ -105,12 +108,12 @@
         <div class="p-2 flex items-center text-slate-400 text-xs truncate" style="width: 18%;" title={getCleanComment(item)}>
           {getCleanComment(item)}
         </div>
-        <div class="p-2 flex items-center" style="width: 13%;">
-          {#if getStatusLabel(item)}
-            <span class="px-1.5 py-0.5 rounded text-xs font-semibold border {getPriorityColor(item)} truncate">
-              {getStatusLabel(item)}
+        <div class="p-2 flex items-center gap-1 flex-wrap" style="width: 13%;">
+          {#each getStatusBadges(item) as badge}
+            <span class="px-1.5 py-0.5 rounded text-xs font-semibold border {badge.classes} whitespace-nowrap">
+              {badge.label}
             </span>
-          {/if}
+          {/each}
         </div>
       </div>
     </VirtualList>

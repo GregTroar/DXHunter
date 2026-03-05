@@ -57,7 +57,9 @@
     showWorked: false,
     showWatchlist: false,
     showContest: false,
-    showDigital: false,
+    showFT8: false,
+    showFT4: false,
+    showRTTY: false,
     showSSB: false,
     showCW: false,
     band160M: false,
@@ -135,7 +137,7 @@ function applyFilters(allSpots, filters, wl) {
     filters.showNewMode || filters.showNewBandMode || filters.showNewSlot || 
     filters.showWorked || filters.showWatchlist || filters.showContest;
   
-  const modeFiltersActive = filters.showDigital || filters.showSSB || filters.showCW;
+  const modeFiltersActive = filters.showFT8 || filters.showFT4 || filters.showRTTY || filters.showSSB || filters.showCW;
   
   return allSpots.filter(spot => {
     let matchesBand = false;
@@ -207,7 +209,9 @@ function applyFilters(allSpots, filters, wl) {
     
     if (modeFiltersActive) {
       const mode = spot.Mode || '';
-      if (filters.showDigital && ['FT8', 'FT4', 'RTTY'].includes(mode)) matchesMode = true;
+      if (filters.showFT8 && mode === 'FT8') matchesMode = true;
+      if (filters.showFT4 && mode === 'FT4') matchesMode = true;
+      if (filters.showRTTY && mode === 'RTTY') matchesMode = true;
       if (filters.showSSB && ['SSB', 'USB', 'LSB'].includes(mode)) matchesMode = true;
       if (filters.showCW && mode === 'CW') matchesMode = true;
     }
@@ -244,7 +248,9 @@ function applyFilters(allSpots, filters, wl) {
         showNewSlot: false,
         showWorked: false,
         showWatchlist: false,
-        showDigital: false,
+        showFT8: false,
+        showFT4: false,
+        showRTTY: false,
         showSSB: false,
         showCW: false,
         band160M: false,

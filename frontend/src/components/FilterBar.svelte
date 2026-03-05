@@ -18,7 +18,9 @@
   $: newSlotCount = spots ? countSpotsByType(spots, 'newSlot') : 0;
   $: workedCount = spots ? countSpotsByType(spots, 'worked') : 0;
   
-  $: digitalCount = spots ? countSpotsByMode(spots, 'digital') : 0;
+  $: ft8Count = spots ? countSpotsByMode(spots, 'ft8') : 0;
+  $: ft4Count = spots ? countSpotsByMode(spots, 'ft4') : 0;
+  $: rttyCount = spots ? countSpotsByMode(spots, 'rtty') : 0;
   $: ssbCount = spots ? countSpotsByMode(spots, 'ssb') : 0;
   $: cwCount = spots ? countSpotsByMode(spots, 'cw') : 0;
   
@@ -59,8 +61,12 @@
     if (!spotsList || !Array.isArray(spotsList)) return 0;
     
     switch(mode) {
-      case 'digital':
-        return spotsList.filter(s => ['FT8', 'FT4', 'RTTY'].includes(s.Mode)).length;
+      case 'ft8':
+        return spotsList.filter(s => s.Mode === 'FT8').length;
+      case 'ft4':
+        return spotsList.filter(s => s.Mode === 'FT4').length;
+      case 'rtty':
+        return spotsList.filter(s => s.Mode === 'RTTY').length;
       case 'ssb':
         return spotsList.filter(s => ['SSB', 'USB', 'LSB'].includes(s.Mode)).length;
       case 'cw':
@@ -74,7 +80,7 @@
     if (!spotsList || !Array.isArray(spotsList) || !wl || !Array.isArray(wl)) return 0;
     
     return spotsList.filter(spot => 
-      wl.some(pattern => spot.DX === pattern || spot.DX.startsWith(pattern))
+      wl.some(entry => spot.DX === entry.callsign || spot.DX.startsWith(entry.callsign))
     ).length;
   }
 </script>
@@ -136,9 +142,21 @@
     <span class="text-xs font-bold text-slate-400 mr-2">MODE:</span>
     
     <button 
-      on:click={() => dispatch('toggleFilter', 'showDigital')}
-      class={spotFilters.showDigital ? 'px-2 py-0.5 text-xs rounded transition-colors bg-teal-600 text-white' : 'px-2 py-0.5 text-xs rounded transition-colors bg-slate-700/50 text-slate-300 hover:bg-slate-700'}>
-      Digi ({digitalCount})
+      on:click={() => dispatch('toggleFilter', 'showFT8')}
+      class={spotFilters.showFT8 ? 'px-2 py-0.5 text-xs rounded transition-colors bg-teal-600 text-white' : 'px-2 py-0.5 text-xs rounded transition-colors bg-slate-700/50 text-slate-300 hover:bg-slate-700'}>
+      FT8 ({ft8Count})
+    </button>
+    
+    <button 
+      on:click={() => dispatch('toggleFilter', 'showFT4')}
+      class={spotFilters.showFT4 ? 'px-2 py-0.5 text-xs rounded transition-colors bg-teal-500 text-white' : 'px-2 py-0.5 text-xs rounded transition-colors bg-slate-700/50 text-slate-300 hover:bg-slate-700'}>
+      FT4 ({ft4Count})
+    </button>
+    
+    <button 
+      on:click={() => dispatch('toggleFilter', 'showRTTY')}
+      class={spotFilters.showRTTY ? 'px-2 py-0.5 text-xs rounded transition-colors bg-teal-400 text-white' : 'px-2 py-0.5 text-xs rounded transition-colors bg-slate-700/50 text-slate-300 hover:bg-slate-700'}>
+      RTTY ({rttyCount})
     </button>
     
     <button 

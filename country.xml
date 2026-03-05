@@ -2806,7 +2806,7 @@
 	  </CountryPrefixList>
 	</Country>
 	<Country>
-	  <ArrlPrefix>3Y/B|3Y0K</ArrlPrefix>
+	  <ArrlPrefix>3Y/B</ArrlPrefix>
 	  <Comment />
 	  <Continent>AF</Continent>
 	  <CountryName>Bouvet Island</CountryName>
@@ -2826,7 +2826,7 @@
 	  <CountryTag />
 	  <CountryPrefixList>
 		<CountryPrefix>
-		  <PrefixList>^3Y/B.*</PrefixList>
+		  <PrefixList>^3Y/B.*|^3Y0K</PrefixList>
 		  <StartDate xsi:nil="true" />
 		  <EndDate xsi:nil="true" />
 		</CountryPrefix>
