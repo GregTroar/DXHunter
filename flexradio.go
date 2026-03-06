@@ -41,6 +41,7 @@ type FlexSpot struct {
 	InWatchlist     bool
 	CountryName     string
 	DXCC            string
+	WatchlistNotify bool
 }
 
 type Discovery struct {

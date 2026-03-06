@@ -350,6 +350,27 @@ function getDisplayList(wl, wlSpots, activeOnly, onlyNotWorked, modeFilter) {
     showOnlyNotWorked = !showOnlyNotWorked;
   }
 
+  async function toggleNotify(callsign, currentValue) {
+    try {
+      const response = await fetch('/api/watchlist/notify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ callsign, notify: !currentValue })
+      });
+      const data = await response.json();
+      if (data.success) {
+        dispatch('toast', {
+          message: !currentValue ? `🔔 Notifications ON for ${callsign}` : `🔕 Notifications OFF for ${callsign}`,
+          type: 'success'
+        });
+      } else {
+        dispatch('toast', { message: data.error || 'Failed to update notification', type: 'error' });
+      }
+    } catch (error) {
+      dispatch('toast', { message: `Error: ${error.message}`, type: 'error' });
+    }
+  }
+
   async function toggleContestMode() {
     try {
       // Envoyer la requête au backend pour basculer le mode
@@ -582,7 +603,13 @@ function getDisplayList(wl, wlSpots, activeOnly, onlyNotWorked, modeFilter) {
               </div>
             </div>
             
-            <div class="flex gap-1">           
+            <div class="flex gap-1">
+              <button
+                on:click={() => toggleNotify(entry.callsign, entry.notify)}
+                title="{entry.notify ? 'Disable Gotify notifications' : 'Enable Gotify notifications'}"
+                class="px-2 py-1 text-xs rounded transition-colors {entry.notify ? 'bg-yellow-500/20 hover:bg-yellow-500/40 text-yellow-400' : 'bg-slate-700/50 hover:bg-slate-700 text-slate-400'}">
+                {entry.notify ? '🔔' : '🔕'}
+              </button>
               <button 
                 on:click={() => removeFromWatchlist(entry.callsign)}
                 title="Remove from watchlist"

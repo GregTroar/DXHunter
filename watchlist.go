@@ -16,6 +16,7 @@ type WatchlistEntry struct {
 	AddedAt       time.Time    `json:"addedAt"`
 	SpotCount     int          `json:"spotCount"`
 	IsContest     bool         `json:"isContest"`
+	Notify        bool         `json:"notify"`
 	ActiveSpotIDs map[int]bool `json:"-"`
 }
 
@@ -163,6 +164,23 @@ func (w *Watchlist) Remove(callsign string) error {
 	}
 
 	return nil
+}
+
+func (w *Watchlist) SetNotify(callsign string, notify bool) error {
+	w.mutex.Lock()
+	defer w.mutex.Unlock()
+
+	callsign = strings.ToUpper(strings.TrimSpace(callsign))
+
+	entry, exists := w.entries[callsign]
+	if !exists {
+		return fmt.Errorf("callsign %s not found in watchlist", callsign)
+	}
+
+	entry.Notify = notify
+	Log.Infof("Notifications %s for %s", map[bool]string{true: "enabled", false: "disabled"}[notify], callsign)
+
+	return w.saveUnsafe()
 }
 
 // AddActiveSpot marks a spot as active for a watchlist entry

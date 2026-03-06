@@ -175,6 +175,7 @@ func (s *HTTPServer) setupRoutes() {
 	api.HandleFunc("/watchlist/spots", s.getWatchlistSpotsWithStatus).Methods("GET", "OPTIONS")
 	api.HandleFunc("/watchlist/add", s.addToWatchlist).Methods("POST", "OPTIONS")
 	api.HandleFunc("/watchlist/remove", s.removeFromWatchlist).Methods("DELETE", "OPTIONS")
+	api.HandleFunc("/watchlist/notify", s.setWatchlistNotify).Methods("POST", "OPTIONS")
 
 	// Actions
 	api.HandleFunc("/filters", s.updateFilters).Methods("POST", "OPTIONS")
@@ -721,6 +722,36 @@ func (s *HTTPServer) removeFromWatchlist(w http.ResponseWriter, r *http.Request)
 	s.Log.Debugf("Removed %s from watchlist", req.Callsign)
 	s.broadcast <- WSMessage{Type: "watchlist", Data: s.Watchlist.GetAll()}
 	s.sendSuccess(w, nil, "Callsign removed from watchlist")
+}
+
+func (s *HTTPServer) setWatchlistNotify(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Callsign string `json:"callsign"`
+		Notify   bool   `json:"notify"`
+	}
+
+	if err := s.decodeJSONBody(r, &req); err != nil {
+		s.sendError(w, "Invalid request")
+		return
+	}
+
+	if req.Callsign == "" {
+		s.sendError(w, "Callsign is required")
+		return
+	}
+
+	if err := s.Watchlist.SetNotify(req.Callsign, req.Notify); err != nil {
+		s.sendError(w, err.Error())
+		return
+	}
+
+	status := "disabled"
+	if req.Notify {
+		status = "enabled"
+	}
+	s.Log.Infof("Gotify notifications %s for %s", status, req.Callsign)
+	s.broadcast <- WSMessage{Type: "watchlist", Data: s.Watchlist.GetAll()}
+	s.sendSuccess(w, nil, fmt.Sprintf("Notifications %s for %s", status, req.Callsign))
 }
 
 func (s *HTTPServer) getWatchlistSpotsWithStatus(w http.ResponseWriter, r *http.Request) {

@@ -110,6 +110,11 @@ func (sp *SpotProcessor) processSpot(spot TelnetSpot) {
 			flexSpot.InWatchlist = true
 			isInWatchlist = true
 
+			entry := sp.HTTPServer.Watchlist.GetEntry(flexSpot.DX)
+			if entry != nil {
+				flexSpot.WatchlistNotify = entry.Notify
+			}
+
 			// Mark as seen and update last seen time
 			sp.HTTPServer.Watchlist.MarkSeen(flexSpot.DX)
 		}
@@ -281,7 +286,7 @@ func (sp *SpotProcessor) sendGotifyNotification(flexSpot FlexSpot) {
 	}
 
 	// Cas 2 : Callsign dans la watchlist ET non contacté
-	if flexSpot.InWatchlist && !flexSpot.Worked && Cfg.Gotify.WatchList {
+	if flexSpot.InWatchlist && !flexSpot.Worked && flexSpot.WatchlistNotify && Cfg.Gotify.WatchList {
 		Gotify(flexSpot)
 		Log.Debugf("🔔 Gotify notification sent: Watchlist match (not worked) - %s", flexSpot.DX)
 		return
