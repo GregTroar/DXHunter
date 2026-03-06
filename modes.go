@@ -56,7 +56,7 @@ var BandModeRanges = map[string][]ModeRange{
 		{MinFreqMHz: 18.068, MaxFreqMHz: 18.090, Mode: "CW"},
 		{MinFreqMHz: 18.090, MaxFreqMHz: 18.104, Mode: "FT8"},
 		{MinFreqMHz: 18.104, MaxFreqMHz: 18.106, Mode: "FT4"},
-		{MinFreqMHz: 18.106, MaxFreqMHz: 18.110, Mode: "RTTY"},
+		{MinFreqMHz: 18.106, MaxFreqMHz: 18.110, Mode: "FT8"},
 		{MinFreqMHz: 18.110, MaxFreqMHz: 18.168, Mode: "USB"},
 	},
 	"15M": {

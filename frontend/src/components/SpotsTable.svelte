@@ -10,6 +10,37 @@
   
   let container;
   const itemHeight = 43;
+
+  // Tri
+  let sortCol = null;   // 'dx' | 'country' | 'mode' | null
+  let sortDir = 'asc';  // 'asc' | 'desc'
+
+  function toggleSort(col) {
+    if (sortCol === col) {
+      if (sortDir === 'asc') {
+        sortDir = 'desc';
+      } else {
+        // 3ème clic : reset
+        sortCol = null;
+        sortDir = 'asc';
+      }
+    } else {
+      sortCol = col;
+      sortDir = 'asc';
+    }
+  }
+
+  $: sortedSpots = (() => {
+    if (!sortCol) return spots;
+    return [...spots].sort((a, b) => {
+      let valA, valB;
+      if (sortCol === 'dx')      { valA = a.DX || '';          valB = b.DX || ''; }
+      if (sortCol === 'country') { valA = a.CountryName || ''; valB = b.CountryName || ''; }
+      if (sortCol === 'mode')    { valA = a.Mode || '';        valB = b.Mode || ''; }
+      const cmp = valA.localeCompare(valB);
+      return sortDir === 'asc' ? cmp : -cmp;
+    });
+  })();
   
   function handleSpotClick(spot) {
     dispatch('clickSpot', {
@@ -67,12 +98,33 @@
   <!-- Header fixe -->
   <div class="bg-slate-900/50 flex-shrink-0">
     <div class="flex text-left text-xs text-slate-400 font-semibold">
-      <div class="p-2" style="width: 10%;">DX</div>
-      <div class="p-2" style="width: 18%;">Country</div>
+      <button class="p-2 flex items-center gap-1 hover:text-white transition-colors" style="width: 10%;" on:click={() => toggleSort('dx')}>
+        DX
+        {#if sortCol === 'dx'}
+          <span class="text-blue-400">{sortDir === 'asc' ? '↑' : '↓'}</span>
+        {:else}
+          <span class="text-slate-600">↕</span>
+        {/if}
+      </button>
+      <button class="p-2 flex items-center gap-1 hover:text-white transition-colors" style="width: 18%;" on:click={() => toggleSort('country')}>
+        Country
+        {#if sortCol === 'country'}
+          <span class="text-blue-400">{sortDir === 'asc' ? '↑' : '↓'}</span>
+        {:else}
+          <span class="text-slate-600">↕</span>
+        {/if}
+      </button>
       <div class="p-2" style="width: 7%;">Time</div>
       <div class="p-2" style="width: 10%;">Freq</div>
       <div class="p-2" style="width: 7%;">Band</div>
-      <div class="p-2" style="width: 7%;">Mode</div>
+      <button class="p-2 flex items-center gap-1 hover:text-white transition-colors" style="width: 7%;" on:click={() => toggleSort('mode')}>
+        Mode
+        {#if sortCol === 'mode'}
+          <span class="text-blue-400">{sortDir === 'asc' ? '↑' : '↓'}</span>
+        {:else}
+          <span class="text-slate-600">↕</span>
+        {/if}
+      </button>
       <div class="p-2" style="width: 10%;">Spotter</div>
       <div class="p-2" style="width: 18%;">Comment</div>
       <div class="p-2" style="width: 13%;">Status</div>
@@ -81,7 +133,7 @@
   
   <!-- Liste virtualisée -->
   <div class="flex-1 overflow-hidden" bind:this={container}>
-    <VirtualList items={spots} {itemHeight} let:item>
+    <VirtualList items={sortedSpots} {itemHeight} let:item>
       <div class="flex border-b border-slate-700/30 hover:bg-slate-700/30 transition-colors text-sm" style="height: {itemHeight}px;">
         <div class="p-2 flex items-center" style="width: 10%;">
           <button
