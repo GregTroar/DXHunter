@@ -8,14 +8,14 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 )
 
 const (
-	CtyPlistURL      = "https://www.country-files.com/category/big-cty/?action=download&type=xml"
 	CtyPlistFilename = "cty.plist"
-	CtyPlistZipName  = "cty.zip" // nom temporaire du zip téléchargé
+	CtyPlistZipName  = "cty.zip"
 )
 
 type UpdateResult struct {
@@ -26,8 +26,8 @@ type UpdateResult struct {
 	UpdatedAt     time.Time `json:"updatedAt"`
 }
 
-// UpdateCtyPlist télécharge le zip depuis country-files.com,
-// extrait cty.plist et recharge la base en mémoire.
+// UpdateCtyPlist télécharge cty.plist depuis country-files.com
+// et recharge la base en mémoire.
 func UpdateCtyPlist(ctyPath string) (*UpdateResult, error) {
 	result := &UpdateResult{UpdatedAt: time.Now()}
 
@@ -39,23 +39,31 @@ func UpdateCtyPlist(ctyPath string) (*UpdateResult, error) {
 
 	Log.Info("Downloading cty.plist update from country-files.com...")
 
-	// 1. Télécharger le zip
-	zipData, err := downloadCtyZip()
+	// 1. Télécharger (zip ou plist direct)
+	data, err := downloadCtyZip()
 	if err != nil {
 		result.Message = fmt.Sprintf("Download failed: %v", err)
 		return result, err
 	}
-	Log.Infof("Downloaded zip: %d bytes", len(zipData))
 
-	// 2. Extraire cty.plist du zip
-	plistData, err := extractCtyPlistFromZip(zipData)
-	if err != nil {
-		result.Message = fmt.Sprintf("Extraction failed: %v", err)
-		return result, err
+	// 2. Si c'est un zip, extraire cty.plist ; sinon utiliser directement
+	var plistData []byte
+	if isZip(data) {
+		plistData, err = extractCtyPlistFromZip(data)
+		if err != nil {
+			result.Message = fmt.Sprintf("Extraction failed: %v", err)
+			return result, err
+		}
+		Log.Infof("Extracted cty.plist from zip: %d bytes", len(plistData))
+	} else if isPlist(data) {
+		plistData = data
+		Log.Infof("Downloaded cty.plist directly: %d bytes", len(plistData))
+	} else {
+		result.Message = "Downloaded file is neither a zip nor a plist"
+		return result, fmt.Errorf(result.Message)
 	}
-	Log.Infof("Extracted cty.plist: %d bytes", len(plistData))
 
-	// 3. Sauvegarder sur disque (backup de l'ancien d'abord)
+	// 3. Sauvegarder sur disque
 	if err := backupAndSave(ctyPath, plistData); err != nil {
 		result.Message = fmt.Sprintf("Save failed: %v", err)
 		return result, err
@@ -81,14 +89,31 @@ func UpdateCtyPlist(ctyPath string) (*UpdateResult, error) {
 	return result, nil
 }
 
-// downloadCtyZip télécharge le fichier zip depuis country-files.com
+// downloadCtyZip télécharge cty.plist depuis country-files.com.
+// Le nom de fichier change à chaque version, donc on scrape la page
+// de catégorie pour trouver le dernier article, puis l'article pour
+// trouver le lien direct vers cty.plist.
 func downloadCtyZip() ([]byte, error) {
 	client := &http.Client{
 		Timeout: 60 * time.Second,
 	}
 
-	// country-files.com propose le téléchargement XML (plist) via cette URL
-	req, err := http.NewRequest("GET", CtyPlistURL, nil)
+	// Étape 1 : trouver l'URL du dernier article Big CTY
+	articleURL, err := findLatestCtyArticleURL(client)
+	if err != nil {
+		return nil, fmt.Errorf("cannot find latest CTY article: %w", err)
+	}
+	Log.Infof("Latest CTY article: %s", articleURL)
+
+	// Étape 2 : scraper l'article pour trouver le lien de téléchargement
+	downloadURL, err := findCtyDownloadURL(client, articleURL)
+	if err != nil {
+		return nil, fmt.Errorf("cannot find download link in article: %w", err)
+	}
+	Log.Infof("CTY download URL: %s", downloadURL)
+
+	// Étape 3 : télécharger le fichier
+	req, err := http.NewRequest("GET", downloadURL, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +121,7 @@ func downloadCtyZip() ([]byte, error) {
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("HTTP request failed: %w", err)
+		return nil, fmt.Errorf("download failed: %w", err)
 	}
 	defer resp.Body.Close()
 
@@ -106,14 +131,74 @@ func downloadCtyZip() ([]byte, error) {
 
 	data, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("reading response body: %w", err)
+		return nil, fmt.Errorf("reading response: %w", err)
 	}
-
 	if len(data) == 0 {
-		return nil, fmt.Errorf("empty response from server")
+		return nil, fmt.Errorf("empty response")
 	}
 
 	return data, nil
+}
+
+// findLatestCtyArticleURL scrape la home page et retourne l'URL du dernier article CTY
+func findLatestCtyArticleURL(client *http.Client) (string, error) {
+	req, _ := http.NewRequest("GET", "https://www.country-files.com/", nil)
+	req.Header.Set("User-Agent", "FlexDXCluster/1.0")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	// Le premier article contient "CTY-" dans le titre, ex: "CTY-3610 – 25 February 2026"
+	// On cherche le lien "Continue reading" ou le titre du premier article CTY
+	re := regexp.MustCompile(`href="(https://www\.country-files\.com/cty-\d+[^"]+)"`)
+	matches := re.FindStringSubmatch(string(body))
+	if len(matches) < 2 {
+		return "", fmt.Errorf("no CTY article link found on home page")
+	}
+
+	return matches[1], nil
+}
+
+// findCtyDownloadURL scrape un article et retourne le lien XML (cty.plist)
+func findCtyDownloadURL(client *http.Client, articleURL string) (string, error) {
+	req, _ := http.NewRequest("GET", articleURL, nil)
+	req.Header.Set("User-Agent", "FlexDXCluster/1.0")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	content := string(body)
+
+	// Chercher le lien "XML" dans la ligne Download
+	// Format: Download: [ CTY-3610 | CT8 | Win-Test | WriteLog | XML ]
+	// Le lien XML pointe vers un fichier .plist ou .zip
+	re := regexp.MustCompile(`href="([^"]+)"[^>]*>XML<`)
+	matches := re.FindStringSubmatch(content)
+	if len(matches) >= 2 {
+		url := matches[1]
+		if strings.HasPrefix(url, "/") {
+			url = "https://www.country-files.com" + url
+		}
+		return url, nil
+	}
+
+	return "", fmt.Errorf("no XML download link found in article")
 }
 
 // extractCtyPlistFromZip extrait le fichier cty.plist depuis les données zip
@@ -154,6 +239,11 @@ func extractCtyPlistFromZip(zipData []byte) ([]byte, error) {
 		names = append(names, f.Name)
 	}
 	return nil, fmt.Errorf("cty.plist not found in zip, found: %s", strings.Join(names, ", "))
+}
+
+// isZip vérifie si les données commencent par la magic bytes ZIP (PK\x03\x04)
+func isZip(data []byte) bool {
+	return len(data) > 4 && data[0] == 0x50 && data[1] == 0x4B && data[2] == 0x03 && data[3] == 0x04
 }
 
 // isPlist vérifie rapidement si les données ressemblent à un fichier plist

@@ -532,12 +532,12 @@ function applyFilters(allSpots, filters, wl) {
     showToast(`📡 Sent: ${command}`, 'radio');
   }
 
-  function showToast(message, type = 'info') {
+  function showToast(message, type = 'info', duration = 5000) {
     toastMessage = message;
     toastType = type;
     setTimeout(() => {
       toastMessage = '';
-    }, 5000);
+    }, duration);
   }
   
   async function fetchSolarData() {
@@ -759,6 +759,7 @@ async function shutdownApp() {
     {wsStatus} 
     {cacheLoaded}
     on:shutdown={shutdownApp}
+    on:ctyUpdate={(e) => showToast(e.detail.success ? `✅ CTY updated: ${e.detail.message}` : `❌ CTY update failed: ${e.detail.message}`, e.detail.success ? 'success' : 'error', 10000)}
   />
   
   <StatsCards 

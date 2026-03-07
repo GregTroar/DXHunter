@@ -9,22 +9,17 @@
   const dispatch = createEventDispatcher();
 
   let ctyUpdating = false;
-  let ctyUpdateMsg = '';
-  let ctyUpdateTimeout;
 
   async function updateCty() {
     ctyUpdating = true;
-    ctyUpdateMsg = '';
-    clearTimeout(ctyUpdateTimeout);
     try {
       const res = await fetch('/api/cty/update', { method: 'POST' });
       const data = await res.json();
-      ctyUpdateMsg = data.success ? '✅' : '❌';
-    } catch {
-      ctyUpdateMsg = '❌';
+      dispatch('ctyUpdate', { success: data.success, message: data.message || data.error });
+    } catch (e) {
+      dispatch('ctyUpdate', { success: false, message: 'Network error' });
     } finally {
       ctyUpdating = false;
-      ctyUpdateTimeout = setTimeout(() => ctyUpdateMsg = '', 4000);
     }
   }
 
@@ -159,8 +154,7 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
         </svg>
       {/if}
-      <span class="hidden lg:inline">CTY {ctyUpdateMsg}</span>
-      {#if ctyUpdateMsg}<span class="lg:hidden">{ctyUpdateMsg}</span>{/if}
+      <span class="hidden lg:inline">CTY</span>
     </button>
 
     <button 
