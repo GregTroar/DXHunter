@@ -28,7 +28,7 @@ type TelnetSpot struct {
 	CallsignWorked bool
 }
 
-func ProcessTelnetSpot(re *regexp.Regexp, reShort *regexp.Regexp, spotRaw string, SpotChanToFlex chan TelnetSpot, SpotChanToHTTPServer chan TelnetSpot, Countries Countries, contactRepo *Log4OMContactsRepository) {
+func ProcessTelnetSpot(re *regexp.Regexp, reShort *regexp.Regexp, spotRaw string, SpotChanToFlex chan TelnetSpot, SpotChanToHTTPServer chan TelnetSpot, contactRepo *Log4OMContactsRepository) {
 
 	match := re.FindStringSubmatch(spotRaw)
 
@@ -67,7 +67,7 @@ func ProcessTelnetSpot(re *regexp.Regexp, reShort *regexp.Regexp, spotRaw string
 			spot.DX, spot.Frequency, spot.Spotter)
 	}
 
-	DXCC := GetDXCC(spot.DX, Countries)
+	DXCC := GetDXCC(spot.DX)
 	spot.DXCC = DXCC.DXCC
 	spot.CountryName = DXCC.CountryName
 

@@ -8,6 +8,26 @@
 
   const dispatch = createEventDispatcher();
 
+  let ctyUpdating = false;
+  let ctyUpdateMsg = '';
+  let ctyUpdateTimeout;
+
+  async function updateCty() {
+    ctyUpdating = true;
+    ctyUpdateMsg = '';
+    clearTimeout(ctyUpdateTimeout);
+    try {
+      const res = await fetch('/api/cty/update', { method: 'POST' });
+      const data = await res.json();
+      ctyUpdateMsg = data.success ? '✅' : '❌';
+    } catch {
+      ctyUpdateMsg = '❌';
+    } finally {
+      ctyUpdating = false;
+      ctyUpdateTimeout = setTimeout(() => ctyUpdateMsg = '', 4000);
+    }
+  }
+
   function getSFIColor(sfi) {
     const value = parseInt(sfi);
     if (isNaN(value)) return 'text-slate-500';
@@ -123,6 +143,25 @@
         </svg>
       </span>
     {/if}
+
+    <button 
+      on:click={updateCty}
+      disabled={ctyUpdating}
+      title="Update cty.plist from country-files.com"
+      class="px-2.5 py-1 text-xs bg-blue-600/30 hover:bg-blue-600/50 text-blue-300 rounded transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed">
+      {#if ctyUpdating}
+        <svg class="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+        </svg>
+      {:else}
+        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+        </svg>
+      {/if}
+      <span class="hidden lg:inline">CTY {ctyUpdateMsg}</span>
+      {#if ctyUpdateMsg}<span class="lg:hidden">{ctyUpdateMsg}</span>{/if}
+    </button>
 
     <button 
       on:click={() => dispatch('shutdown')}

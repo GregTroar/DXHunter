@@ -88,9 +88,14 @@ func main() {
 
 	DeleteDatabase("./flex.sqlite", log)
 
-	// Load country.xml to get all the DXCC number
-	Countries := LoadCountryFile()
-	log.Debug("XML Country File has been loaded properly.")
+	// Load cty.plist — base DXCC disponible globalement via ctyDB
+	ctyPath := resolveCtyPath()
+	db, err := LoadCtyPlist(ctyPath)
+	if err != nil {
+		log.Fatalf("Failed to load cty.plist from %s: %v", ctyPath, err)
+	}
+	ctyDB = db
+	log.Infof("cty.plist loaded: %d entries (from %s)", len(ctyDB.entries), ctyPath)
 
 	// Database to keep track of all spots
 	fRepo := NewFlexDXDatabase("flex.sqlite")
@@ -110,7 +115,8 @@ func main() {
 
 	// Initialize servers and clients
 	TCPServer := NewTCPServer(Cfg.TelnetServer.Host, Cfg.TelnetServer.Port)
-	TCPClient := NewTCPClient(TCPServer, Countries, cRepo, SpotChanToHTTPServer, consoleChan)
+	// Countries supprimé — TCPClient utilise GetDXCC() via ctyDB global
+	TCPClient := NewTCPClient(TCPServer, cRepo, SpotChanToHTTPServer, consoleChan)
 	FlexClient := NewFlexClient(*fRepo, TCPServer, nil, nil)
 
 	// Initialize HTTP Server for Dashboard
@@ -171,5 +177,17 @@ func main() {
 	log.Infof("Cluster: %s:%s", Cfg.Cluster.Server, Cfg.Cluster.Port)
 
 	CheckSignal(TCPClient, TCPServer, FlexClient, fRepo, cRepo)
+}
 
+// resolveCtyPath retourne le chemin vers cty.plist :
+// d'abord à côté de l'exécutable, sinon dans le répertoire courant.
+func resolveCtyPath() string {
+	exe, err := os.Executable()
+	if err == nil {
+		p := filepath.Join(filepath.Dir(exe), "cty.plist")
+		if _, err := os.Stat(p); err == nil {
+			return p
+		}
+	}
+	return "cty.plist"
 }

@@ -185,6 +185,7 @@ func (s *HTTPServer) setupRoutes() {
 
 	// External data
 	api.HandleFunc("/solar", s.HandleSolarData).Methods("GET", "OPTIONS")
+	api.HandleFunc("/cty/update", s.updateCtyPlist).Methods("POST", "OPTIONS")
 
 	// WebSocket (seul point d'entrée pour les commandes Telnet maintenant)
 	api.HandleFunc("/ws", s.handleWebSocket).Methods("GET")
@@ -598,6 +599,17 @@ func (s *HTTPServer) clientCount() int {
 
 func (s *HTTPServer) getStats(w http.ResponseWriter, r *http.Request) {
 	s.sendSuccess(w, s.calculateStats(), "")
+}
+
+func (s *HTTPServer) updateCtyPlist(w http.ResponseWriter, r *http.Request) {
+	s.Log.Info("Manual cty.plist update requested")
+	result, err := UpdateCtyPlist("cty.plist")
+	if err != nil {
+		s.sendError(w, result.Message)
+		return
+	}
+
+	s.sendSuccess(w, result, result.Message)
 }
 
 func (s *HTTPServer) getSpotProcessingStats(w http.ResponseWriter, r *http.Request) {

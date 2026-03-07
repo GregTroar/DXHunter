@@ -57,7 +57,6 @@ type TCPClient struct {
 	ConsoleChan          chan string
 	Log                  *log.Logger
 	Config               *Config
-	Countries            Countries
 	LoginRe              *regexp.Regexp
 	PasswordRe           *regexp.Regexp
 	ClusterType          string
@@ -70,7 +69,7 @@ type TCPClient struct {
 	maxReconnectDelay    time.Duration
 }
 
-func NewTCPClient(TCPServer *TCPServer, Countries Countries, contactRepo *Log4OMContactsRepository, spotChanToHTTPServer chan TelnetSpot, consoleChan chan string) *TCPClient {
+func NewTCPClient(TCPServer *TCPServer, contactRepo *Log4OMContactsRepository, spotChanToHTTPServer chan TelnetSpot, consoleChan chan string) *TCPClient {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	return &TCPClient{
@@ -85,7 +84,6 @@ func NewTCPClient(TCPServer *TCPServer, Countries Countries, contactRepo *Log4OM
 		ClusterType:          "unknown",
 		SpotChanToFlex:       make(chan TelnetSpot, SpotChannelBuffer),
 		TCPServer:            *TCPServer,
-		Countries:            Countries,
 		ContactRepo:          contactRepo,
 		ctx:                  ctx,
 		cancel:               cancel,
@@ -354,7 +352,7 @@ func (c *TCPClient) ReadLine() {
 
 				if isDXSpot {
 					IncrementSpotsReceived()
-					ProcessTelnetSpot(spotRe, spotReShort, messageString, c.SpotChanToFlex, c.SpotChanToHTTPServer, c.Countries, c.ContactRepo)
+					ProcessTelnetSpot(spotRe, spotReShort, messageString, c.SpotChanToFlex, c.SpotChanToHTTPServer, c.ContactRepo)
 				}
 
 				// Envoyer à la console
