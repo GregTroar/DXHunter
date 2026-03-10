@@ -89,10 +89,6 @@ func UpdateCtyPlist(ctyPath string) (*UpdateResult, error) {
 	return result, nil
 }
 
-// downloadCtyZip télécharge cty.plist depuis country-files.com.
-// Le nom de fichier change à chaque version, donc on scrape la page
-// de catégorie pour trouver le dernier article, puis l'article pour
-// trouver le lien direct vers cty.plist.
 func downloadCtyZip() ([]byte, error) {
 	client := &http.Client{
 		Timeout: 60 * time.Second,
