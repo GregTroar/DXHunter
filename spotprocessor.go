@@ -52,20 +52,21 @@ func (sp *SpotProcessor) Stop() {
 }
 
 func (sp *SpotProcessor) processSpot(spot TelnetSpot) {
-	// ✅ AUTO-ADD contest callsigns with prefix to watchlist
-	if Cfg.General.ContestMode && Cfg.General.ContestPrefix != "" && sp.HTTPServer != nil && sp.HTTPServer.Watchlist != nil {
-		if strings.Contains(spot.DX, Cfg.General.ContestPrefix) {
-			// Check if not already in watchlist
-			if !sp.HTTPServer.Watchlist.Matches(spot.DX) {
-				if err := sp.HTTPServer.Watchlist.AddContest(spot.DX); err == nil {
-					Log.Infof("🏆 Auto-added contest callsign %s to watchlist (contains prefix '%s')",
-						spot.DX, Cfg.General.ContestPrefix)
+	// ✅ AUTO-ADD via DX callsign ou commentaire — actif dès qu'un contest_prefix est défini
+	if Cfg.General.ContestPrefix != "" && sp.HTTPServer != nil && sp.HTTPServer.Watchlist != nil {
+		commentMatch := strings.Contains(strings.ToUpper(spot.Comment), strings.ToUpper(Cfg.General.ContestPrefix))
+		callsignMatch := strings.Contains(spot.DX, Cfg.General.ContestPrefix)
 
-					// Broadcast updated watchlist to all WebSocket clients
-					sp.HTTPServer.broadcast <- WSMessage{
-						Type: "watchlist",
-						Data: sp.HTTPServer.Watchlist.GetAll(),
-					}
+		if (commentMatch || callsignMatch) && !sp.HTTPServer.Watchlist.Matches(spot.DX) {
+			reason := "comment"
+			if callsignMatch {
+				reason = "callsign"
+			}
+			if err := sp.HTTPServer.Watchlist.AddContest(spot.DX); err == nil {
+				Log.Infof("🏆 Auto-added %s to watchlist (%s contains '%s': %q)", spot.DX, reason, Cfg.General.ContestPrefix, spot.Comment)
+				sp.HTTPServer.broadcast <- WSMessage{
+					Type: "watchlist",
+					Data: sp.HTTPServer.Watchlist.GetAll(),
 				}
 			}
 		}
