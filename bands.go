@@ -19,7 +19,7 @@ var AmateurBands = []BandDefinition{
 	{Name: "160M", MinFreqMHz: 1.800, MaxFreqMHz: 2.000, UseUSB: false},
 	{Name: "80M", MinFreqMHz: 3.500, MaxFreqMHz: 3.800, UseUSB: false},
 	{Name: "60M", MinFreqMHz: 5.330, MaxFreqMHz: 5.405, UseUSB: false},
-	{Name: "40M", MinFreqMHz: 7.000, MaxFreqMHz: 7.200, UseUSB: false},
+	{Name: "40M", MinFreqMHz: 7.000, MaxFreqMHz: 7.300, UseUSB: false},
 	{Name: "30M", MinFreqMHz: 10.100, MaxFreqMHz: 10.150, UseUSB: true}, // Digital only
 	{Name: "20M", MinFreqMHz: 14.000, MaxFreqMHz: 14.350, UseUSB: true},
 	{Name: "17M", MinFreqMHz: 18.068, MaxFreqMHz: 18.168, UseUSB: true},

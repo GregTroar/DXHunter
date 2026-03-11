@@ -10,6 +10,43 @@
   
   let container;
   const itemHeight = 43;
+
+  // ─── Tri colonnes ───────────────────────────────────────────
+  let sortCol = '';   // 'DX' | 'Country' | 'Mode' | ''
+  let sortDir = 0;    // 0 = none, 1 = asc, -1 = desc
+
+  function toggleSort(col) {
+    if (sortCol !== col) {
+      sortCol = col;
+      sortDir = 1;
+    } else if (sortDir === 1) {
+      sortDir = -1;
+    } else {
+      sortCol = '';
+      sortDir = 0;
+    }
+  }
+
+  $: indDX      = (sortCol === 'DX'      && sortDir !== 0) ? (sortDir === 1 ? '↑' : '↓') : '↕';
+  $: indCountry = (sortCol === 'Country' && sortDir !== 0) ? (sortDir === 1 ? '↑' : '↓') : '↕';
+  $: indFreq    = (sortCol === 'Freq'    && sortDir !== 0) ? (sortDir === 1 ? '↑' : '↓') : '↕';
+  $: indBand    = (sortCol === 'Band'    && sortDir !== 0) ? (sortDir === 1 ? '↑' : '↓') : '↕';
+  $: indMode    = (sortCol === 'Mode'    && sortDir !== 0) ? (sortDir === 1 ? '↑' : '↓') : '↕';
+
+  $: sortedSpots = (() => {
+    if (!sortCol || sortDir === 0) return spots;
+    return [...spots].sort((a, b) => {
+      let va = '', vb = '';
+      if (sortCol === 'DX')      { va = a.DX || ''; vb = b.DX || ''; }
+      if (sortCol === 'Country') { va = a.CountryName || ''; vb = b.CountryName || ''; }
+      if (sortCol === 'Mode')    { va = a.Mode || ''; vb = b.Mode || ''; }
+      if (sortCol === 'Band')    { va = a.Band || ''; vb = b.Band || ''; }
+      if (sortCol === 'Freq') {
+        return sortDir * ((parseFloat(a.FrequencyMhz) || 0) - (parseFloat(b.FrequencyMhz) || 0));
+      }
+      return sortDir * va.localeCompare(vb);
+    });
+  })();
   
   function handleSpotClick(spot) {
     dispatch('clickSpot', {
@@ -75,12 +112,12 @@
   <!-- Header fixe -->
   <div class="bg-slate-900/50 flex-shrink-0">
     <div class="flex text-left text-xs text-slate-400 font-semibold">
-      <div class="p-2" style="width: 10%;">DX</div>
-      <div class="p-2" style="width: 18%;">Country</div>
+      <button class="p-2 select-none text-left text-slate-400 hover:text-slate-200" style="width: 10%;" on:click={() => toggleSort('DX')}>DX <span class={sortCol === 'DX' ? 'text-blue-400' : ''}>{indDX}</span></button>
+      <button class="p-2 select-none text-left text-slate-400 hover:text-slate-200" style="width: 18%;" on:click={() => toggleSort('Country')}>Country <span class={sortCol === 'Country' ? 'text-blue-400' : ''}>{indCountry}</span></button>
       <div class="p-2" style="width: 7%;">Time</div>
-      <div class="p-2" style="width: 10%;">Freq</div>
-      <div class="p-2" style="width: 7%;">Band</div>
-      <div class="p-2" style="width: 7%;">Mode</div>
+      <button class="p-2 select-none text-left text-slate-400 hover:text-slate-200" style="width: 10%;" on:click={() => toggleSort('Freq')}>Freq <span class={sortCol === 'Freq' ? 'text-blue-400' : ''}>{indFreq}</span></button>
+      <button class="p-2 select-none text-left text-slate-400 hover:text-slate-200" style="width: 7%;" on:click={() => toggleSort('Band')}>Band <span class={sortCol === 'Band' ? 'text-blue-400' : ''}>{indBand}</span></button>
+      <button class="p-2 select-none text-left text-slate-400 hover:text-slate-200" style="width: 7%;" on:click={() => toggleSort('Mode')}>Mode <span class={sortCol === 'Mode' ? 'text-blue-400' : ''}>{indMode}</span></button>
       <div class="p-2" style="width: 10%;">Spotter</div>
       <div class="p-2" style="width: 18%;">Comment</div>
       <div class="p-2" style="width: 13%;">Status</div>
@@ -90,11 +127,11 @@
   
   <!-- Liste virtualisée -->
   <div class="flex-1 overflow-hidden" bind:this={container}>
-    <VirtualList items={spots} {itemHeight} let:item>
+    <VirtualList items={sortedSpots} {itemHeight} let:item>
       <div class="flex border-b border-slate-700/30 hover:bg-slate-700/30 transition-colors text-sm" style="height: {itemHeight}px;">
         <div class="p-2 flex items-center" style="width: 10%;">
           <button
-            class="font-bold text-blue-400 hover:text-blue-300 transition-colors truncate w-full text-left"
+            class="font-bold text-slate-200 hover:text-white transition-colors truncate w-full text-left"
             on:click={() => handleSpotClick(item)}
             title="Click to send to Log4OM and tune radio">
             {item.DX}
