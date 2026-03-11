@@ -10,6 +10,42 @@
   
   let container;
   const itemHeight = 43;
+
+  // ─── Tri colonnes ───────────────────────────────────────────
+  let sortCol = '';   // 'DX' | 'Country' | 'Mode' | ''
+  let sortDir = 0;    // 0 = none, 1 = asc, -1 = desc
+
+  function toggleSort(col) {
+    if (sortCol !== col) {
+      sortCol = col;
+      sortDir = 1;
+    } else if (sortDir === 1) {
+      sortDir = -1;
+    } else {
+      sortCol = '';
+      sortDir = 0;
+    }
+  }
+
+  function sortIndicator(col) {
+    if (sortCol !== col) return '⇅';
+    return sortDir === 1 ? '↑' : '↓';
+  }
+
+  $: sortedSpots = (() => {
+    if (!sortCol || sortDir === 0) return spots;
+    return [...spots].sort((a, b) => {
+      let va = '', vb = '';
+      if (sortCol === 'DX')      { va = a.DX || ''; vb = b.DX || ''; }
+      if (sortCol === 'Country') { va = a.CountryName || ''; vb = b.CountryName || ''; }
+      if (sortCol === 'Mode')    { va = a.Mode || ''; vb = b.Mode || ''; }
+      if (sortCol === 'Band')    { va = a.Band || ''; vb = b.Band || ''; }
+      if (sortCol === 'Freq') {
+        return sortDir * ((parseFloat(a.FrequencyMhz) || 0) - (parseFloat(b.FrequencyMhz) || 0));
+      }
+      return sortDir * va.localeCompare(vb);
+    });
+  })();
   
   function handleSpotClick(spot) {
     dispatch('clickSpot', {
@@ -75,12 +111,12 @@
   <!-- Header fixe -->
   <div class="bg-slate-900/50 flex-shrink-0">
     <div class="flex text-left text-xs text-slate-400 font-semibold">
-      <div class="p-2" style="width: 10%;">DX</div>
-      <div class="p-2" style="width: 18%;">Country</div>
+      <button class="p-2 hover:text-slate-200 select-none text-left" style="width: 10%;" on:click={() => toggleSort('DX')}>DX {sortIndicator('DX')}</button>
+      <button class="p-2 hover:text-slate-200 select-none text-left" style="width: 18%;" on:click={() => toggleSort('Country')}>Country {sortIndicator('Country')}</button>
       <div class="p-2" style="width: 7%;">Time</div>
-      <div class="p-2" style="width: 10%;">Freq</div>
-      <div class="p-2" style="width: 7%;">Band</div>
-      <div class="p-2" style="width: 7%;">Mode</div>
+      <button class="p-2 hover:text-slate-200 select-none text-left" style="width: 10%;" on:click={() => toggleSort('Freq')}>Freq {sortIndicator('Freq')}</button>
+      <button class="p-2 hover:text-slate-200 select-none text-left" style="width: 7%;" on:click={() => toggleSort('Band')}>Band {sortIndicator('Band')}</button>
+      <button class="p-2 hover:text-slate-200 select-none text-left" style="width: 7%;" on:click={() => toggleSort('Mode')}>Mode {sortIndicator('Mode')}</button>
       <div class="p-2" style="width: 10%;">Spotter</div>
       <div class="p-2" style="width: 18%;">Comment</div>
       <div class="p-2" style="width: 13%;">Status</div>
@@ -90,7 +126,7 @@
   
   <!-- Liste virtualisée -->
   <div class="flex-1 overflow-hidden" bind:this={container}>
-    <VirtualList items={spots} {itemHeight} let:item>
+    <VirtualList items={sortedSpots} {itemHeight} let:item>
       <div class="flex border-b border-slate-700/30 hover:bg-slate-700/30 transition-colors text-sm" style="height: {itemHeight}px;">
         <div class="p-2 flex items-center" style="width: 10%;">
           <button

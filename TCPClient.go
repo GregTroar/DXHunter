@@ -356,7 +356,10 @@ func (c *TCPClient) ReadLine() {
 
 			c.Conn.SetReadDeadline(time.Now().Add(ReadTimeout))
 			message, err := c.Reader.ReadBytes('\n')
-			Log.Debugf(strings.TrimSpace(string(message)))
+			trimmed := strings.TrimSpace(string(message))
+			if trimmed != "" {
+				Log.Debugf(trimmed)
+			}
 			if err != nil {
 				Log.Errorf("Error reading message: %s", err)
 				return
@@ -388,8 +391,8 @@ func (c *TCPClient) ReadLine() {
 					c.detectClusterType(messageString)
 				}
 
-				// Check if it's a DX spot — "DX de " pour le format standard, ou fréquence en début pour le format court
-				isDXSpot := strings.Contains(messageString, "DX de ") || shortSpotDetectRe.MatchString(messageString)
+				// Check if it's a DX spot
+				isDXSpot := strings.Contains(messageString, "DX") || shortSpotDetectRe.MatchString(messageString)
 
 				if isDXSpot {
 					// Filtre applicatif basé sur la config du cluster
