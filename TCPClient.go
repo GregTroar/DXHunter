@@ -57,6 +57,7 @@ type TCPClient struct {
 	ConsoleChan          chan string
 	Log                  *log.Logger
 	Config               *Config
+	ClusterCfg           ClusterConfig
 	LoginRe              *regexp.Regexp
 	PasswordRe           *regexp.Regexp
 	ClusterType          string
@@ -69,21 +70,22 @@ type TCPClient struct {
 	maxReconnectDelay    time.Duration
 }
 
-func NewTCPClient(TCPServer *TCPServer, contactRepo *Log4OMContactsRepository, spotChanToHTTPServer chan TelnetSpot, consoleChan chan string) *TCPClient {
+func NewTCPClient(TCPServer *TCPServer, clusterCfg ClusterConfig, contactRepo *Log4OMContactsRepository, spotChanToHTTPServer chan TelnetSpot, consoleChan chan string) *TCPClient {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	return &TCPClient{
-		Address:              Cfg.Cluster.Server,
-		Port:                 Cfg.Cluster.Port,
-		Login:                Cfg.Cluster.Login,
-		Password:             Cfg.Cluster.Password,
+		Address:              clusterCfg.Server,
+		Port:                 clusterCfg.Port,
+		Login:                clusterCfg.Login,
+		Password:             clusterCfg.Password,
 		MsgChan:              TCPServer.MsgChan,
-		CmdChan:              TCPServer.CmdChan,
+		CmdChan:              make(chan string, 100), // CmdChan propre à ce client
 		SpotChanToHTTPServer: spotChanToHTTPServer,
 		ConsoleChan:          consoleChan,
-		ClusterType:          "unknown",
+		ClusterType:          clusterCfg.Type, // Depuis config si défini, sinon auto-détection
 		SpotChanToFlex:       make(chan TelnetSpot, SpotChannelBuffer),
 		TCPServer:            *TCPServer,
+		ClusterCfg:           clusterCfg,
 		ContactRepo:          contactRepo,
 		ctx:                  ctx,
 		cancel:               cancel,
@@ -157,7 +159,7 @@ func (c *TCPClient) StartClient() {
 			select {
 			case <-c.ctx.Done():
 				return
-			case message := <-c.TCPServer.CmdChan:
+			case message := <-c.CmdChan:
 				Log.Infof("Received Command: %s", message)
 				c.Write([]byte(message + "\r\n"))
 			}
@@ -215,44 +217,79 @@ func (c *TCPClient) Close() {
 }
 
 func (c *TCPClient) SetFilters() {
-	if Cfg.Cluster.FT8 {
+	Log.Infof("[%s] Applying filters: FT8=%v FT4=%v Skimmer=%v Beacon=%v (type: %s)",
+		c.ClusterCfg.Name, c.ClusterCfg.FT8, c.ClusterCfg.FT4, c.ClusterCfg.Skimmer, c.ClusterCfg.Beacon, c.ClusterType)
+
+	switch c.ClusterType {
+	case "dxspider":
+		c.setFiltersDXSpider()
+	case "ar_cluster":
+		c.setFiltersARCluster()
+	default: // cc_cluster et unknown
+		c.setFiltersCCCluster()
+	}
+}
+
+func (c *TCPClient) setFiltersCCCluster() {
+	if c.ClusterCfg.FT8 {
 		c.Write([]byte("set/ft8\r\n"))
-		Log.Info("FT8: On")
-	}
-
-	if Cfg.Cluster.Skimmer {
-		c.Write([]byte("set/skimmer\r\n"))
-		Log.Info("Skimmer: On")
-	}
-
-	if Cfg.Cluster.FT4 {
-		c.Write([]byte("set/ft4\r\n"))
-		Log.Info("FT4: On")
-	}
-
-	if Cfg.Cluster.Beacon {
-		c.Write([]byte("set/beacon\r\n"))
-		Log.Info("Beacon: On")
-	}
-
-	if !Cfg.Cluster.FT8 {
+		Log.Info("[CC] FT8: On")
+	} else {
 		c.Write([]byte("set/noft8\r\n"))
-		Log.Info("FT8: Off")
+		Log.Info("[CC] FT8: Off")
 	}
-
-	if !Cfg.Cluster.FT4 {
+	if c.ClusterCfg.FT4 {
+		c.Write([]byte("set/ft4\r\n"))
+		Log.Info("[CC] FT4: On")
+	} else {
 		c.Write([]byte("set/noft4\r\n"))
-		Log.Info("FT4: Off")
+		Log.Info("[CC] FT4: Off")
 	}
-
-	if !Cfg.Cluster.Skimmer {
+	if c.ClusterCfg.Skimmer {
+		c.Write([]byte("set/skimmer\r\n"))
+		Log.Info("[CC] Skimmer: On")
+	} else {
 		c.Write([]byte("set/noskimmer\r\n"))
-		Log.Info("Skimmer: Off")
+		Log.Info("[CC] Skimmer: Off")
 	}
-
-	if !Cfg.Cluster.Beacon {
+	if c.ClusterCfg.Beacon {
+		c.Write([]byte("set/beacon\r\n"))
+		Log.Info("[CC] Beacon: On")
+	} else {
 		c.Write([]byte("set/nobeacon\r\n"))
-		Log.Info("Beacon: Off")
+		Log.Info("[CC] Beacon: Off")
+	}
+}
+
+func (c *TCPClient) setFiltersDXSpider() {
+	// DX Spider utilise SET/SKIMMER avec des arguments et SET/NOSKIMMER
+	if c.ClusterCfg.Skimmer && c.ClusterCfg.FT8 && c.ClusterCfg.FT4 {
+		c.Write([]byte("SET/SKIMMER CW FT8 FT4\r\n"))
+		Log.Info("[DXSpider] Skimmer+FT8+FT4: On")
+	} else if c.ClusterCfg.Skimmer && c.ClusterCfg.FT8 {
+		c.Write([]byte("SET/SKIMMER CW FT8\r\n"))
+		Log.Info("[DXSpider] Skimmer+FT8: On")
+	} else if c.ClusterCfg.Skimmer {
+		c.Write([]byte("SET/SKIMMER CW\r\n"))
+		Log.Info("[DXSpider] Skimmer CW: On")
+	} else {
+		c.Write([]byte("UNSET/SKIMMER\r\n"))
+		Log.Info("[DXSpider] Skimmer: Off")
+	}
+	// DX Spider n'a pas de commandes set/noft8 séparées — géré via SET/SKIMMER
+}
+
+func (c *TCPClient) setFiltersARCluster() {
+	// AR Cluster — commandes similaires à CC Cluster pour les filtres de base
+	if c.ClusterCfg.FT8 {
+		c.Write([]byte("set/ft8\r\n"))
+	} else {
+		c.Write([]byte("set/noft8\r\n"))
+	}
+	if c.ClusterCfg.FT4 {
+		c.Write([]byte("set/ft4\r\n"))
+	} else {
+		c.Write([]byte("set/noft4\r\n"))
 	}
 }
 
@@ -295,12 +332,17 @@ func (c *TCPClient) ReadLine() {
 			default:
 			}
 
-			if strings.Contains(messageString, Cfg.Cluster.LoginPrompt) || strings.Contains(messageString, "login:") {
+			if strings.Contains(messageString, c.ClusterCfg.LoginPrompt) || strings.Contains(messageString, "login:") {
 				time.Sleep(time.Second * 1)
 				Log.Debug("Found login prompt...sending callsign")
 				c.Write([]byte(c.Login + "\n\r"))
 				c.LoggedIn = true
-				Log.Infof("Connected to DX cluster %s:%s", Cfg.Cluster.Server, Cfg.Cluster.Port)
+				Log.Infof("Connected to DX cluster %s:%s", c.ClusterCfg.Server, c.ClusterCfg.Port)
+				// Envoyer les filtres 3 secondes après le login, peu importe le message de bienvenue
+				go func() {
+					time.Sleep(3 * time.Second)
+					c.SetFilters()
+				}()
 				continue
 			}
 		}
@@ -330,12 +372,11 @@ func (c *TCPClient) ReadLine() {
 					c.Write([]byte(c.Password + "\r\n"))
 				}
 
-				// Handle welcome message
+				// Handle welcome message — envoyer la commande cluster si configurée
 				if strings.Contains(messageString, "Hello") || strings.Contains(messageString, "Welcome") {
-					go c.SetFilters()
-					if Cfg.Cluster.Command != "" {
-						c.Write([]byte(Cfg.Cluster.Command + "\n\r"))
-						Log.Debugf("Sending Command: %s", Cfg.Cluster.Command)
+					if c.ClusterCfg.Command != "" {
+						c.Write([]byte(c.ClusterCfg.Command + "\n\r"))
+						Log.Debugf("Sending Command: %s", c.ClusterCfg.Command)
 					}
 				}
 
@@ -351,8 +392,32 @@ func (c *TCPClient) ReadLine() {
 				isDXSpot := strings.Contains(messageString, "DX") || shortSpotDetectRe.MatchString(messageString)
 
 				if isDXSpot {
-					IncrementSpotsReceived()
-					ProcessTelnetSpot(spotRe, spotReShort, messageString, c.SpotChanToFlex, c.SpotChanToHTTPServer, c.ContactRepo)
+					// Filtre applicatif basé sur la config du cluster
+					// (pour les clusters qui ne supportent pas set/noft8 etc.)
+					msgUpper := strings.ToUpper(messageString)
+					isFT8 := strings.Contains(msgUpper, "FT8")
+					isFT4 := strings.Contains(msgUpper, "FT4")
+					isSkimmer := strings.Contains(msgUpper, "CW SKIMMER") || strings.Contains(msgUpper, "SKIMMER")
+					isBeacon := strings.Contains(msgUpper, "BEACON")
+
+					skip := false
+					if isFT8 && !c.ClusterCfg.FT8 {
+						skip = true
+					}
+					if isFT4 && !c.ClusterCfg.FT4 {
+						skip = true
+					}
+					if isSkimmer && !c.ClusterCfg.Skimmer {
+						skip = true
+					}
+					if isBeacon && !c.ClusterCfg.Beacon {
+						skip = true
+					}
+
+					if !skip {
+						IncrementSpotsReceived()
+						ProcessTelnetSpot(spotRe, spotReShort, messageString, c.SpotChanToFlex, c.SpotChanToHTTPServer, c.ContactRepo, c.ClusterCfg.Name)
+					}
 				}
 
 				// Envoyer à la console
@@ -373,20 +438,25 @@ func (c *TCPClient) ReadLine() {
 }
 
 func (c *TCPClient) detectClusterType(line string) {
+	// Si le type est forcé dans la config, ne pas auto-détecter
+	if c.ClusterCfg.Type != "" {
+		c.ClusterType = c.ClusterCfg.Type
+		return
+	}
+
 	lineLower := strings.ToLower(line)
 
 	switch {
 	case strings.Contains(lineLower, "dxspider"):
 		c.ClusterType = "dxspider"
-		Log.Infof("✅ Detected cluster type: DX Spider")
+		Log.Infof("[%s] ✅ Detected cluster type: DX Spider", c.ClusterCfg.Name)
 	case strings.Contains(lineLower, "cc cluster") || strings.Contains(lineLower, "cc-cluster") || strings.Contains(lineLower, "cccmds"):
 		c.ClusterType = "cc_cluster"
-		Log.Infof("✅ Detected cluster type: CC Cluster")
+		Log.Infof("[%s] ✅ Detected cluster type: CC Cluster", c.ClusterCfg.Name)
 	case strings.Contains(lineLower, "ar-cluster") || strings.Contains(lineLower, "ar cluster") || strings.Contains(lineLower, "arcluster"):
 		c.ClusterType = "ar_cluster"
-		Log.Infof("✅ Detected cluster type: AR Cluster")
+		Log.Infof("[%s] ✅ Detected cluster type: AR Cluster", c.ClusterCfg.Name)
 	}
-	// Si rien détecté, on laisse "unknown" ou "" et on continue à chercher
 }
 
 // Write sends raw data to remove telnet server

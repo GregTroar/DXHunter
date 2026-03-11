@@ -8,13 +8,13 @@ import (
 	"syscall"
 )
 
-func CheckSignal(tcpClient *TCPClient, tcpServer *TCPServer, flexClient *FlexClient, flexRepo *FlexDXClusterRepository, contactRepo *Log4OMContactsRepository) {
+func CheckSignal(tcpClients []*TCPClient, tcpServer *TCPServer, flexClient *FlexClient, flexRepo *FlexDXClusterRepository, contactRepo *Log4OMContactsRepository) {
 	sigchan := make(chan os.Signal, 1)
 	signal.Notify(sigchan, os.Interrupt, syscall.SIGTERM)
 
 	<-sigchan
 
-	GracefulShutdown(tcpClient, tcpServer, flexClient, flexRepo, contactRepo)
+	GracefulShutdown(tcpClients, tcpServer, flexClient, flexRepo, contactRepo)
 	os.Exit(0)
 }
 

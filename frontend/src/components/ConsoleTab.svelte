@@ -3,9 +3,11 @@
   
   export let wsStatus = 'disconnected';
   export let clusterType = 'unknown';
+  export let clusters = [];
   
   const dispatch = createEventDispatcher();
   
+  let selectedCluster = ''; // Nom du cluster sélectionné ('' = master)
   let command = '';
   let commandHistory = [];
   let historyIndex = -1;
@@ -66,6 +68,23 @@
   };
 
   $: commonCommands = commandsByCluster[clusterType] || commandsByCluster.unknown;
+
+  // Auto-sélectionner le cluster maître si rien n'est sélectionné
+  $: if (clusters.length > 0 && !selectedCluster) {
+    const master = clusters.find(c => c.master) || clusters[0];
+    selectedCluster = master.name;
+  }
+
+  // Adapter les commandes rapides selon le cluster sélectionné
+  $: effectiveClusterType = (() => {
+    if (selectedCluster && clusters.length > 0) {
+      const found = clusters.find(c => c.name === selectedCluster);
+      if (found) return found.type || clusterType;
+    }
+    return clusterType;
+  })();
+
+  $: effectiveCommands = commandsByCluster[effectiveClusterType] || commandsByCluster.unknown;
   
   // ═══════════════════════════════════════════════════════════
   // NOUVEAU: Écouter les messages WebSocket
@@ -115,8 +134,8 @@
     if (commandHistory.length > 50) commandHistory = commandHistory.slice(0, 50);
     historyIndex = -1;
     
-    // Envoyer via WebSocket
-    dispatch('sendCommand', { command: cmd });
+    // Envoyer via WebSocket avec le cluster cible
+    dispatch('sendCommand', { command: cmd, clusterName: selectedCluster });
     
     // Réinitialiser
     command = '';
@@ -155,7 +174,7 @@
       case 'Tab':
         e.preventDefault();
         if (command) {
-          const matches = commonCommands.filter(c => 
+          const matches = effectiveCommands.filter(c => 
             c.cmd.toLowerCase().startsWith(command.toLowerCase())
           );
           if (matches.length === 1) {
@@ -221,7 +240,7 @@
 
         {#if wsStatus === 'connected'}
           <span class="text-xs px-2 py-0.5 bg-purple-900/50 text-purple-300 rounded border border-purple-700/50">
-            {clusterTypeLabels[clusterType] || 'Unknown'}
+            {clusterTypeLabels[effectiveClusterType] || 'Unknown'}
           </span>
         {/if}
         
@@ -264,6 +283,20 @@
           <span>Enter ↵</span>
         </div>
       </div>
+      <!-- Sélecteur cluster -->
+      <select
+        bind:value={selectedCluster}
+        class="text-xs bg-slate-700 border border-slate-600 text-slate-200 rounded px-2 py-1 focus:outline-none focus:border-slate-400"
+        title="Target cluster"
+      >
+        {#if clusters.length === 0}
+          <option value="">No cluster</option>
+        {:else}
+          {#each clusters as c}
+            <option value={c.name}>{c.master ? '★ ' : ''}{c.name}</option>
+          {/each}
+        {/if}
+      </select>
       <button
         on:click={sendCommand}
         class="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-slate-700 disabled:text-slate-500 rounded text-sm font-medium transition-colors"
@@ -281,7 +314,7 @@
     
     <!-- Quick commands -->
     <div class="flex flex-wrap gap-1">
-      {#each commonCommands as item}
+      {#each effectiveCommands as item}
         <button
           on:click={() => selectCommonCommand(item.cmd)}
           class="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 rounded text-xs transition-colors border border-slate-700"

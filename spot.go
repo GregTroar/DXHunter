@@ -26,9 +26,12 @@ type TelnetSpot struct {
 	NewMode        bool
 	NewSlot        bool
 	CallsignWorked bool
+	ClusterName    string // Nom du cluster source
+	POTARef        string // ex: "BB-0036"
+	SOTARef        string // ex: "F/AB-123"
 }
 
-func ProcessTelnetSpot(re *regexp.Regexp, reShort *regexp.Regexp, spotRaw string, SpotChanToFlex chan TelnetSpot, SpotChanToHTTPServer chan TelnetSpot, contactRepo *Log4OMContactsRepository) {
+func ProcessTelnetSpot(re *regexp.Regexp, reShort *regexp.Regexp, spotRaw string, SpotChanToFlex chan TelnetSpot, SpotChanToHTTPServer chan TelnetSpot, contactRepo *Log4OMContactsRepository, clusterName string) {
 
 	match := re.FindStringSubmatch(spotRaw)
 
@@ -79,6 +82,8 @@ func ProcessTelnetSpot(re *regexp.Regexp, reShort *regexp.Regexp, spotRaw string
 
 	spot.GetBand()
 	spot.GuessMode(spotRaw)
+	spot.ClusterName = clusterName
+	spot.DetectPOTASOTA()
 	spot.CallsignWorked = false
 	spot.NewBand = false
 	spot.NewMode = false
@@ -213,4 +218,30 @@ func (spot *TelnetSpot) GuessMode(rawSpot string) {
 	spot.Mode = DetermineMode(spot.Mode, spot.Comment, freqMHz)
 
 	Log.Debugf("GuessMode: %s @ %.3f MHz → Mode: %s", spot.DX, freqMHz, spot.Mode)
+}
+
+// DetectPOTASOTA extrait les références POTA et SOTA du commentaire
+// Formats reconnus :
+//
+//	POTA : [-POTA-] BB-0036  ou  POTA BB-0036  ou  @BB-0036
+//	SOTA : [SOTA] F/AB-123  ou  SOTA F/AB-123
+func (spot *TelnetSpot) DetectPOTASOTA() {
+	comment := spot.Comment
+	upper := strings.ToUpper(comment)
+
+	// POTA — référence de type XX-NNNNN (2 lettres, tiret, chiffres)
+	if strings.Contains(upper, "POTA") || strings.Contains(upper, "[-POTA-]") {
+		re := regexp.MustCompile(`\b([A-Z]{1,4}-\d{4,6})\b`)
+		if m := re.FindString(comment); m != "" {
+			spot.POTARef = strings.ToUpper(m)
+		}
+	}
+
+	// SOTA — référence de type XX/XX-NNN (association/sommet)
+	if strings.Contains(upper, "SOTA") {
+		re := regexp.MustCompile(`\b([A-Z]{1,4}/[A-Z]{2}-\d{3})\b`)
+		if m := re.FindStringSubmatch(strings.ToUpper(comment)); len(m) > 1 {
+			spot.SOTARef = m[1]
+		}
+	}
 }

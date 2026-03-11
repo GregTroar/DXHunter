@@ -33,23 +33,17 @@ func ParseFlags() (string, error) {
 	return configPath, nil
 }
 
-func GracefulShutdown(tcpClient *TCPClient, tcpServer *TCPServer, flexClient *FlexClient, flexRepo *FlexDXClusterRepository, contactRepo *Log4OMContactsRepository) {
+func GracefulShutdown(tcpClients []*TCPClient, tcpServer *TCPServer, flexClient *FlexClient, flexRepo *FlexDXClusterRepository, contactRepo *Log4OMContactsRepository) {
 	Log.Info("Starting graceful shutdown...")
 
-	// Fermer les clients
-	if tcpClient != nil {
-		tcpClient.Close()
+	for _, client := range tcpClients {
+		if client != nil {
+			client.Close()
+		}
 	}
 	if flexClient != nil {
 		flexClient.Close()
 	}
-
-	// Fermer les serveurs
-	if tcpServer != nil {
-		// tcpServer.Close() si tu as une méthode close
-	}
-
-	// Fermer les bases de données
 	if flexRepo != nil && flexRepo.db != nil {
 		flexRepo.db.Close()
 	}
@@ -57,7 +51,6 @@ func GracefulShutdown(tcpClient *TCPClient, tcpServer *TCPServer, flexClient *Fl
 		contactRepo.db.Close()
 	}
 
-	// ✅ Fermer le log en dernier
 	Log.Info("Shutdown complete")
 	CloseLog()
 }
@@ -115,12 +108,29 @@ func main() {
 
 	// Initialize servers and clients
 	TCPServer := NewTCPServer(Cfg.TelnetServer.Host, Cfg.TelnetServer.Port)
-	// Countries supprimé — TCPClient utilise GetDXCC() via ctyDB global
-	TCPClient := NewTCPClient(TCPServer, cRepo, SpotChanToHTTPServer, consoleChan)
+
+	// Multi-cluster : instancier un TCPClient par cluster actif
+	clusters := Cfg.GetActiveClusters()
+	if len(clusters) == 0 {
+		log.Fatal("No cluster configured. Please check your config.yml")
+	}
+
+	var TCPClients []*TCPClient
+	for _, clusterCfg := range clusters {
+		clusterCfg := clusterCfg // capture locale pour éviter le piège de closure Go
+		name := clusterCfg.Name
+		if name == "" {
+			name = clusterCfg.Server
+		}
+		client := NewTCPClient(TCPServer, clusterCfg, cRepo, SpotChanToHTTPServer, consoleChan)
+		TCPClients = append(TCPClients, client)
+		log.Infof("Configured cluster: %s (%s:%s)", name, clusterCfg.Server, clusterCfg.Port)
+	}
+
 	FlexClient := NewFlexClient(*fRepo, TCPServer, nil, nil)
 
 	// Initialize HTTP Server for Dashboard
-	HTTPServer := NewHTTPServer(fRepo, cRepo, TCPServer, TCPClient, FlexClient, "8080", cfgPath, consoleChan)
+	HTTPServer := NewHTTPServer(fRepo, cRepo, TCPServer, TCPClients, FlexClient, "8080", cfgPath, consoleChan)
 	InitLogHook()
 
 	log.Info("Running FlexDXCluster version 2.1")
@@ -169,14 +179,22 @@ func main() {
 
 	// Start all services
 	go FlexClient.StartFlexClient()
-	go TCPClient.StartClient()
+	for _, client := range TCPClients {
+		go client.StartClient()
+	}
 	go TCPServer.StartServer()
 	go HTTPServer.Start()
 
 	log.Infof("Telnet Server: %s:%s", Cfg.TelnetServer.Host, Cfg.TelnetServer.Port)
-	log.Infof("Cluster: %s:%s", Cfg.Cluster.Server, Cfg.Cluster.Port)
+	for _, cl := range clusters {
+		name := cl.Name
+		if name == "" {
+			name = cl.Server
+		}
+		log.Infof("Cluster [%s]: %s:%s", name, cl.Server, cl.Port)
+	}
 
-	CheckSignal(TCPClient, TCPServer, FlexClient, fRepo, cRepo)
+	CheckSignal(TCPClients, TCPServer, FlexClient, fRepo, cRepo)
 }
 
 // resolveCtyPath retourne le chemin vers cty.plist :

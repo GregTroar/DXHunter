@@ -42,6 +42,9 @@ type FlexSpot struct {
 	CountryName     string
 	DXCC            string
 	WatchlistNotify bool
+	ClusterName     string
+	POTARef         string // ex: "BB-0036"
+	SOTARef         string // ex: "F/AB-123"
 }
 
 type Discovery struct {

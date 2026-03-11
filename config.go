@@ -12,6 +12,75 @@ import (
 
 var Cfg *Config
 
+// ClusterConfig représente la configuration d'un cluster DX
+type ClusterConfig struct {
+	Name        string `yaml:"name"` // Nom affiché (ex: "EU Cluster")
+	Server      string `yaml:"server"`
+	Port        string `yaml:"port"`
+	Login       string `yaml:"login"`
+	Password    string `yaml:"password"`
+	Skimmer     bool   `yaml:"skimmer"`
+	FT8         bool   `yaml:"ft8"`
+	FT4         bool   `yaml:"ft4"`
+	Beacon      bool   `yaml:"beacon"`
+	Command     string `yaml:"command"`
+	LoginPrompt string `yaml:"login_prompt"`
+	Enabled     bool   `yaml:"enabled"`
+	Master      bool   `yaml:"master"` // Cluster maître : reçoit les commandes et détermine le ClusterType
+	Type        string `yaml:"type"`   // Type forcé : dxspider, cc_cluster, ar_cluster (vide = auto-détection)
+}
+
+// GetActiveClusters retourne la liste des clusters à utiliser.
+// Si clusters: est défini dans la config, il prend le dessus sur cluster:.
+// Sinon, on utilise l'ancien champ cluster: pour la compatibilité.
+// Si aucun cluster n'a master:true, le premier est automatiquement désigné maître.
+func (c *Config) GetActiveClusters() []ClusterConfig {
+	// Filtrer les clusters activés
+	var active []ClusterConfig
+	for _, cl := range c.Clusters {
+		if cl.Enabled && cl.Server != "" {
+			active = append(active, cl)
+		}
+	}
+	if len(active) > 0 {
+		// Si aucun master défini, le premier devient master
+		hasMaster := false
+		for _, cl := range active {
+			if cl.Master {
+				hasMaster = true
+				break
+			}
+		}
+		if !hasMaster {
+			active[0].Master = true
+		}
+		return active
+	}
+
+	// Fallback sur l'ancien format — toujours master
+	if c.Cluster.Server != "" {
+		return []ClusterConfig{
+			{
+				Name:        "Default",
+				Server:      c.Cluster.Server,
+				Port:        c.Cluster.Port,
+				Login:       c.Cluster.Login,
+				Password:    c.Cluster.Password,
+				Skimmer:     c.Cluster.Skimmer,
+				FT8:         c.Cluster.FT8,
+				FT4:         c.Cluster.FT4,
+				Beacon:      c.Cluster.Beacon,
+				Command:     c.Cluster.Command,
+				LoginPrompt: c.Cluster.LoginPrompt,
+				Enabled:     true,
+				Master:      true,
+			},
+		}
+	}
+
+	return nil
+}
+
 type Config struct {
 	General struct {
 		ContestMode                bool     `yaml:"contest_mode"`
@@ -66,6 +135,9 @@ type Config struct {
 		Command     string `yaml:"command"`
 		LoginPrompt string `yaml:"login_prompt"`
 	} `yaml:"cluster"`
+
+	// Multi-cluster support — si Clusters est défini, il prend le dessus sur Cluster
+	Clusters []ClusterConfig `yaml:"clusters"`
 
 	Flex struct {
 		Discover bool   `yaml:"discovery"`
@@ -220,7 +292,7 @@ func (cw *ConfigWatcher) applyConfigChanges(oldCfg, newCfg *Config) {
 		oldCfg.Cluster.Skimmer != newCfg.Cluster.Skimmer ||
 		oldCfg.Cluster.Beacon != newCfg.Cluster.Beacon {
 		Log.Info("Cluster filters changed, applying")
-		httpServerInstance.TCPClient.ReloadFilters()
+		httpServerInstance.MasterClient().ReloadFilters()
 	}
 }
 

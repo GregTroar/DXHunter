@@ -34,7 +34,7 @@ type HTTPServer struct {
 	FlexRepo        *FlexDXClusterRepository
 	ContactRepo     *Log4OMContactsRepository
 	TCPServer       *TCPServer
-	TCPClient       *TCPClient
+	TCPClients      []*TCPClient
 	FlexClient      *FlexClient
 	Port            string
 	Log             *log.Logger
@@ -52,23 +52,31 @@ type HTTPServer struct {
 }
 
 type Stats struct {
-	TotalSpots       int      `json:"totalSpots"`
-	NewDXCC          int      `json:"newDXCC"`
-	ConnectedClients int      `json:"connectedClients"`
-	TotalContacts    int      `json:"totalContacts"`
-	ClusterStatus    string   `json:"clusterStatus"`
-	FlexStatus       string   `json:"flexStatus"`
-	MyCallsign       string   `json:"myCallsign"`
-	Mode             string   `json:"mode"`
-	Filters          Filters  `json:"filters"`
-	SpotsReceived    int64    `json:"spotsReceived"`
-	SpotsProcessed   int64    `json:"spotsProcessed"`
-	SpotsRejected    int64    `json:"spotsRejected"`
-	SpotSuccessRate  float64  `json:"spotSuccessRate"`
-	ContestMode      bool     `json:"contestMode"`
-	ContestPrefix    string   `json:"contestPrefix"`
-	ContestCallsigns []string `json:"contestCallsigns"`
-	ClusterType      string   `json:"clusterType"`
+	TotalSpots       int           `json:"totalSpots"`
+	NewDXCC          int           `json:"newDXCC"`
+	ConnectedClients int           `json:"connectedClients"`
+	TotalContacts    int           `json:"totalContacts"`
+	ClusterStatus    string        `json:"clusterStatus"`
+	FlexStatus       string        `json:"flexStatus"`
+	MyCallsign       string        `json:"myCallsign"`
+	Mode             string        `json:"mode"`
+	Filters          Filters       `json:"filters"`
+	SpotsReceived    int64         `json:"spotsReceived"`
+	SpotsProcessed   int64         `json:"spotsProcessed"`
+	SpotsRejected    int64         `json:"spotsRejected"`
+	SpotSuccessRate  float64       `json:"spotSuccessRate"`
+	ContestMode      bool          `json:"contestMode"`
+	ContestPrefix    string        `json:"contestPrefix"`
+	ContestCallsigns []string      `json:"contestCallsigns"`
+	ClusterType      string        `json:"clusterType"`
+	Clusters         []ClusterInfo `json:"clusters"`
+}
+
+type ClusterInfo struct {
+	Name   string `json:"name"`
+	Master bool   `json:"master"`
+	Status string `json:"status"`
+	Type   string `json:"type"`
 }
 
 type Filters struct {
@@ -124,14 +132,14 @@ var upgrader = websocket.Upgrader{
 // ============================================================================
 
 func NewHTTPServer(flexRepo *FlexDXClusterRepository, contactRepo *Log4OMContactsRepository,
-	tcpServer *TCPServer, tcpClient *TCPClient, flexClient *FlexClient, port string, configPath string, consoleChan chan string) *HTTPServer {
+	tcpServer *TCPServer, tcpClients []*TCPClient, flexClient *FlexClient, port string, configPath string, consoleChan chan string) *HTTPServer {
 
 	server := &HTTPServer{
 		Router:          mux.NewRouter(),
 		FlexRepo:        flexRepo,
 		ContactRepo:     contactRepo,
 		TCPServer:       tcpServer,
-		TCPClient:       tcpClient,
+		TCPClients:      tcpClients,
 		FlexClient:      flexClient,
 		Port:            port,
 		Log:             Log,
@@ -218,8 +226,22 @@ func (s *HTTPServer) sendJSON(w http.ResponseWriter, data interface{}) {
 }
 
 // isClusterConnected vérifie si le client TCP est connecté
+// MasterClient retourne le TCPClient maître (master:true ou le premier de la liste)
+func (s *HTTPServer) MasterClient() *TCPClient {
+	for _, c := range s.TCPClients {
+		if c.ClusterCfg.Master {
+			return c
+		}
+	}
+	if len(s.TCPClients) > 0 {
+		return s.TCPClients[0]
+	}
+	return nil
+}
+
 func (s *HTTPServer) isClusterConnected() bool {
-	return s.TCPClient != nil && s.TCPClient.LoggedIn
+	master := s.MasterClient()
+	return master != nil && master.LoggedIn
 }
 
 // isFlexConnected vérifie si le FlexRadio est connecté
@@ -232,8 +254,8 @@ func (s *HTTPServer) sendTelnetCommand(command string) error {
 	if !s.isClusterConnected() {
 		return fmt.Errorf("not connected to cluster")
 	}
-	s.TCPClient.CmdChan <- command
-	s.Log.Infof("Telnet command sent: %s", command)
+	s.MasterClient().CmdChan <- command
+	s.Log.Infof("Telnet command sent to master cluster: %s", command)
 	return nil
 }
 
@@ -355,7 +377,25 @@ func (s *HTTPServer) handleWSTelnetCommand(conn *websocket.Conn, data map[string
 		return
 	}
 
-	err := s.sendTelnetCommand(command)
+	// Choisir le cluster cible par nom, sinon master
+	clusterName, _ := data["clusterName"].(string)
+	target := s.MasterClient()
+	if clusterName != "" {
+		for _, c := range s.TCPClients {
+			if c.ClusterCfg.Name == clusterName {
+				target = c
+				break
+			}
+		}
+	}
+
+	var err error
+	if target == nil || !target.LoggedIn {
+		err = fmt.Errorf("cluster not connected")
+	} else {
+		target.CmdChan <- command
+		s.Log.Infof("Telnet command sent to [%s]: %s", target.ClusterCfg.Name, command)
+	}
 
 	response := WSMessage{
 		Type: "telnetCommandResponse",
@@ -894,7 +934,7 @@ func (s *HTTPServer) updateFilters(w http.ResponseWriter, r *http.Request) {
 			if *f.value {
 				cmd = f.onCmd
 			}
-			s.TCPClient.CmdChan <- cmd
+			s.MasterClient().CmdChan <- cmd
 		}
 	}
 
@@ -1020,7 +1060,7 @@ func (s *HTTPServer) shutdownApp(w http.ResponseWriter, r *http.Request) {
 
 	go func() {
 		time.Sleep(500 * time.Millisecond)
-		GracefulShutdown(s.TCPClient, s.TCPServer, s.FlexClient, s.FlexRepo, s.ContactRepo)
+		GracefulShutdown(s.TCPClients, s.TCPServer, s.FlexClient, s.FlexRepo, s.ContactRepo)
 		os.Exit(0)
 	}()
 }
@@ -1079,7 +1119,7 @@ func (s *HTTPServer) calculateStats() Stats {
 	clusterType := "unknown"
 	if s.isClusterConnected() {
 		clusterStatus = "connected"
-		clusterType = s.TCPClient.ClusterType
+		clusterType = s.MasterClient().ClusterType
 	}
 
 	flexStatus := "disconnected"
@@ -1089,6 +1129,21 @@ func (s *HTTPServer) calculateStats() Stats {
 
 	received, processed, rejected := GetSpotStats()
 
+	// Construire la liste des clusters avec leur statut
+	var clusterInfos []ClusterInfo
+	for _, c := range s.TCPClients {
+		status := "disconnected"
+		if c.LoggedIn {
+			status = "connected"
+		}
+		clusterInfos = append(clusterInfos, ClusterInfo{
+			Name:   c.ClusterCfg.Name,
+			Master: c.ClusterCfg.Master,
+			Status: status,
+			Type:   c.ClusterType,
+		})
+	}
+
 	return Stats{
 		TotalSpots:       len(allSpots),
 		NewDXCC:          newDXCCCount,
@@ -1096,6 +1151,7 @@ func (s *HTTPServer) calculateStats() Stats {
 		TotalContacts:    s.ContactRepo.CountEntries(),
 		ClusterStatus:    clusterStatus,
 		ClusterType:      clusterType,
+		Clusters:         clusterInfos,
 		FlexStatus:       flexStatus,
 		MyCallsign:       Cfg.General.Callsign,
 		Filters: Filters{

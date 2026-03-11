@@ -21,6 +21,7 @@
   export let contestCallsigns = [];
   export let wsStatus = 'disconnected';
   export let clusterType = 'unknown';
+  export let clusters = [];
   
   const dispatch = createEventDispatcher();
   
@@ -114,6 +115,7 @@
       <ConsoleTab 
         {wsStatus}
         {clusterType}
+        {clusters}
         on:sendCommand={(e) => dispatch('sendCommand', e.detail)}
       />
     {/if}

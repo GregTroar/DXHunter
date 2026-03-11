@@ -518,7 +518,7 @@ function applyFilters(allSpots, filters, wl) {
   }
   
   function handleSendCommand(e) {
-    const { command } = e.detail;
+    const { command, clusterName } = e.detail;
     
     if (ws?.readyState !== WebSocket.OPEN) {
       showToast('❌ Not connected to server', 'error');
@@ -527,9 +527,9 @@ function applyFilters(allSpots, filters, wl) {
     
     ws.send(JSON.stringify({
       type: 'telnetCommand',
-      data: { command }
+      data: { command, clusterName: clusterName || '' }
     }));
-    showToast(`📡 Sent: ${command}`, 'radio');
+    showToast(`📡 Sent: ${command}${clusterName ? ` → ${clusterName}` : ''}`, 'radio');
   }
 
   function showToast(message, type = 'info', duration = 5000) {
@@ -805,6 +805,7 @@ async function shutdownApp() {
         {contestCallsigns}
         wsStatus={wsStatus}
         clusterType={stats.clusterType || 'unknown'}
+        clusters={stats.clusters || []}
         on:toast={(e) => showToast(e.detail.message, e.detail.type)}
         on:clearLogs={() => logs = []}
         on:sendCommand={handleSendCommand}
