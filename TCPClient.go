@@ -429,8 +429,7 @@ func (c *TCPClient) ReadLine() {
 				// Send to TCP server
 				select {
 				case c.MsgChan <- messageString:
-				case <-c.ctx.Done():
-					return
+				default:
 				}
 			}
 		}

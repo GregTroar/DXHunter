@@ -41,7 +41,7 @@ func NewTCPServer(address string, port string) *TCPServer {
 		Address: address,
 		Port:    port,
 		Clients: make(map[net.Conn]*ClientInfo),
-		MsgChan: make(chan string, 100),
+		MsgChan: make(chan string, 2000), // Buffer large pour ne jamais bloquer la lecture telnet
 		CmdChan: make(chan string),
 		Mutex:   new(sync.Mutex),
 	}
@@ -133,29 +133,42 @@ func (s *TCPServer) Write(message string) (n int, err error) {
 
 func (s *TCPServer) broadcastMessage(message string) {
 	s.Mutex.Lock()
-	defer s.Mutex.Unlock()
+	clients := make([]net.Conn, 0, len(s.Clients))
+	infos := make(map[net.Conn]*ClientInfo)
+	for c, info := range s.Clients {
+		clients = append(clients, c)
+		infos[c] = info
+	}
+	s.Mutex.Unlock()
 
-	if len(s.Clients) == 0 {
+	if len(clients) == 0 {
 		return
 	}
 
 	var failedClients []net.Conn
 
-	for client, info := range s.Clients {
+	for _, client := range clients {
 		// Skip les clients trop récents
-		if time.Since(info.ConnectedAt) < 5*time.Second {
-			continue // ← continue, pas return !
+		if time.Since(infos[client].ConnectedAt) < 5*time.Second {
+			continue
 		}
 
+		// Deadline courte pour ne pas bloquer si le client est lent
+		client.SetWriteDeadline(time.Now().Add(500 * time.Millisecond))
 		_, err := client.Write([]byte(strings.TrimSpace(message) + "\r\n"))
+		client.SetWriteDeadline(time.Time{})
 		if err != nil {
 			Log.Warnf("Error sending to client %s: %v", client.RemoteAddr(), err)
 			failedClients = append(failedClients, client)
 		}
 	}
 
-	for _, client := range failedClients {
-		delete(s.Clients, client)
-		client.Close()
+	if len(failedClients) > 0 {
+		s.Mutex.Lock()
+		for _, client := range failedClients {
+			delete(s.Clients, client)
+			client.Close()
+		}
+		s.Mutex.Unlock()
 	}
 }
