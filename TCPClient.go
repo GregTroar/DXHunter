@@ -388,8 +388,8 @@ func (c *TCPClient) ReadLine() {
 					c.detectClusterType(messageString)
 				}
 
-				// Check if it's a DX spot
-				isDXSpot := strings.Contains(messageString, "DX") || shortSpotDetectRe.MatchString(messageString)
+				// Check if it's a DX spot — "DX de " pour le format standard, ou fréquence en début pour le format court
+				isDXSpot := strings.Contains(messageString, "DX de ") || shortSpotDetectRe.MatchString(messageString)
 
 				if isDXSpot {
 					// Filtre applicatif basé sur la config du cluster
@@ -429,7 +429,8 @@ func (c *TCPClient) ReadLine() {
 				// Send to TCP server
 				select {
 				case c.MsgChan <- messageString:
-				default:
+				case <-c.ctx.Done():
+					return
 				}
 			}
 		}
