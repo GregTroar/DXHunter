@@ -57,6 +57,8 @@
     showWorked: false,
     showWatchlist: false,
     showContest: false,
+    showPOTA: false,
+    showSOTA: false,
     showFT8: false,
     showFT4: false,
     showRTTY: false,
@@ -135,7 +137,8 @@ function applyFilters(allSpots, filters, wl) {
   
   const typeFiltersActive = filters.showNewDXCC || filters.showNewBand || 
     filters.showNewMode || filters.showNewBandMode || filters.showNewSlot || 
-    filters.showWorked || filters.showWatchlist || filters.showContest;
+    filters.showWorked || filters.showWatchlist || filters.showContest ||
+    filters.showPOTA || filters.showSOTA;
   
   const modeFiltersActive = filters.showFT8 || filters.showFT4 || filters.showRTTY || filters.showSSB || filters.showCW;
   
@@ -205,6 +208,8 @@ function applyFilters(allSpots, filters, wl) {
       if (filters.showWorked && spot.Worked) {
         matchesType = true;
       }
+      if (filters.showPOTA && spot.POTARef) matchesType = true;
+      if (filters.showSOTA && spot.SOTARef) matchesType = true;
     }
     
     if (modeFiltersActive) {
@@ -248,6 +253,8 @@ function applyFilters(allSpots, filters, wl) {
         showNewSlot: false,
         showWorked: false,
         showWatchlist: false,
+        showPOTA: false,
+        showSOTA: false,
         showFT8: false,
         showFT4: false,
         showRTTY: false,

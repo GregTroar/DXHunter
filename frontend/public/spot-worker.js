@@ -40,11 +40,9 @@ function filterSpots(allSpots, filters, watchlist) {
   
   const typeFiltersActive = filters.showNewDXCC || filters.showNewBand || 
     filters.showNewMode || filters.showNewBandMode || filters.showNewSlot || 
-    filters.showWorked || filters.showWatchlist || filters.showContest ||
-    filters.showPOTA || filters.showSOTA;
+    filters.showWorked || filters.showWatchlist || filters.showPOTA || filters.showSOTA;
   
-  const modeFiltersActive = filters.showFT8 || filters.showFT4 || filters.showRTTY ||
-    filters.showDigital || filters.showSSB || filters.showCW;
+  const modeFiltersActive = filters.showFT8 || filters.showFT4 || filters.showRTTY || filters.showSSB || filters.showCW;
   
   return allSpots.filter(spot => {
     let matchesBand = false;
@@ -71,17 +69,17 @@ function filterSpots(allSpots, filters, watchlist) {
     // Filtres de type
     if (typeFiltersActive) {
       if (filters.showWatchlist) {
-        const inWatchlist = watchlist.some(pattern => 
-          spot.DX === pattern || spot.DX.startsWith(pattern)
+        const inWatchlist = watchlist.some(entry => 
+          spot.DX === entry.callsign || spot.DX.startsWith(entry.callsign)
         );
         if (inWatchlist) matchesType = true;
       }
       if (filters.showNewDXCC && spot.NewDXCC) matchesType = true;
-      if (filters.showNewBandMode && spot.NewBand && spot.NewMode && !spot.NewDXCC) matchesType = true;
-      if (filters.showNewBand && spot.NewBand && !spot.NewMode && !spot.NewDXCC) matchesType = true;
-      if (filters.showNewMode && spot.NewMode && !spot.NewBand && !spot.NewDXCC) matchesType = true;
-      if (filters.showNewSlot && spot.NewSlot && !spot.NewDXCC && !spot.NewBand && !spot.NewMode) matchesType = true;
-      if (filters.showWorked && spot.Worked) matchesType = true;
+      else if (filters.showNewBandMode && spot.NewBand && spot.NewMode && !spot.NewDXCC) matchesType = true;
+      else if (filters.showNewBand && spot.NewBand && !spot.NewMode && !spot.NewDXCC) matchesType = true;
+      else if (filters.showNewMode && spot.NewMode && !spot.NewBand && !spot.NewDXCC) matchesType = true;
+      else if (filters.showNewSlot && spot.NewSlot && !spot.NewDXCC && !spot.NewBand && !spot.NewMode) matchesType = true;
+      else if (filters.showWorked && spot.Worked) matchesType = true;
       if (filters.showPOTA && spot.POTARef) matchesType = true;
       if (filters.showSOTA && spot.SOTARef) matchesType = true;
     }
@@ -92,7 +90,6 @@ function filterSpots(allSpots, filters, watchlist) {
       if (filters.showFT8 && mode === 'FT8') matchesMode = true;
       if (filters.showFT4 && mode === 'FT4') matchesMode = true;
       if (filters.showRTTY && mode === 'RTTY') matchesMode = true;
-      if (filters.showDigital && ['FT8', 'FT4', 'RTTY'].includes(mode)) matchesMode = true;
       if (filters.showSSB && ['SSB', 'USB', 'LSB'].includes(mode)) matchesMode = true;
       if (filters.showCW && mode === 'CW') matchesMode = true;
     }

@@ -27,18 +27,11 @@
     }
   }
 
-<<<<<<< HEAD
   $: indDX      = (sortCol === 'DX'      && sortDir !== 0) ? (sortDir === 1 ? '↑' : '↓') : '↕';
   $: indCountry = (sortCol === 'Country' && sortDir !== 0) ? (sortDir === 1 ? '↑' : '↓') : '↕';
   $: indFreq    = (sortCol === 'Freq'    && sortDir !== 0) ? (sortDir === 1 ? '↑' : '↓') : '↕';
   $: indBand    = (sortCol === 'Band'    && sortDir !== 0) ? (sortDir === 1 ? '↑' : '↓') : '↕';
   $: indMode    = (sortCol === 'Mode'    && sortDir !== 0) ? (sortDir === 1 ? '↑' : '↓') : '↕';
-=======
-  function sortIndicator(col) {
-    if (sortCol !== col) return '⇅';
-    return sortDir === 1 ? '↑' : '↓';
-  }
->>>>>>> 9d413429d4773ed1376a161e5fad2a833b166b12
 
   $: sortedSpots = (() => {
     if (!sortCol || sortDir === 0) return spots;
@@ -119,21 +112,12 @@
   <!-- Header fixe -->
   <div class="bg-slate-900/50 flex-shrink-0">
     <div class="flex text-left text-xs text-slate-400 font-semibold">
-<<<<<<< HEAD
-      <button class="p-2 select-none text-left text-slate-400 hover:text-slate-200" style="width: 10%;" on:click={() => toggleSort('DX')}>DX <span class={sortCol === 'DX' ? 'text-blue-400' : ''}>{indDX}</span></button>
-      <button class="p-2 select-none text-left text-slate-400 hover:text-slate-200" style="width: 18%;" on:click={() => toggleSort('Country')}>Country <span class={sortCol === 'Country' ? 'text-blue-400' : ''}>{indCountry}</span></button>
+      <button class="p-2 select-none text-left text-slate-400 hover:text-slate-200" style="width: 10%;" on:click={() => toggleSort('DX')}>DX <span class={sortCol === 'DX' ? 'text-white' : 'text-slate-500'}>{indDX}</span></button>
+      <button class="p-2 select-none text-left text-slate-400 hover:text-slate-200" style="width: 18%;" on:click={() => toggleSort('Country')}>Country <span class={sortCol === 'Country' ? 'text-white' : 'text-slate-500'}>{indCountry}</span></button>
       <div class="p-2" style="width: 7%;">Time</div>
-      <button class="p-2 select-none text-left text-slate-400 hover:text-slate-200" style="width: 10%;" on:click={() => toggleSort('Freq')}>Freq <span class={sortCol === 'Freq' ? 'text-blue-400' : ''}>{indFreq}</span></button>
-      <button class="p-2 select-none text-left text-slate-400 hover:text-slate-200" style="width: 7%;" on:click={() => toggleSort('Band')}>Band <span class={sortCol === 'Band' ? 'text-blue-400' : ''}>{indBand}</span></button>
-      <button class="p-2 select-none text-left text-slate-400 hover:text-slate-200" style="width: 7%;" on:click={() => toggleSort('Mode')}>Mode <span class={sortCol === 'Mode' ? 'text-blue-400' : ''}>{indMode}</span></button>
-=======
-      <button class="p-2 hover:text-slate-200 select-none text-left" style="width: 10%;" on:click={() => toggleSort('DX')}>DX {sortIndicator('DX')}</button>
-      <button class="p-2 hover:text-slate-200 select-none text-left" style="width: 18%;" on:click={() => toggleSort('Country')}>Country {sortIndicator('Country')}</button>
-      <div class="p-2" style="width: 7%;">Time</div>
-      <button class="p-2 hover:text-slate-200 select-none text-left" style="width: 10%;" on:click={() => toggleSort('Freq')}>Freq {sortIndicator('Freq')}</button>
-      <button class="p-2 hover:text-slate-200 select-none text-left" style="width: 7%;" on:click={() => toggleSort('Band')}>Band {sortIndicator('Band')}</button>
-      <button class="p-2 hover:text-slate-200 select-none text-left" style="width: 7%;" on:click={() => toggleSort('Mode')}>Mode {sortIndicator('Mode')}</button>
->>>>>>> 9d413429d4773ed1376a161e5fad2a833b166b12
+      <button class="p-2 select-none text-left text-slate-400 hover:text-slate-200" style="width: 10%;" on:click={() => toggleSort('Freq')}>Freq <span class={sortCol === 'Freq' ? 'text-white' : 'text-slate-500'}>{indFreq}</span></button>
+      <button class="p-2 select-none text-left text-slate-400 hover:text-slate-200" style="width: 7%;" on:click={() => toggleSort('Band')}>Band <span class={sortCol === 'Band' ? 'text-white' : 'text-slate-500'}>{indBand}</span></button>
+      <button class="p-2 select-none text-left text-slate-400 hover:text-slate-200" style="width: 7%;" on:click={() => toggleSort('Mode')}>Mode <span class={sortCol === 'Mode' ? 'text-white' : 'text-slate-500'}>{indMode}</span></button>
       <div class="p-2" style="width: 10%;">Spotter</div>
       <div class="p-2" style="width: 18%;">Comment</div>
       <div class="p-2" style="width: 13%;">Status</div>
