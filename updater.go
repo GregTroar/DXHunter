@@ -37,7 +37,7 @@ func UpdateCtyPlist(ctyPath string) (*UpdateResult, error) {
 		ctyDB.mu.RUnlock()
 	}
 
-	Log.Info("Downloading cty.plist update from country-files.com...")
+	Log.Debug("Downloading cty.plist update from country-files.com...")
 
 	// 1. Télécharger (zip ou plist direct)
 	data, err := downloadCtyZip()
@@ -54,10 +54,10 @@ func UpdateCtyPlist(ctyPath string) (*UpdateResult, error) {
 			result.Message = fmt.Sprintf("Extraction failed: %v", err)
 			return result, err
 		}
-		Log.Infof("Extracted cty.plist from zip: %d bytes", len(plistData))
+		Log.Debugf("Extracted cty.plist from zip: %d bytes", len(plistData))
 	} else if isPlist(data) {
 		plistData = data
-		Log.Infof("Downloaded cty.plist directly: %d bytes", len(plistData))
+		Log.Debugf("Downloaded cty.plist directly: %d bytes", len(plistData))
 	} else {
 		result.Message = "Downloaded file is neither a zip nor a plist"
 		return result, fmt.Errorf(result.Message)
@@ -99,14 +99,14 @@ func downloadCtyZip() ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("cannot find latest CTY article: %w", err)
 	}
-	Log.Infof("Latest CTY article: %s", articleURL)
+	Log.Debugf("Latest CTY article: %s", articleURL)
 
 	// Étape 2 : scraper l'article pour trouver le lien de téléchargement
 	downloadURL, err := findCtyDownloadURL(client, articleURL)
 	if err != nil {
 		return nil, fmt.Errorf("cannot find download link in article: %w", err)
 	}
-	Log.Infof("CTY download URL: %s", downloadURL)
+	Log.Debugf("CTY download URL: %s", downloadURL)
 
 	// Étape 3 : télécharger le fichier
 	req, err := http.NewRequest("GET", downloadURL, nil)
@@ -224,7 +224,7 @@ func extractCtyPlistFromZip(zipData []byte) ([]byte, error) {
 				return nil, fmt.Errorf("reading %s from zip: %w", f.Name, err)
 			}
 
-			Log.Infof("Found %s in zip (%d bytes)", f.Name, len(data))
+			Log.Debugf("Found %s in zip (%d bytes)", f.Name, len(data))
 			return data, nil
 		}
 	}
@@ -264,7 +264,7 @@ func backupAndSave(ctyPath string, data []byte) error {
 			Log.Warnf("Could not backup %s to %s: %v", ctyPath, backupPath, err)
 			// Non fatal, on continue
 		} else {
-			Log.Infof("Backed up old cty.plist to %s", backupPath)
+			Log.Debugf("Backed up old cty.plist to %s", backupPath)
 		}
 	}
 

@@ -392,7 +392,7 @@ func (c *TCPClient) ReadLine() {
 				}
 
 				// Check if it's a DX spot
-				isDXSpot := strings.Contains(messageString, "DX") || shortSpotDetectRe.MatchString(messageString)
+				isDXSpot := strings.Contains(messageString, "DX de ") || shortSpotDetectRe.MatchString(messageString)
 
 				if isDXSpot {
 					// Filtre applicatif basé sur la config du cluster
@@ -423,9 +423,13 @@ func (c *TCPClient) ReadLine() {
 					}
 				}
 
-				// Envoyer à la console
+				// Envoyer à la console (To ALL prefixed pour toast frontend)
+				consoleMsg := messageString
+				if strings.HasPrefix(strings.TrimSpace(messageString), "To ALL de ") {
+					consoleMsg = "TO_ALL:" + strings.TrimSpace(messageString)
+				}
 				select {
-				case c.ConsoleChan <- messageString:
+				case c.ConsoleChan <- consoleMsg:
 				default:
 				}
 

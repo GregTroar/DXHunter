@@ -241,17 +241,17 @@ func (fc *FlexClient) initializeFlex() {
 	subSpotAllCmd := fmt.Sprintf("C%v|sub spot all", CommandNumber)
 	fc.Write(subSpotAllCmd)
 	CommandNumber++
-	Log.Info("Subscribed to spots on FlexRadio")
+	Log.Debug("Subscribed to spots on FlexRadio")
 
 	clrSpotAllCmd := fmt.Sprintf("C%v|spot clear", CommandNumber)
 	fc.Write(clrSpotAllCmd)
 	CommandNumber++
-	Log.Info("Cleared all spots from panadapter")
+	Log.Debug("Cleared all spots from panadapter")
 
 	subSliceCmd := fmt.Sprintf("C%v|sub slice 0", CommandNumber)
 	fc.Write(subSliceCmd)
 	CommandNumber++
-	Log.Info("Subscribed to slices on FlexRadio")
+	Log.Debug("Subscribed to slices on FlexRadio")
 
 	subPanCmd := fmt.Sprintf("C%v|sub pan all", CommandNumber)
 	fc.Write(subPanCmd)

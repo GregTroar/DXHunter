@@ -8,7 +8,7 @@
   let autoScroll = true;
   let container;
   let selectedLevels = {
-    debug: true,
+    debug: false,
     info: true,
     warning: true,
     error: true

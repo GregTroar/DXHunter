@@ -97,7 +97,7 @@ func main() {
 			log.Errorf("cty.plist auto-update failed: %v", err)
 			return
 		}
-		log.Infof("cty.plist auto-update: %s", result.Message)
+		log.Debugf("cty.plist auto-update: %s", result.Message)
 	}()
 
 	// Database to keep track of all spots
@@ -142,10 +142,8 @@ func main() {
 	// Initialize HTTP Server for Dashboard
 	HTTPServer := NewHTTPServer(fRepo, cRepo, TCPServer, TCPClients, FlexClient, "8080", cfgPath, consoleChan)
 	InitLogHook()
-
 	log.Info("Running FlexDXCluster version 2.1")
 	log.Infof("Callsign: %s", Cfg.General.Callsign)
-	log.Info("Config hot reload enabled")
 
 	if Cfg.General.ContestMode {
 		log.Infof("🏆 Contest Mode: ENABLED")

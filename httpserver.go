@@ -291,6 +291,19 @@ func (s *HTTPServer) handleConsoleMessages() {
 			continue
 		}
 
+		// To ALL -- forward as dedicated toast
+		if strings.HasPrefix(cleanMsg, "TO_ALL:") {
+			toAllMsg := strings.TrimPrefix(cleanMsg, "TO_ALL:")
+			s.broadcast <- WSMessage{
+				Type: "toAll",
+				Data: map[string]interface{}{
+					"message":   strings.TrimSpace(toAllMsg),
+					"timestamp": time.Now().Format("15:04:05"),
+				},
+			}
+			continue
+		}
+
 		// Broadcaster les réponses non-spot
 		s.broadcast <- WSMessage{
 			Type: "telnetResponse",
@@ -924,11 +937,27 @@ func (s *HTTPServer) updateFilters(w http.ResponseWriter, r *http.Request) {
 		offCmd string
 	}
 
+	// Trouver l'index du cluster maître dans Cfg.Clusters pour pouvoir le muter
+	masterIdx := -1
+	for i := range Cfg.Clusters {
+		if Cfg.Clusters[i].Master && Cfg.Clusters[i].Enabled {
+			masterIdx = i
+			break
+		}
+	}
+	if masterIdx == -1 && len(Cfg.Clusters) > 0 {
+		masterIdx = 0
+	}
+	if masterIdx == -1 {
+		s.sendError(w, "No cluster configured")
+		return
+	}
+
 	filters := []filterConfig{
-		{req.Skimmer, &Cfg.Cluster.Skimmer, "set/skimmer", "set/noskimmer"},
-		{req.FT8, &Cfg.Cluster.FT8, "set/ft8", "set/noft8"},
-		{req.FT4, &Cfg.Cluster.FT4, "set/ft4", "set/noft4"},
-		{req.Beacon, &Cfg.Cluster.Beacon, "set/beacon", "set/nobeacon"},
+		{req.Skimmer, &Cfg.Clusters[masterIdx].Skimmer, "set/skimmer", "set/noskimmer"},
+		{req.FT8, &Cfg.Clusters[masterIdx].FT8, "set/ft8", "set/noft8"},
+		{req.FT4, &Cfg.Clusters[masterIdx].FT4, "set/ft4", "set/noft4"},
+		{req.Beacon, &Cfg.Clusters[masterIdx].Beacon, "set/beacon", "set/nobeacon"},
 	}
 
 	for _, f := range filters {
@@ -1166,12 +1195,12 @@ func (s *HTTPServer) calculateStats() Stats {
 		Clusters:         clusterInfos,
 		FlexStatus:       flexStatus,
 		MyCallsign:       Cfg.General.Callsign,
-		Filters: Filters{
-			Skimmer: Cfg.Cluster.Skimmer,
-			FT8:     Cfg.Cluster.FT8,
-			FT4:     Cfg.Cluster.FT4,
-			Beacon:  Cfg.Cluster.Beacon,
-		},
+		Filters: func() Filters {
+			if m := getClusterMaster(Cfg.Clusters); m != nil {
+				return Filters{Skimmer: m.Skimmer, FT8: m.FT8, FT4: m.FT4, Beacon: m.Beacon}
+			}
+			return Filters{}
+		}(),
 		SpotsReceived:    received,
 		SpotsProcessed:   processed,
 		SpotsRejected:    rejected,

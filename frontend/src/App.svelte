@@ -39,8 +39,8 @@
   let showOnlyNotWorked = true;
   let wsStatus = 'disconnected';
   let errorMessage = '';
-  let toastMessage = '';
-  let toastType = 'info';
+  let toasts = []; // [{id, message, type}]
+  let _toastId = 0;
   let logs = [];
 
   let contestMode = false;
@@ -520,6 +520,10 @@ function applyFilters(allSpots, filters, wl) {
         );
         break;
       // ✅ NOUVEAU : Gérer les changements de bande du FlexRadio
+      case 'toAll':
+        showToast(`📡 ${message.data.message}`, 'info', 10000);
+        break;
+
       case 'flexBandChange':
         // Dispatch custom event pour WatchlistTab
         const bandEvent = new CustomEvent('flexBandChange', {
@@ -546,11 +550,11 @@ function applyFilters(allSpots, filters, wl) {
     showToast(`📡 Sent: ${command}${clusterName ? ` → ${clusterName}` : ''}`, 'radio');
   }
 
-  function showToast(message, type = 'info', duration = 5000) {
-    toastMessage = message;
-    toastType = type;
+  function showToast(message, type = 'info', duration = 8000) {
+    const id = ++_toastId;
+    toasts = [...toasts.slice(-4), { id, message, type }]; // max 5
     setTimeout(() => {
-      toastMessage = '';
+      toasts = toasts.filter(t => t.id !== id);
     }, duration);
   }
   
@@ -758,9 +762,11 @@ async function shutdownApp() {
     <ErrorBanner message={errorMessage} on:close={() => errorMessage = ''} />
   {/if}
   
-  {#if toastMessage}
-    <Toast message={toastMessage} type={toastType} />
-  {/if}
+  <div class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 items-end">
+    {#each toasts as t (t.id)}
+      <Toast message={t.message} type={t.type} />
+    {/each}
+  </div>
   
   <Header 
     {stats} 

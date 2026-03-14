@@ -125,7 +125,7 @@ func InitLogHook() {
 	}
 
 	Log.AddHook(&LogHook{buffer: logBuffer})
-	Log.Info("Log hook initialized and broadcasting enabled")
+	Log.Debug("Log hook initialized and broadcasting enabled")
 }
 
 // ✅ Détecter si on a une console (fonctionne sur Windows)

@@ -30,54 +30,42 @@ type ClusterConfig struct {
 	Type        string `yaml:"type"`   // Type forcé : dxspider, cc_cluster, ar_cluster (vide = auto-détection)
 }
 
-// GetActiveClusters retourne la liste des clusters à utiliser.
-// Si clusters: est défini dans la config, il prend le dessus sur cluster:.
-// Sinon, on utilise l'ancien champ cluster: pour la compatibilité.
+// GetActiveClusters retourne la liste des clusters activés.
 // Si aucun cluster n'a master:true, le premier est automatiquement désigné maître.
 func (c *Config) GetActiveClusters() []ClusterConfig {
-	// Filtrer les clusters activés
 	var active []ClusterConfig
 	for _, cl := range c.Clusters {
 		if cl.Enabled && cl.Server != "" {
 			active = append(active, cl)
 		}
 	}
-	if len(active) > 0 {
-		// Si aucun master défini, le premier devient master
-		hasMaster := false
-		for _, cl := range active {
-			if cl.Master {
-				hasMaster = true
-				break
-			}
-		}
-		if !hasMaster {
-			active[0].Master = true
-		}
-		return active
+	if len(active) == 0 {
+		return nil
 	}
-
-	// Fallback sur l'ancien format — toujours master
-	if c.Cluster.Server != "" {
-		return []ClusterConfig{
-			{
-				Name:        "Default",
-				Server:      c.Cluster.Server,
-				Port:        c.Cluster.Port,
-				Login:       c.Cluster.Login,
-				Password:    c.Cluster.Password,
-				Skimmer:     c.Cluster.Skimmer,
-				FT8:         c.Cluster.FT8,
-				FT4:         c.Cluster.FT4,
-				Beacon:      c.Cluster.Beacon,
-				Command:     c.Cluster.Command,
-				LoginPrompt: c.Cluster.LoginPrompt,
-				Enabled:     true,
-				Master:      true,
-			},
+	// Si aucun master défini, le premier devient master
+	hasMaster := false
+	for _, cl := range active {
+		if cl.Master {
+			hasMaster = true
+			break
 		}
 	}
+	if !hasMaster {
+		active[0].Master = true
+	}
+	return active
+}
 
+// getClusterMaster retourne le cluster maître d'une liste, ou nil si aucun.
+func getClusterMaster(clusters []ClusterConfig) *ClusterConfig {
+	for i := range clusters {
+		if clusters[i].Master && clusters[i].Enabled {
+			return &clusters[i]
+		}
+	}
+	if len(clusters) > 0 && clusters[0].Enabled {
+		return &clusters[0]
+	}
 	return nil
 }
 
@@ -123,20 +111,6 @@ type Config struct {
 		SQLitePath string `yaml:"sqlite_path"`
 	} `yaml:"sqlite"`
 
-	Cluster struct {
-		Server      string `yaml:"server"`
-		Port        string `yaml:"port"`
-		Login       string `yaml:"login"`
-		Password    string `yaml:"password"`
-		Skimmer     bool   `yaml:"skimmer"`
-		FT8         bool   `yaml:"ft8"`
-		FT4         bool   `yaml:"ft4"`
-		Beacon      bool   `yaml:"beacon"`
-		Command     string `yaml:"command"`
-		LoginPrompt string `yaml:"login_prompt"`
-	} `yaml:"cluster"`
-
-	// Multi-cluster support — si Clusters est défini, il prend le dessus sur Cluster
 	Clusters []ClusterConfig `yaml:"clusters"`
 
 	Flex struct {
@@ -287,10 +261,14 @@ func (cw *ConfigWatcher) applyConfigChanges(oldCfg, newCfg *Config) {
 		Log.Infof("Gotify notifications %s", map[bool]string{true: "enabled", false: "disabled"}[newCfg.Gotify.Enable])
 	}
 
-	if oldCfg.Cluster.FT8 != newCfg.Cluster.FT8 ||
-		oldCfg.Cluster.FT4 != newCfg.Cluster.FT4 ||
-		oldCfg.Cluster.Skimmer != newCfg.Cluster.Skimmer ||
-		oldCfg.Cluster.Beacon != newCfg.Cluster.Beacon {
+	// Clusters — détecter un changement de filtre sur le cluster maître
+	oldMaster := getClusterMaster(oldCfg.Clusters)
+	newMaster := getClusterMaster(newCfg.Clusters)
+	if oldMaster != nil && newMaster != nil &&
+		(oldMaster.FT8 != newMaster.FT8 ||
+			oldMaster.FT4 != newMaster.FT4 ||
+			oldMaster.Skimmer != newMaster.Skimmer ||
+			oldMaster.Beacon != newMaster.Beacon) {
 		Log.Info("Cluster filters changed, applying")
 		httpServerInstance.MasterClient().ReloadFilters()
 	}
