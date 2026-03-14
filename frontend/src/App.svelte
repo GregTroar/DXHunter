@@ -1,7 +1,6 @@
 <script>
   import { onMount, onDestroy } from 'svelte';
   import Header from './components/Header.svelte';
-  import StatsCards from './components/StatsCards.svelte';
   import FilterBar from './components/FilterBar.svelte';
   import SpotsTable from './components/SpotsTable.svelte';
   import Sidebar from './components/Sidebar.svelte';
@@ -27,14 +26,15 @@
     myCallsign: '',
     filters: { skimmer: false, ft8: false, ft4: false }
   };
-  let topSpotters = [];
   let watchlist = []; // ✅ Initialisé vide, sera rempli par WebSocket
   let recentQSOs = [];
   let logStats = { today: 0, thisWeek: 0, thisMonth: 0, total: 0 };
+  
   let dxccProgress = { worked: 0, total: 340, percentage: 0 };
+  let activations = [];
   let solarData = { sfi: 'N/A', sunspots: 'N/A', aIndex: 'N/A', kIndex: 'N/A' };
   
-  let activeTab = 'stats';
+  let activeTab = 'activations';
   let showOnlyActive = true;
   let showOnlyNotWorked = true;
   let wsStatus = 'disconnected';
@@ -376,7 +376,6 @@ function applyFilters(allSpots, filters, wl) {
       if (message.data.contestCallsigns !== undefined) {
         contestCallsigns = message.data.contestCallsigns || [];
       }
-      spotCache.saveMetadata('stats', stats).catch(err => console.error('Cache save error:', err));
       break;
       case 'spots':
         const newSpots = message.data || [];
@@ -488,11 +487,19 @@ function applyFilters(allSpots, filters, wl) {
         logs = message.data || [];
         break;
       
+      case 'dxccProgress':
+        dxccProgress = message.data || { worked: 0, total: 340, percentage: 0 };
+        break;
       case 'logStats':
         logStats = message.data || {};
         break;
-      case 'dxccProgress':
-        dxccProgress = message.data || { worked: 0, total: 340, percentage: 0 };
+      case 'adxo':
+        const prevAdxo = activations;
+        activations = message.data || [];
+        if (prevAdxo.length === 0 && activations.length > 0) {
+          const activeCount = activations.filter(a => a.status === 'active').length;
+          showToast(`🌍 ${activations.length} DX activations loaded (${activeCount} active)`, 'success', 4000);
+        }
         break;
       case 'milestone':
         const milestoneData = message.data;
@@ -689,11 +696,6 @@ async function shutdownApp() {
         recentQSOs = cachedQSOs;
       }
       
-      // Charger stats du cache
-      const cachedStats = await spotCache.getMetadata('stats');
-      if (cachedStats) {
-        stats = cachedStats;
-      }
     } catch (error) {
       console.error('Failed to initialize cache:', error);
     }
@@ -769,11 +771,6 @@ async function shutdownApp() {
     on:ctyUpdate={(e) => showToast(e.detail.success ? `✅ CTY updated: ${e.detail.message}` : `❌ CTY update failed: ${e.detail.message}`, e.detail.success ? 'success' : 'error', 10000)}
   />
   
-  <StatsCards 
-    {stats} 
-    on:filterChange={(e) => updateClusterFilter(e.detail.name, e.detail.value)} 
-  />
-  
   <FilterBar 
     {spotFilters} 
     {spots}
@@ -800,12 +797,12 @@ async function shutdownApp() {
         bind:activeTab
         bind:showOnlyActive
         bind:showOnlyNotWorked
-        {topSpotters}
         {spots}
         {watchlist}
         {recentQSOs}
         {logStats}
         {dxccProgress}
+        {activations}
         {logs}
         {contestMode}
         {contestPrefix}

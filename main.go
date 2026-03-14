@@ -90,6 +90,16 @@ func main() {
 	ctyDB = db
 	log.Infof("cty.plist loaded: %d entries (from %s)", len(ctyDB.entries), ctyPath)
 
+	// Mise à jour automatique de cty.plist au démarrage (en arrière-plan)
+	go func() {
+		result, err := UpdateCtyPlist(ctyPath)
+		if err != nil {
+			log.Errorf("cty.plist auto-update failed: %v", err)
+			return
+		}
+		log.Infof("cty.plist auto-update: %s", result.Message)
+	}()
+
 	// Database to keep track of all spots
 	fRepo := NewFlexDXDatabase("flex.sqlite")
 	defer fRepo.db.Close()
@@ -176,6 +186,9 @@ func main() {
 	spotProcessor := NewSpotProcessor(fRepo, FlexClient, HTTPServer, SpotChanToHTTPServer)
 
 	go spotProcessor.Start()
+
+	// Start ADXO activations refresher
+	StartADXORefresher(HTTPServer.broadcast, log)
 
 	// Start all services
 	go FlexClient.StartFlexClient()

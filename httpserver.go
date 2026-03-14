@@ -193,6 +193,7 @@ func (s *HTTPServer) setupRoutes() {
 
 	// External data
 	api.HandleFunc("/solar", s.HandleSolarData).Methods("GET", "OPTIONS")
+	api.HandleFunc("/adxo", s.HandleADXO).Methods("GET", "OPTIONS")
 	api.HandleFunc("/cty/update", s.updateCtyPlist).Methods("POST", "OPTIONS")
 
 	// WebSocket (seul point d'entrée pour les commandes Telnet maintenant)
@@ -451,6 +452,9 @@ func (s *HTTPServer) sendInitialData(conn *websocket.Conn) {
 	if logBuffer != nil {
 		s.safeWrite(conn, WSMessage{Type: "appLogs", Data: logBuffer.GetAll()})
 	}
+
+	// ADXO activations
+	s.safeWrite(conn, WSMessage{Type: "adxo", Data: adxoCache.Get()})
 }
 
 // ============================================================================
@@ -1068,6 +1072,14 @@ func (s *HTTPServer) shutdownApp(w http.ResponseWriter, r *http.Request) {
 // ============================================================================
 // API HANDLERS - External Data
 // ============================================================================
+
+func (s *HTTPServer) HandleADXO(w http.ResponseWriter, r *http.Request) {
+	// Si le cache est vide ou périmé, forcer un refresh
+	if adxoCache.NeedsRefresh() {
+		go refreshADXO(s.broadcast, s.Log)
+	}
+	s.sendSuccess(w, adxoCache.Get(), "")
+}
 
 func (s *HTTPServer) HandleSolarData(w http.ResponseWriter, r *http.Request) {
 	resp, err := http.Get("https://www.hamqsl.com/solarxml.php")

@@ -1,18 +1,17 @@
 <script>
   import { createEventDispatcher } from 'svelte';
-  import StatsTab from './StatsTab.svelte';
   import WatchlistTab from './WatchlistTab.svelte';
+  import ActivationsTab from './ActivationsTab.svelte';
   import LogTab from './LogTab.svelte';
   import LogsTab from './LogsTab.svelte';
   import ConsoleTab from './ConsoleTab.svelte';
   
   export let activeTab;
-  export let topSpotters;
   export let spots;
   export let watchlist;
   export let recentQSOs;
-  export let logStats;
   export let dxccProgress;
+  export let activations = [];
   export let showOnlyActive = true;
   export let showOnlyNotWorked = true;
   export let logs = [];
@@ -38,14 +37,14 @@
   <!-- Tabs Header -->
   <div class="flex border-b border-slate-700/50 bg-slate-900/30 flex-shrink-0">
     <button 
-      class="px-4 py-2 text-sm font-semibold transition-colors {activeTab === 'stats' ? 'bg-blue-500/20 text-blue-400 border-b-2 border-blue-500' : 'text-slate-400 hover:text-slate-300'}"
-      on:click={() => activeTab = 'stats'}>
+      class="px-4 py-2 text-sm font-semibold transition-colors {activeTab === 'activations' ? 'bg-blue-500/20 text-blue-400 border-b-2 border-blue-500' : 'text-slate-400 hover:text-slate-300'}"
+      on:click={() => activeTab = 'activations'}>
       <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064" />
       </svg>
-      Stats
+      DX
     </button>
-    
+
     <button 
       class="px-4 py-2 text-sm font-semibold transition-colors {activeTab === 'watchlist' ? 'bg-blue-500/20 text-blue-400 border-b-2 border-blue-500' : 'text-slate-400 hover:text-slate-300'}"
       on:click={() => activeTab = 'watchlist'}>
@@ -87,8 +86,8 @@
   
   <!-- Tab Content -->
   <div class="flex-1 overflow-hidden" style="min-height: 0;">
-    {#if activeTab === 'stats'}
-      <StatsTab {topSpotters} {spots} />
+    {#if activeTab === 'activations'}
+      <ActivationsTab {activations} {watchlist} on:toast={handleToast} />
     {:else if activeTab === 'watchlist'}  
       <WatchlistTab
         {watchlist}
@@ -103,7 +102,6 @@
     {:else if activeTab === 'log'}
       <LogTab 
         {recentQSOs} 
-        {logStats} 
         {dxccProgress}
       />
     {:else if activeTab === 'logs'}
