@@ -319,29 +319,22 @@ func parseADXODate(s string, fallbackYear int) (time.Time, error) {
 // Background refresh
 // ============================================================================
 
-func StartADXORefresher(broadcast chan WSMessage, log interface {
-	Infof(string, ...interface{})
-	Errorf(string, ...interface{})
-}) {
+func StartADXORefresher(broadcast chan WSMessage, watchlist *Watchlist) {
 	go func() {
-		// Fetch immédiat au démarrage
-		refreshADXO(broadcast, log)
+		refreshADXO(broadcast, watchlist)
 
 		ticker := time.NewTicker(1 * time.Hour)
 		defer ticker.Stop()
 		for range ticker.C {
-			refreshADXO(broadcast, log)
+			refreshADXO(broadcast, watchlist)
 		}
 	}()
 }
 
-func refreshADXO(broadcast chan WSMessage, log interface {
-	Infof(string, ...interface{})
-	Errorf(string, ...interface{})
-}) {
+func refreshADXO(broadcast chan WSMessage, watchlist *Watchlist) {
 	activations, err := FetchADXO()
 	if err != nil {
-		log.Errorf("ADXO fetch error: %v", err)
+		Log.Errorf("ADXO fetch error: %v", err)
 		return
 	}
 	adxoCache.Set(activations)
@@ -351,14 +344,66 @@ func refreshADXO(broadcast chan WSMessage, log interface {
 			active++
 		}
 	}
-	log.Infof("ADXO: %d activations loaded (%d active)", len(activations), active)
+	Log.Infof("ADXO: %d activations loaded (%d active)", len(activations), active)
+
+	// Nettoyer la watchlist des activations terminées depuis plus de 7 jours
+	if watchlist != nil {
+		cleanupWatchlistFromADXO(activations, watchlist, broadcast)
+	}
 
 	// Broadcaster vers tous les clients WebSocket connectés
 	if broadcast != nil {
 		select {
 		case broadcast <- WSMessage{Type: "adxo", Data: activations}:
 		default:
-			log.Errorf("ADXO broadcast channel full, skipping")
+			Log.Errorf("ADXO broadcast channel full, skipping")
 		}
+	}
+}
+
+// cleanupWatchlistFromADXO supprime les callsigns dont l'activation ADXO
+// est terminée depuis plus de 7 jours
+func cleanupWatchlistFromADXO(activations []Activation, watchlist *Watchlist, broadcast chan WSMessage) {
+	cutoff := time.Now().AddDate(0, 0, -7)
+	removed := 0
+
+	for _, call := range watchlist.GetAllCallsigns() {
+		callUpper := strings.ToUpper(call)
+
+		var matchedEnd time.Time
+		found := false
+		for _, a := range activations {
+			for _, ac := range strings.Split(a.Callsign, ",") {
+				if strings.TrimSpace(strings.ToUpper(ac)) == callUpper {
+					t, err := parseADXODate(a.EndDate, time.Now().Year())
+					if err == nil {
+						matchedEnd = t
+						found = true
+					}
+					break
+				}
+			}
+			if found {
+				break
+			}
+		}
+
+		if found && !matchedEnd.IsZero() && matchedEnd.Before(cutoff) {
+			if err := watchlist.Remove(call); err == nil {
+				Log.Infof("🧹 Watchlist cleanup: removed %s (activation ended %s)", call, matchedEnd.Format("Jan 2, 2006"))
+				removed++
+			}
+		}
+	}
+
+	if removed > 0 {
+		// Broadcaster la watchlist mise à jour
+		if broadcast != nil {
+			select {
+			case broadcast <- WSMessage{Type: "watchlist", Data: watchlist.GetAll()}:
+			default:
+			}
+		}
+		Log.Infof("🧹 Watchlist cleanup: removed %d expired activations", removed)
 	}
 }

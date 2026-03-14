@@ -118,12 +118,11 @@
       <div class="flex items-center justify-center h-20 text-slate-500 text-xs">No activations</div>
     {:else}
       {#each filtered as a}
-        <div class="rounded-lg overflow-hidden border
-          {a.status === 'active' ? 'border-green-500/30' : 'border-slate-600/40'}">
+        <div class="rounded-lg overflow-hidden border border-slate-700/50
+          {a.status === 'active' ? 'border-l-2 border-l-green-500/60' : 'border-l-2 border-l-yellow-500/40'}">
 
-          <!-- Header coloré -->
-          <div class="flex items-center gap-2 px-3 py-1.5
-            {a.status === 'active' ? 'bg-green-500/10' : 'bg-slate-700/30'}">
+          <!-- Header -->
+          <div class="flex items-center gap-2 px-3 py-1.5 bg-slate-800/80">
 
             <span class="w-2 h-2 rounded-full flex-shrink-0
               {a.status === 'active' ? 'bg-green-400 animate-pulse' : 'bg-yellow-400'}">

@@ -188,7 +188,7 @@ func main() {
 	go spotProcessor.Start()
 
 	// Start ADXO activations refresher
-	StartADXORefresher(HTTPServer.broadcast, log)
+	StartADXORefresher(HTTPServer.broadcast, HTTPServer.Watchlist)
 
 	// Start all services
 	go FlexClient.StartFlexClient()

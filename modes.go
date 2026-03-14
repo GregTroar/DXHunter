@@ -89,6 +89,12 @@ var BandModeRanges = map[string][]ModeRange{
 		{MinFreqMHz: 50.323, MaxFreqMHz: 51.000, Mode: "USB"},
 		{MinFreqMHz: 51.000, MaxFreqMHz: 54.000, Mode: "FM"},
 	},
+	"QO-100": {
+		{MinFreqMHz: 10489.500, MaxFreqMHz: 10489.540, Mode: "CW"},
+		{MinFreqMHz: 10489.540, MaxFreqMHz: 10489.650, Mode: "FT8"},
+		{MinFreqMHz: 10489.650, MaxFreqMHz: 10489.850, Mode: "USB"},
+		{MinFreqMHz: 10489.870, MaxFreqMHz: 10489.990, Mode: "USB"},
+	},
 }
 
 // GuessMode devine le mode depuis la fréquence en MHz

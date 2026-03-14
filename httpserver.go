@@ -1076,7 +1076,7 @@ func (s *HTTPServer) shutdownApp(w http.ResponseWriter, r *http.Request) {
 func (s *HTTPServer) HandleADXO(w http.ResponseWriter, r *http.Request) {
 	// Si le cache est vide ou périmé, forcer un refresh
 	if adxoCache.NeedsRefresh() {
-		go refreshADXO(s.broadcast, s.Log)
+		go refreshADXO(s.broadcast, s.Watchlist)
 	}
 	s.sendSuccess(w, adxoCache.Get(), "")
 }

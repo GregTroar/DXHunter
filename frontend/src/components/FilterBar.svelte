@@ -78,9 +78,9 @@
   
   function countWatchlistSpots(spotsList, wl) {
     if (!spotsList || !Array.isArray(spotsList) || !wl || !Array.isArray(wl)) return 0;
-    
+    const patterns = wl.map(e => typeof e === 'string' ? e : e.callsign).filter(Boolean);
     return spotsList.filter(spot => 
-      wl.some(pattern => spot.DX === pattern || spot.DX.startsWith(pattern))
+      patterns.some(pattern => spot.DX === pattern || spot.DX.startsWith(pattern))
     ).length;
   }
 </script>
