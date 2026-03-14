@@ -10,6 +10,7 @@
   export let spots;
   export let watchlist;
   export let recentQSOs;
+  export let logStats;
   export let dxccProgress;
   export let activations = [];
   export let showOnlyActive = true;
@@ -102,6 +103,7 @@
     {:else if activeTab === 'log'}
       <LogTab 
         {recentQSOs} 
+        {logStats}
         {dxccProgress}
       />
     {:else if activeTab === 'logs'}
