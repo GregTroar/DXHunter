@@ -486,7 +486,7 @@ func (fc *FlexClient) ZoomPanadapter(mode string, freq string) error {
 	case "USB", "LSB", "SSB", "AM", "FM", "DRM":
 		bandwidth = 0.2
 	case "CW", "CWR":
-		bandwidth = 0.1
+		bandwidth = 0.025
 	case "RTTY", "DIGL", "DIGU":
 		bandwidth = 0.0125
 	case "FT8", "FT4", "PSK", "FSK":
