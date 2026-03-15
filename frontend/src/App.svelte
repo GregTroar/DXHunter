@@ -478,8 +478,8 @@ function applyFilters(allSpots, filters, wl) {
         if (message.data) {
           logs = [...logs, message.data];
           // Garder seulement les 500 derniers
-          if (logs.length > 2000) {
-            logs = logs.slice(-2000);
+          if (logs.length > 10000) {
+            logs = logs.slice(-10000);
           }
         }
         break;

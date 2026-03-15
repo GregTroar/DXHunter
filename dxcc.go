@@ -69,11 +69,11 @@ func LoadCtyPlist(filePath string) (*CtyDatabase, error) {
 		if err != nil {
 			return nil, fmt.Errorf("cannot read cty.plist from disk: %w", err)
 		}
-		Log.Infof("cty.plist loaded from disk: %s", filePath)
+		Log.Debugf("cty.plist loaded from disk: %s", filePath)
 	} else {
 		// Pas de fichier sur disque → utiliser la version embarquée
 		data = embeddedCtyPlist
-		Log.Info("cty.plist loaded from embedded data")
+		Log.Debug("cty.plist loaded from embedded data")
 	}
 
 	db, err := parseCtyPlist(data)
@@ -81,7 +81,7 @@ func LoadCtyPlist(filePath string) (*CtyDatabase, error) {
 		return nil, fmt.Errorf("cannot parse cty.plist: %w", err)
 	}
 
-	Log.Infof("Loaded cty.plist: %d entries", len(db.entries))
+	Log.Debugf("Loaded cty.plist: %d entries", len(db.entries))
 	return db, nil
 }
 
@@ -333,6 +333,6 @@ func ReloadCtyDB(filePath string) error {
 		ctyDB = db
 	}
 
-	Log.Infof("cty.plist reloaded: %d entries", len(db.entries))
+	Log.Debugf("cty.plist reloaded: %d entries", len(db.entries))
 	return nil
 }

@@ -113,13 +113,13 @@
   <div class="bg-slate-900/50 flex-shrink-0">
     <div class="flex text-left text-xs text-slate-400 font-semibold">
       <button class="p-2 select-none text-left text-slate-400 hover:text-slate-200" style="width: 10%;" on:click={() => toggleSort('DX')}>DX <span class={sortCol === 'DX' ? 'text-white' : 'text-slate-500'}>{indDX}</span></button>
-      <button class="p-2 select-none text-left text-slate-400 hover:text-slate-200" style="width: 18%;" on:click={() => toggleSort('Country')}>Country <span class={sortCol === 'Country' ? 'text-white' : 'text-slate-500'}>{indCountry}</span></button>
+      <button class="p-2 select-none text-left text-slate-400 hover:text-slate-200" style="width: 10%;" on:click={() => toggleSort('Country')}>Country <span class={sortCol === 'Country' ? 'text-white' : 'text-slate-500'}>{indCountry}</span></button>
       <div class="p-2" style="width: 7%;">Time</div>
-      <button class="p-2 select-none text-left text-slate-400 hover:text-slate-200" style="width: 10%;" on:click={() => toggleSort('Freq')}>Freq <span class={sortCol === 'Freq' ? 'text-white' : 'text-slate-500'}>{indFreq}</span></button>
+      <button class="p-2 select-none text-left text-slate-400 hover:text-slate-200" style="width: 8%;" on:click={() => toggleSort('Freq')}>Freq <span class={sortCol === 'Freq' ? 'text-white' : 'text-slate-500'}>{indFreq}</span></button>
       <button class="p-2 select-none text-left text-slate-400 hover:text-slate-200" style="width: 7%;" on:click={() => toggleSort('Band')}>Band <span class={sortCol === 'Band' ? 'text-white' : 'text-slate-500'}>{indBand}</span></button>
       <button class="p-2 select-none text-left text-slate-400 hover:text-slate-200" style="width: 7%;" on:click={() => toggleSort('Mode')}>Mode <span class={sortCol === 'Mode' ? 'text-white' : 'text-slate-500'}>{indMode}</span></button>
-      <div class="p-2" style="width: 10%;">Spotter</div>
-      <div class="p-2" style="width: 18%;">Comment</div>
+      <div class="p-2" style="width: 8%;">Spotter</div>
+      <div class="p-2" style="width: 22%;">Comment</div>
       <div class="p-2" style="width: 13%;">Status</div>
       <div class="p-2" style="width: 8%;">Cluster</div>
     </div>
@@ -137,21 +137,21 @@
             {item.DX}
           </button>
         </div>
-        <div class="p-2 flex items-center text-slate-400 text-xs truncate" style="width: 18%;" title={item.CountryName || 'N/A'}>
+        <div class="p-2 flex items-center text-slate-400 text-xs truncate" style="width: 10%;" title={item.CountryName || 'N/A'}>
           {item.CountryName || 'N/A'}
         </div>
         <div class="p-2 flex items-center text-slate-400 text-xs" style="width: 7%;">{item.UTCTime}</div>
-        <div class="p-2 flex items-center font-mono text-xs" style="width: 10%;">{item.FrequencyMhz}</div>
+        <div class="p-2 flex items-center font-mono text-xs" style="width: 8%;">{item.FrequencyMhz}</div>
         <div class="p-2 flex items-center" style="width: 7%;">
           <span class="px-1.5 py-0.5 bg-slate-700/50 rounded text-xs">{item.Band}</span>
         </div>
         <div class="p-2 flex items-center" style="width: 7%;">
           <span class="px-1.5 py-0.5 bg-purple-500/20 text-purple-400 rounded text-xs">{item.Mode}</span>
         </div>
-        <div class="p-2 flex items-center text-slate-300 text-xs truncate" style="width: 10%;" title={item.SpotterCallsign}>
+        <div class="p-2 flex items-center text-slate-300 text-xs truncate" style="width: 8%;" title={item.SpotterCallsign}>
           {item.SpotterCallsign}
         </div>
-        <div class="p-2 flex items-center text-slate-400 text-xs truncate" style="width: 18%;" title={getCleanComment(item)}>
+        <div class="p-2 flex items-center text-slate-400 text-xs truncate" style="width: 22%;" title={getCleanComment(item)}>
           {getCleanComment(item)}
         </div>
         <div class="p-2 flex items-center gap-1 flex-wrap" style="width: 13%;">

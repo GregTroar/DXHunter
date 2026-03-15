@@ -85,7 +85,7 @@ func UpdateCtyPlist(ctyPath string) (*UpdateResult, error) {
 	result.Message = fmt.Sprintf("cty.plist updated successfully (%d → %d entries)",
 		result.EntriesBefore, result.EntriesAfter)
 
-	Log.Infof("✅ %s", result.Message)
+	Log.Debugf("✅ %s", result.Message)
 	return result, nil
 }
 
