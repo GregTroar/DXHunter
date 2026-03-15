@@ -101,6 +101,7 @@ func (sp *SpotProcessor) processSpot(spot TelnetSpot) {
 		ClusterName:     spot.ClusterName,
 		POTARef:         spot.POTARef,
 		SOTARef:         spot.SOTARef,
+		ParkName:        GetPOTAParkName(spot.POTARef),
 	}
 
 	flexSpot.OriginalComment = spot.Comment

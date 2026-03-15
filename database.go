@@ -136,6 +136,7 @@ func NewFlexDXDatabase(filePath string) *FlexDXClusterRepository {
 	"clusterName"	TEXT DEFAULT '',
 	"potaRef"		TEXT DEFAULT '',
 	"sotaRef"		TEXT DEFAULT '',
+	"parkName"		TEXT DEFAULT '',
 	PRIMARY KEY("id" AUTOINCREMENT)
 )`,
 	)
@@ -543,7 +544,7 @@ func (r *FlexDXClusterRepository) GetAllSpots(limit string) []FlexSpot {
 	s := FlexSpot{}
 	for rows.Next() {
 		if err := rows.Scan(&s.ID, &s.CommandNumber, &s.FlexSpotNumber, &s.DX, &s.FrequencyMhz, &s.FrequencyHz, &s.Band, &s.Mode, &s.SpotterCallsign, &s.FlexMode, &s.Source, &s.UTCTime, &s.TimeStamp, &s.LifeTime, &s.Priority,
-			&s.OriginalComment, &s.Comment, &s.Color, &s.BackgroundColor, &s.CountryName, &s.DXCC, &s.NewDXCC, &s.NewBand, &s.NewMode, &s.NewSlot, &s.Worked, &s.ClusterName, &s.POTARef, &s.SOTARef); err != nil {
+			&s.OriginalComment, &s.Comment, &s.Color, &s.BackgroundColor, &s.CountryName, &s.DXCC, &s.NewDXCC, &s.NewBand, &s.NewMode, &s.NewSlot, &s.Worked, &s.ClusterName, &s.POTARef, &s.SOTARef, &s.ParkName); err != nil {
 
 			return nil // Arrête le traitement s'il y a une erreur sur une ligne
 		}
@@ -566,7 +567,7 @@ func (r *FlexDXClusterRepository) FindDXSameBand(spot FlexSpot) (*FlexSpot, erro
 	s := FlexSpot{}
 	for rows.Next() {
 		if err := rows.Scan(&s.ID, &s.CommandNumber, &s.FlexSpotNumber, &s.DX, &s.FrequencyMhz, &s.FrequencyHz, &s.Band, &s.Mode, &s.SpotterCallsign, &s.FlexMode, &s.Source, &s.UTCTime, &s.TimeStamp, &s.LifeTime, &s.Priority,
-			&s.OriginalComment, &s.Comment, &s.Color, &s.BackgroundColor, &s.CountryName, &s.DXCC, &s.NewDXCC, &s.NewBand, &s.NewMode, &s.NewSlot, &s.Worked, &s.ClusterName, &s.POTARef, &s.SOTARef); err != nil {
+			&s.OriginalComment, &s.Comment, &s.Color, &s.BackgroundColor, &s.CountryName, &s.DXCC, &s.NewDXCC, &s.NewBand, &s.NewMode, &s.NewSlot, &s.Worked, &s.ClusterName, &s.POTARef, &s.SOTARef, &s.ParkName); err != nil {
 			r.Log.Error(err)
 			return nil, err
 		}
@@ -575,8 +576,8 @@ func (r *FlexDXClusterRepository) FindDXSameBand(spot FlexSpot) (*FlexSpot, erro
 }
 
 func (r *FlexDXClusterRepository) CreateSpot(spot FlexSpot) {
-	query := "INSERT INTO `spots` (`commandNumber`, `flexSpotNumber`, `dx`, `freqMhz`, `freqHz`, `band`, `mode`, `spotter`, `flexMode`, `source`, `time`, `timestamp`, `lifeTime`, `priority`, `originalComment`, `comment`, `color`, `backgroundColor`, `countryName`, `dxcc`, `newDXCC`, `newBand`, `newMode`, `newSlot`, `worked`, `clusterName`, `potaRef`, `sotaRef`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-	insertResult, err := r.db.ExecContext(context.Background(), query, spot.CommandNumber, spot.CommandNumber, spot.DX, spot.FrequencyMhz, spot.FrequencyHz, spot.Band, spot.Mode, spot.SpotterCallsign, spot.FlexMode, spot.Source, spot.UTCTime, time.Now().Unix(), spot.LifeTime, spot.Priority, spot.OriginalComment, spot.Comment, spot.Color, spot.BackgroundColor, spot.CountryName, spot.DXCC, spot.NewDXCC, spot.NewBand, spot.NewMode, spot.NewSlot, spot.Worked, spot.ClusterName, spot.POTARef, spot.SOTARef)
+	query := "INSERT INTO `spots` (`commandNumber`, `flexSpotNumber`, `dx`, `freqMhz`, `freqHz`, `band`, `mode`, `spotter`, `flexMode`, `source`, `time`, `timestamp`, `lifeTime`, `priority`, `originalComment`, `comment`, `color`, `backgroundColor`, `countryName`, `dxcc`, `newDXCC`, `newBand`, `newMode`, `newSlot`, `worked`, `clusterName`, `potaRef`, `sotaRef`, `parkName`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+	insertResult, err := r.db.ExecContext(context.Background(), query, spot.CommandNumber, spot.CommandNumber, spot.DX, spot.FrequencyMhz, spot.FrequencyHz, spot.Band, spot.Mode, spot.SpotterCallsign, spot.FlexMode, spot.Source, spot.UTCTime, time.Now().Unix(), spot.LifeTime, spot.Priority, spot.OriginalComment, spot.Comment, spot.Color, spot.BackgroundColor, spot.CountryName, spot.DXCC, spot.NewDXCC, spot.NewBand, spot.NewMode, spot.NewSlot, spot.Worked, spot.ClusterName, spot.POTARef, spot.SOTARef, spot.ParkName)
 	if err != nil {
 		Log.Errorf("cannot insert spot in database: %s", err)
 	}
@@ -610,7 +611,7 @@ func (r *FlexDXClusterRepository) FindSpotByCommandNumber(commandNumber string) 
 	s := FlexSpot{}
 	for rows.Next() {
 		if err := rows.Scan(&s.ID, &s.CommandNumber, &s.FlexSpotNumber, &s.DX, &s.FrequencyMhz, &s.FrequencyHz, &s.Band, &s.Mode, &s.SpotterCallsign, &s.FlexMode, &s.Source, &s.UTCTime, &s.TimeStamp, &s.LifeTime, &s.Priority,
-			&s.OriginalComment, &s.Comment, &s.Color, &s.BackgroundColor, &s.CountryName, &s.DXCC, &s.NewDXCC, &s.NewBand, &s.NewMode, &s.NewSlot, &s.Worked, &s.ClusterName, &s.POTARef, &s.SOTARef); err != nil {
+			&s.OriginalComment, &s.Comment, &s.Color, &s.BackgroundColor, &s.CountryName, &s.DXCC, &s.NewDXCC, &s.NewBand, &s.NewMode, &s.NewSlot, &s.Worked, &s.ClusterName, &s.POTARef, &s.SOTARef, &s.ParkName); err != nil {
 			r.Log.Error(err)
 			return nil, err
 		}
@@ -630,7 +631,7 @@ func (r *FlexDXClusterRepository) FindSpotByFlexSpotNumber(spotNumber string) (*
 	s := FlexSpot{}
 	for rows.Next() {
 		if err := rows.Scan(&s.ID, &s.CommandNumber, &s.FlexSpotNumber, &s.DX, &s.FrequencyMhz, &s.FrequencyHz, &s.Band, &s.Mode, &s.SpotterCallsign, &s.FlexMode, &s.Source, &s.UTCTime, &s.TimeStamp, &s.LifeTime, &s.Priority,
-			&s.OriginalComment, &s.Comment, &s.Color, &s.BackgroundColor, &s.CountryName, &s.DXCC, &s.NewDXCC, &s.NewBand, &s.NewMode, &s.NewSlot, &s.Worked, &s.ClusterName, &s.POTARef, &s.SOTARef); err != nil {
+			&s.OriginalComment, &s.Comment, &s.Color, &s.BackgroundColor, &s.CountryName, &s.DXCC, &s.NewDXCC, &s.NewBand, &s.NewMode, &s.NewSlot, &s.Worked, &s.ClusterName, &s.POTARef, &s.SOTARef, &s.ParkName); err != nil {
 			r.Log.Error(err)
 			return nil, err
 		}
@@ -650,7 +651,7 @@ func (r *FlexDXClusterRepository) UpdateFlexSpotNumberByID(flexSpotNumber string
 	s := FlexSpot{}
 	for rows.Next() {
 		if err := rows.Scan(&s.ID, &s.CommandNumber, &s.FlexSpotNumber, &s.DX, &s.FrequencyMhz, &s.FrequencyHz, &s.Band, &s.Mode, &s.SpotterCallsign, &s.FlexMode, &s.Source, &s.UTCTime, &s.TimeStamp, &s.LifeTime, &s.Priority,
-			&s.OriginalComment, &s.Comment, &s.Color, &s.BackgroundColor, &s.CountryName, &s.DXCC, &s.NewDXCC, &s.NewBand, &s.NewMode, &s.NewSlot, &s.Worked, &s.ClusterName, &s.POTARef, &s.SOTARef); err != nil {
+			&s.OriginalComment, &s.Comment, &s.Color, &s.BackgroundColor, &s.CountryName, &s.DXCC, &s.NewDXCC, &s.NewBand, &s.NewMode, &s.NewSlot, &s.Worked, &s.ClusterName, &s.POTARef, &s.SOTARef, &s.ParkName); err != nil {
 			r.Log.Error(err)
 			return nil, err
 		}

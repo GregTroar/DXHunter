@@ -29,6 +29,7 @@ type TelnetSpot struct {
 	ClusterName    string // Nom du cluster source
 	POTARef        string // ex: "BB-0036"
 	SOTARef        string // ex: "F/AB-123"
+	ParkName       string // Nom complet du parc POTA (depuis api.pota.app)
 }
 
 func ProcessTelnetSpot(re *regexp.Regexp, reShort *regexp.Regexp, spotRaw string, SpotChanToFlex chan TelnetSpot, SpotChanToHTTPServer chan TelnetSpot, contactRepo *Log4OMContactsRepository, clusterName string) {

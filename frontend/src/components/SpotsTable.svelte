@@ -99,6 +99,7 @@
   }
   
   function getCleanComment(spot) {
+    if (spot.ParkName) return spot.ParkName;
     if (!spot.OriginalComment) return '';
     return spot.OriginalComment.trim();
   }

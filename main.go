@@ -104,6 +104,16 @@ func main() {
 	fRepo := NewFlexDXDatabase("flex.sqlite")
 	defer fRepo.db.Close()
 
+	// POTA cache (persistent across restarts)
+	potaCachePath := resolveSiblingPath("pota.sqlite")
+	if pc, err := NewPOTACache(potaCachePath); err != nil {
+		log.Warnf("POTA cache unavailable: %v", err)
+	} else {
+		potaCache = pc
+		defer pc.Close()
+		log.Infof("POTA cache initialized at %s", potaCachePath)
+	}
+
 	// Database connection to Log4OM
 	cRepo := NewLog4OMContactsRepository(Cfg.SQLite.SQLitePath)
 	defer cRepo.db.Close()
@@ -210,6 +220,15 @@ func main() {
 
 // resolveCtyPath retourne le chemin vers cty.plist :
 // d'abord à côté de l'exécutable, sinon dans le répertoire courant.
+// resolveSiblingPath retourne le chemin d'un fichier a cote de l'executable
+func resolveSiblingPath(filename string) string {
+	exe, err := os.Executable()
+	if err == nil {
+		return filepath.Join(filepath.Dir(exe), filename)
+	}
+	return filename
+}
+
 func resolveCtyPath() string {
 	exe, err := os.Executable()
 	if err == nil {

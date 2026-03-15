@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"regexp"
 	"strings"
@@ -12,11 +13,21 @@ import (
 )
 
 // POTAPark représente un parc POTA depuis l'API
+// Les champs nullables utilisent des pointeurs pour gérer les null JSON
 type POTAPark struct {
-	Reference   string `json:"reference"`
-	Name        string `json:"name"`
-	EntityName  string `json:"entityName"`
-	LocationDesc string `json:"locationDesc"`
+	Reference    string  `json:"reference"`
+	Name         string  `json:"name"`
+	EntityName   *string `json:"entityName"`
+	LocationDesc *string `json:"locationDesc"`
+	LocationName *string `json:"locationName"`
+}
+
+// entityName retourne une string safe depuis le pointeur nullable
+func (p POTAPark) EntityNameStr() string {
+	if p.EntityName != nil {
+		return *p.EntityName
+	}
+	return ""
 }
 
 // potaCache est le cache SQLite des parcs POTA (persistant, fichier séparé)
@@ -73,7 +84,7 @@ func (c *POTACache) Set(p POTAPark) {
 	_, err := c.db.ExecContext(context.Background(),
 		`INSERT OR REPLACE INTO pota_parks (reference, name, entity, location, fetched_at)
 		 VALUES (?, ?, ?, ?, ?)`,
-		strings.ToUpper(p.Reference), p.Name, p.EntityName, p.LocationDesc, time.Now().Unix(),
+		strings.ToUpper(p.Reference), p.Name, p.EntityNameStr(), p.EntityNameStr(), time.Now().Unix(),
 	)
 	if err != nil {
 		Log.Warnf("pota cache set %s: %v", p.Reference, err)
@@ -87,7 +98,8 @@ func (c *POTACache) Close() {
 	}
 }
 
-// FetchPOTAPark appelle api.pota.app/park/{ref} et retourne le parc
+// FetchPOTAPark appelle api.pota.app/park/{ref} et retourne le parc.
+// Gère les deux formats possibles : objet direct {…} ou tableau [{…}]
 func FetchPOTAPark(ref string) (POTAPark, error) {
 	url := fmt.Sprintf("https://api.pota.app/park/%s", strings.ToUpper(ref))
 
@@ -102,22 +114,32 @@ func FetchPOTAPark(ref string) (POTAPark, error) {
 		return POTAPark{}, fmt.Errorf("pota fetch %s: HTTP %d", ref, resp.StatusCode)
 	}
 
-	// L'API retourne un tableau même pour un seul parc
-	var parks []POTAPark
-	if err := json.NewDecoder(resp.Body).Decode(&parks); err != nil {
-		// Essayer en objet direct
-		return POTAPark{}, fmt.Errorf("pota decode %s: %w", ref, err)
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return POTAPark{}, fmt.Errorf("pota read %s: %w", ref, err)
 	}
 
-	if len(parks) == 0 {
-		return POTAPark{}, fmt.Errorf("pota: no result for %s", ref)
+	Log.Debugf("POTA API raw response for %s: %s", ref, string(body))
+
+	// Essayer objet direct en premier
+	var park POTAPark
+	if err := json.Unmarshal(body, &park); err == nil && park.Name != "" {
+		return park, nil
 	}
-	return parks[0], nil
+
+	// Essayer tableau
+	var parks []POTAPark
+	if err := json.Unmarshal(body, &parks); err == nil && len(parks) > 0 && parks[0].Name != "" {
+		return parks[0], nil
+	}
+
+	return POTAPark{}, fmt.Errorf("pota: no result for %s (body: %s)", ref, string(body))
 }
 
 // GetPOTAParkName retourne le nom complet d'un parc POTA.
-// Cherche d'abord dans le cache SQLite, sinon appelle l'API (non-bloquant via goroutine).
-// Retourne "" immédiatement si pas en cache (l'enrichissement arrivera au prochain spot du même parc).
+// Cache hit -> retour immédiat.
+// Cache miss -> appel bloquant avec timeout 2s. Si réponse dans les temps, nom retourné dès le premier spot.
+// Si timeout dépassé, retourne "" et met en cache en background pour les spots suivants.
 func GetPOTAParkName(ref string) string {
 	if potaCache == nil || ref == "" {
 		return ""
@@ -128,18 +150,37 @@ func GetPOTAParkName(ref string) string {
 		return p.Name
 	}
 
-	// Miss cache — fetch en arrière-plan, disponible au prochain spot
+	// Miss cache — appel bloquant avec timeout 2s
+	type result struct {
+		park POTAPark
+		err  error
+	}
+	ch := make(chan result, 1)
 	go func() {
 		p, err := FetchPOTAPark(ref)
-		if err != nil {
-			Log.Debugf("POTA fetch failed for %s: %v", ref, err)
-			return
-		}
-		potaCache.Set(p)
-		Log.Infof("🏕️  POTA park cached: %s = %s (%s)", p.Reference, p.Name, p.EntityName)
+		ch <- result{p, err}
 	}()
 
-	return ""
+	select {
+	case r := <-ch:
+		if r.err != nil {
+			Log.Debugf("POTA fetch failed for %s: %v", ref, r.err)
+			return ""
+		}
+		potaCache.Set(r.park)
+		Log.Infof("🏕️  POTA park: %s = %s (%s)", r.park.Reference, r.park.Name, r.park.EntityNameStr())
+		return r.park.Name
+	case <-time.After(2 * time.Second):
+		// Timeout — on met en cache en background pour les prochains spots
+		go func() {
+			p, err := FetchPOTAPark(ref)
+			if err == nil {
+				potaCache.Set(p)
+				Log.Infof("🏕️  POTA park cached (delayed): %s = %s", p.Reference, p.Name)
+			}
+		}()
+		return ""
+	}
 }
 
 // potaRefRe extrait une référence POTA d'un commentaire brut
