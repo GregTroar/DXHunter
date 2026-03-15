@@ -42,8 +42,8 @@
 </script>
 
 <div class="toast-enter">
-  <div class="flex items-center gap-2 bg-slate-800/90 border border-slate-700/60
-              rounded-full px-3 py-1.5 max-w-[480px] min-w-0">
+  <div class="flex items-start gap-2 bg-slate-800/90 border border-slate-700/60
+              rounded-2xl px-3 py-2 max-w-[520px]">
 
     <span class="flex-shrink-0 flex items-center gap-1.5 {colors.bg} {colors.text}
                  text-xs font-medium px-2 py-0.5 rounded-full">
@@ -56,7 +56,7 @@
       <span class="flex-shrink-0 text-slate-600 text-xs">·</span>
     {/if}
 
-    <span class="text-xs text-slate-300 truncate min-w-0">{type === 'toAll' ? parsed.text : message}</span>
+    <span class="text-xs text-slate-300 leading-relaxed" style="word-break: break-word; overflow-wrap: anywhere;">{type === 'toAll' ? parsed.text : message}</span>
 
   </div>
 </div>

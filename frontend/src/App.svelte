@@ -9,6 +9,7 @@
   import { spotWorker } from './lib/spotWorker.js';
   import { spotCache } from './lib/spotCache.js';
   import LogsTab from './components/LogsTab.svelte';
+  import StatsCards from './components/StatsCards.svelte';
 
   
   // State
@@ -24,7 +25,7 @@
     clusterType: 'unknown',
     flexStatus: 'disconnected',
     myCallsign: '',
-    filters: { skimmer: false, ft8: false, ft4: false }
+    filters: { skimmer: false, ft8: false, ft4: false, beacon: false }
   };
   let watchlist = []; // ✅ Initialisé vide, sera rempli par WebSocket
   let recentQSOs = [];
@@ -605,7 +606,7 @@ function applyFilters(allSpots, filters, wl) {
       
       const data = await response.json();
       if (data.success) {
-        stats.filters[filterName] = value;
+        stats = { ...stats, filters: { ...(stats.filters || {}), [filterName]: value } };
         const filterLabel = filterName.toUpperCase();
         const status = value ? 'ON' : 'OFF';
         showToast(`🔧 ${filterLabel} filter ${status}`, 'success');
@@ -775,6 +776,12 @@ async function shutdownApp() {
     {cacheLoaded}
     on:shutdown={shutdownApp}
     on:ctyUpdate={(e) => showToast(e.detail.success ? `✅ CTY updated: ${e.detail.message}` : `❌ CTY update failed: ${e.detail.message}`, e.detail.success ? 'success' : 'error', 10000)}
+    on:clusterFilter={(e) => updateClusterFilter(e.detail.name, e.detail.value)}
+  />
+
+  <StatsCards
+    {stats}
+    on:filterChange={(e) => updateClusterFilter(e.detail.name, e.detail.value)}
   />
   
   <FilterBar 

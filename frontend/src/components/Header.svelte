@@ -8,6 +8,11 @@
 
   const dispatch = createEventDispatcher();
 
+  function toggleFilter(name) {
+    const current = stats.filters?.[name] ?? false;
+    dispatch('clusterFilter', { name, value: !current });
+  }
+
   let ctyUpdating = false;
 
   async function updateCty() {
