@@ -88,7 +88,18 @@
 
   });
   
-  function handleWatchlistAlert(event) {
+  function formatFreq(freq) {
+    if (!freq) return '';
+    const n = parseFloat(freq);
+    if (isNaN(n)) return freq;
+    // Garder au minimum 3 décimales, supprimer les zéros au-delà
+    const s = n.toFixed(6);
+    const [int, dec] = s.split('.');
+    const trimmed = dec.slice(0, 3) + dec.slice(3).replace(/0+$/, '');
+    return int + '.' + trimmed;
+  }
+
+    function handleWatchlistAlert(event) {
     const { callsign } = event.detail;
     
     dispatch('toast', { 
@@ -640,7 +651,7 @@ function getDisplayList(wl, wlSpots, activeOnly, onlyNotWorked, modeFilter) {
                     <span class="text-slate-400 text-xs truncate" style="max-width: 120px;" title="{spot.countryName || 'Unknown'}">{spot.countryName || 'Unknown'}</span>
                     <span class="px-1.5 py-0.5 bg-slate-700/50 rounded flex-shrink-0">{spot.band}</span>
                     <span class="px-1.5 py-0.5 bg-purple-500/20 text-purple-400 rounded flex-shrink-0">{spot.mode}</span>
-                    <span class="text-slate-400 font-mono truncate">{spot.frequencyMhz}</span>
+                    <span class="text-slate-400 font-mono truncate">{formatFreq(spot.frequencyMhz)}</span>
                     <!-- Badge statut DXCC (par rapport au pays dans le log) -->
                     {#if spot.newDXCC}
                       <span class="px-1.5 py-0.5 bg-green-500/20 text-green-400 border border-green-500/30 rounded text-xs font-semibold flex-shrink-0">🌍 New DXCC</span>

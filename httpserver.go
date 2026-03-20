@@ -280,6 +280,9 @@ func (s *HTTPServer) handleConsoleMessages() {
 	spotDetectRe := regexp.MustCompile(`(?i)^DX\sde\s`)
 	shortSpotDetectRe := regexp.MustCompile(`^\d+\.\d+\s+[\w\d\/]+\s+\d{2}-\w{3}-\d{4}`)
 
+	// Déduplication To ALL: hash -> timestamp dernier envoi
+	toAllSeen := make(map[string]int64)
+
 	for msg := range s.ConsoleChan {
 		cleanMsg := strings.TrimSpace(msg)
 		if cleanMsg == "" {
@@ -291,13 +294,25 @@ func (s *HTTPServer) handleConsoleMessages() {
 			continue
 		}
 
-		// To ALL -- forward as dedicated toast
+		// To ALL -- forward as dedicated toast (deduplicated: TTL 30s)
 		if strings.HasPrefix(cleanMsg, "TO_ALL:") {
-			toAllMsg := strings.TrimPrefix(cleanMsg, "TO_ALL:")
+			toAllMsg := strings.TrimSpace(strings.TrimPrefix(cleanMsg, "TO_ALL:"))
+			now := time.Now().Unix()
+			// Nettoyer les entrees expirées
+			for k, t := range toAllSeen {
+				if now-t > 30 {
+					delete(toAllSeen, k)
+				}
+			}
+			// Ignorer si déjà vu dans les 30 dernières secondes
+			if _, seen := toAllSeen[toAllMsg]; seen {
+				continue
+			}
+			toAllSeen[toAllMsg] = now
 			s.broadcast <- WSMessage{
 				Type: "toAll",
 				Data: map[string]interface{}{
-					"message":   strings.TrimSpace(toAllMsg),
+					"message":   toAllMsg,
 					"timestamp": time.Now().Format("15:04:05"),
 				},
 			}

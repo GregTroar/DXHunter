@@ -98,10 +98,21 @@
     return badges;
   }
   
+  function formatFreq(freq) {
+    if (!freq) return '';
+    const n = parseFloat(freq);
+    if (isNaN(n)) return freq;
+    // Garder au minimum 3 décimales, supprimer les zéros au-delà
+    const s = n.toFixed(6);
+    const [int, dec] = s.split('.');
+    const trimmed = dec.slice(0, 3) + dec.slice(3).replace(/0+$/, '');
+    return int + '.' + trimmed;
+  }
+
   function getCleanComment(spot) {
     if (spot.ParkName) return spot.ParkName;
-    if (!spot.OriginalComment) return '';
-    return spot.OriginalComment.trim();
+    if (spot.SummitName) return spot.SummitName;
+    return spot.OriginalComment ? spot.OriginalComment.trim() : '';
   }
 </script>
 
@@ -142,7 +153,7 @@
           {item.CountryName || 'N/A'}
         </div>
         <div class="p-2 flex items-center text-slate-400 text-xs" style="width: 7%;">{item.UTCTime}</div>
-        <div class="p-2 flex items-center font-mono text-xs" style="width: 8%;">{item.FrequencyMhz}</div>
+        <div class="p-2 flex items-center font-mono text-xs" style="width: 8%;">{formatFreq(item.FrequencyMhz)}</div>
         <div class="p-2 flex items-center" style="width: 7%;">
           <span class="px-1.5 py-0.5 bg-slate-700/50 rounded text-xs">{item.Band}</span>
         </div>

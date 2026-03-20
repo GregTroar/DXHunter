@@ -58,7 +58,16 @@ func NewPOTACache(path string) (*POTACache, error) {
 		return nil, fmt.Errorf("pota cache create table: %w", err)
 	}
 
-	return &POTACache{db: db}, nil
+	pc := &POTACache{db: db}
+
+	// Initialiser aussi le cache SOTA dans la même base
+	sc, err := NewSOTACache(db)
+	if err != nil {
+		return nil, fmt.Errorf("sota cache init: %w", err)
+	}
+	sotaCache = sc
+
+	return pc, nil
 }
 
 // Get retourne le nom d'un parc depuis le cache, ou "" si absent/expiré (TTL 30 jours)
@@ -196,4 +205,153 @@ func ExtractPOTARef(comment string) string {
 		return m
 	}
 	return ""
+}
+
+// ============================================================================
+// SOTA — Summits on the Air
+// ============================================================================
+
+// SOTASummit représente un sommet SOTA depuis l'API
+type SOTASummit struct {
+	SummitCode      string `json:"summitCode"`
+	SummitName      string `json:"name"` // champ "name" dans la réponse API
+	AltM            int    `json:"altM"`
+	Points          int    `json:"points"`
+	RegionName      string `json:"regionName"`
+	AssociationName string `json:"associationName"`
+}
+
+func (s SOTASummit) RegionNameStr() string {
+	return s.RegionName
+}
+
+// sotaCache est le cache SQLite des sommets SOTA (partagé avec pota.sqlite)
+var sotaCache *SOTACache
+
+type SOTACache struct {
+	db *sql.DB
+}
+
+// NewSOTACache ouvre (ou crée) la table sota_summits dans la base fournie
+func NewSOTACache(db *sql.DB) (*SOTACache, error) {
+	_, err := db.ExecContext(context.Background(), `
+		CREATE TABLE IF NOT EXISTS sota_summits (
+			reference   TEXT PRIMARY KEY,
+			name        TEXT NOT NULL,
+			alt_m       INTEGER DEFAULT 0,
+			points      INTEGER DEFAULT 0,
+			region      TEXT DEFAULT '',
+			fetched_at  INTEGER NOT NULL
+		)`)
+	if err != nil {
+		return nil, fmt.Errorf("sota cache create table: %w", err)
+	}
+	return &SOTACache{db: db}, nil
+}
+
+func (c *SOTACache) Get(ref string) (SOTASummit, bool) {
+	var s SOTASummit
+	var fetchedAt int64
+	err := c.db.QueryRowContext(context.Background(),
+		`SELECT reference, name, alt_m, points, region, fetched_at FROM sota_summits WHERE reference = ?`,
+		strings.ToUpper(ref),
+	).Scan(&s.SummitCode, &s.SummitName, &s.AltM, &s.Points, &s.RegionName, &fetchedAt)
+	if err != nil {
+		return SOTASummit{}, false
+	}
+	if time.Now().Unix()-fetchedAt > 30*24*3600 {
+		return SOTASummit{}, false
+	}
+	return s, true
+}
+
+func (c *SOTACache) Set(s SOTASummit) {
+	_, err := c.db.ExecContext(context.Background(),
+		`INSERT OR REPLACE INTO sota_summits (reference, name, alt_m, points, region, fetched_at)
+		 VALUES (?, ?, ?, ?, ?, ?)`,
+		strings.ToUpper(s.SummitCode), s.SummitName, s.AltM, s.Points, s.RegionNameStr(), time.Now().Unix(),
+	)
+	if err != nil {
+		Log.Warnf("sota cache set %s: %v", s.SummitCode, err)
+	}
+}
+
+// FetchSOTASummit appelle api2.sota.org.uk/api/summits/{ref}
+func FetchSOTASummit(ref string) (SOTASummit, error) {
+	url := fmt.Sprintf("https://api2.sota.org.uk/api/summits/%s", strings.ToUpper(ref))
+
+	client := &http.Client{Timeout: 5 * time.Second}
+	resp, err := client.Get(url)
+	if err != nil {
+		return SOTASummit{}, fmt.Errorf("sota fetch %s: %w", ref, err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return SOTASummit{}, fmt.Errorf("sota fetch %s: HTTP %d", ref, resp.StatusCode)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return SOTASummit{}, fmt.Errorf("sota read %s: %w", ref, err)
+	}
+
+	Log.Debugf("SOTA API raw response for %s: %s", ref, string(body))
+
+	var summit SOTASummit
+	if err := json.Unmarshal(body, &summit); err != nil || summit.SummitName == "" {
+		return SOTASummit{}, fmt.Errorf("sota decode %s: name empty (body: %s)", ref, string(body))
+	}
+	return summit, nil
+}
+
+// GetSOTASummitName retourne le nom + altitude d'un sommet SOTA.
+// Même logique que POTA : bloquant 2s, background si timeout.
+func GetSOTASummitName(ref string) string {
+	if sotaCache == nil || ref == "" {
+		return ""
+	}
+
+	// Hit cache
+	if s, ok := sotaCache.Get(ref); ok {
+		return formatSOTAName(s)
+	}
+
+	// Miss cache — appel bloquant 2s
+	type result struct {
+		summit SOTASummit
+		err    error
+	}
+	ch := make(chan result, 1)
+	go func() {
+		s, err := FetchSOTASummit(ref)
+		ch <- result{s, err}
+	}()
+
+	select {
+	case r := <-ch:
+		if r.err != nil {
+			Log.Debugf("SOTA fetch failed for %s: %v", ref, r.err)
+			return ""
+		}
+		sotaCache.Set(r.summit)
+		Log.Infof("⛰️  SOTA summit: %s = %s (%dm)", r.summit.SummitCode, r.summit.SummitName, r.summit.AltM)
+		return formatSOTAName(r.summit)
+	case <-time.After(2 * time.Second):
+		go func() {
+			s, err := FetchSOTASummit(ref)
+			if err == nil {
+				sotaCache.Set(s)
+				Log.Infof("⛰️  SOTA summit cached (delayed): %s = %s", s.SummitCode, s.SummitName)
+			}
+		}()
+		return ""
+	}
+}
+
+func formatSOTAName(s SOTASummit) string {
+	if s.AltM > 0 {
+		return fmt.Sprintf("%s (%dm, %dpts)", s.SummitName, s.AltM, s.Points)
+	}
+	return s.SummitName
 }

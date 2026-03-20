@@ -46,6 +46,7 @@ type FlexSpot struct {
 	POTARef         string // ex: "BB-0036"
 	SOTARef         string // ex: "F/AB-123"
 	ParkName        string // Nom complet du parc POTA
+	SummitName      string // Nom complet du sommet SOTA
 }
 
 type Discovery struct {
