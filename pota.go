@@ -67,6 +67,13 @@ func NewPOTACache(path string) (*POTACache, error) {
 	}
 	sotaCache = sc
 
+	// Initialiser le cache ClubLog dans la meme base
+	cc, err := NewClubLogCache(db)
+	if err != nil {
+		return nil, fmt.Errorf("clublog cache init: %w", err)
+	}
+	clubLogCache = cc
+
 	return pc, nil
 }
 

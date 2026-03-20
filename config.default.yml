@@ -102,6 +102,8 @@ flex:
 telnetserver: # Log4OM must be connected to this server ie: localhost:7301 if on same machine as this program else ip:7301
   host: 0.0.0.0
   port: 7301
+clublog:
+  api_key: ""  # Clé API ClubLog pour la détection des DXpeditions
 gotify:
   enable: false
   url: https://gotify.tld.com/message

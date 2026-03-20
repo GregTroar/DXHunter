@@ -18,6 +18,13 @@ type WatchlistEntry struct {
 	IsContest     bool         `json:"isContest"`
 	Notify        bool         `json:"notify"`
 	ActiveSpotIDs map[int]bool `json:"-"`
+	// ClubLog expedition data
+	IsExpedition      bool      `json:"isExpedition"`
+	ClubLogQSOs24h    int       `json:"clubLogQSOs24h"`
+	ClubLogTotalQSOs  int       `json:"clubLogTotalQSOs"`
+	ClubLogHasOQRS    bool      `json:"clubLogHasOQRS"`
+	ClubLogLiveStream bool      `json:"clubLogLiveStream"`
+	ClubLogUpdatedAt  time.Time `json:"clubLogUpdatedAt,omitempty"`
 }
 
 type Watchlist struct {
@@ -336,13 +343,18 @@ func (w *Watchlist) GetAllWithActiveStatus() []map[string]interface{} {
 	entries := make([]map[string]interface{}, 0, len(w.entries))
 	for _, entry := range w.entries {
 		entryMap := map[string]interface{}{
-			"callsign":       entry.Callsign,
-			"lastSeen":       entry.LastSeen,
-			"lastSeenStr":    entry.LastSeenStr,
-			"addedAt":        entry.AddedAt,
-			"spotCount":      entry.SpotCount,
-			"hasActiveSpots": len(entry.ActiveSpotIDs) > 0,
-			"activeCount":    len(entry.ActiveSpotIDs),
+			"callsign":          entry.Callsign,
+			"lastSeen":          entry.LastSeen,
+			"lastSeenStr":       entry.LastSeenStr,
+			"addedAt":           entry.AddedAt,
+			"spotCount":         entry.SpotCount,
+			"hasActiveSpots":    len(entry.ActiveSpotIDs) > 0,
+			"activeCount":       len(entry.ActiveSpotIDs),
+			"isExpedition":      entry.IsExpedition,
+			"clubLogQSOs24h":    entry.ClubLogQSOs24h,
+			"clubLogTotalQSOs":  entry.ClubLogTotalQSOs,
+			"clubLogHasOQRS":    entry.ClubLogHasOQRS,
+			"clubLogLiveStream": entry.ClubLogLiveStream,
 		}
 
 		if !entry.LastSeen.IsZero() {

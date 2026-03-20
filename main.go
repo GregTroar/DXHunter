@@ -195,6 +195,15 @@ func main() {
 
 	go spotProcessor.Start()
 
+	// Initialize ClubLog client si cle configuree
+	if Cfg.ClubLog.APIKey != "" {
+		clubLogClient = NewClubLogClient(Cfg.ClubLog.APIKey)
+		if clubLogCache != nil {
+			clubLogClient.SetCache(clubLogCache)
+		}
+		log.Infof("ClubLog API key configured")
+	}
+
 	// Start ADXO activations refresher
 	StartADXORefresher(HTTPServer.broadcast, HTTPServer.Watchlist)
 

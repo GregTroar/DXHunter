@@ -124,6 +124,10 @@ type Config struct {
 		Port string `yaml:"port"`
 	} `yaml:"telnetserver"`
 
+	ClubLog struct {
+		APIKey string `yaml:"api_key"`
+	} `yaml:"clublog"`
+
 	Gotify struct {
 		Enable         bool   `yaml:"enable"`
 		URL            string `yaml:"url"`

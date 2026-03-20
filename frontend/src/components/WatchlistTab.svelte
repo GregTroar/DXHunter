@@ -588,9 +588,32 @@ function getDisplayList(wl, wlSpots, activeOnly, onlyNotWorked, modeFilter) {
                     🏆 Contest
                   </span>
                 {/if}
+
+                {#if entry.isExpedition}
+                  <span class="px-1.5 py-0.5 bg-purple-600/20 text-purple-300 rounded text-xs font-semibold" title="DXpedition active on ClubLog">
+                    ⚡ DXpedition
+                  </span>
+                  {#if entry.clubLogTotalQSOs > 0}
+                    <span class="text-xs text-purple-400" title="Total QSOs on ClubLog">
+                      {entry.clubLogTotalQSOs.toLocaleString()} QSOs
+                    </span>
+                  {/if}
+                  {#if entry.clubLogQSOs24h > 0}
+                    <span class="text-xs text-slate-400" title="QSOs in last 24h">
+                      · {entry.clubLogQSOs24h}/24h
+                    </span>
+                  {/if}
+                  {#if entry.clubLogHasOQRS}
+                    <span class="px-1 py-0.5 bg-green-600/20 text-green-400 rounded text-xs" title="OQRS available">OQRS</span>
+                  {/if}
+                  {#if entry.clubLogLiveStream}
+                    <a href="https://clublog.org/livestream/{entry.callsign}" target="_blank"
+                       class="px-1 py-0.5 bg-blue-600/20 text-blue-400 rounded text-xs hover:bg-blue-600/40" title="View ClubLog LiveStream">
+                      Live
+                    </a>
+                  {/if}
+                {/if}
                 
-                {#if count > 0}
-                  <span class="text-xs text-slate-400">{count} active spot{count !== 1 ? 's' : ''}</span>
                   {#if neededCount > 0}
                     <span class="px-1.5 py-0.5 bg-orange-500/20 text-orange-400 rounded text-xs font-semibold">
                       {isContest ? `${neededCount} today` : `${neededCount} needed`}
@@ -600,9 +623,6 @@ function getDisplayList(wl, wlSpots, activeOnly, onlyNotWorked, modeFilter) {
                       {isContest ? 'Worked today' : 'All worked'}
                     </span>
                   {/if}
-                {:else}
-                  <span class="text-xs text-slate-500">No active spots</span>
-                {/if}
                 
                 {#if entry.lastSeenStr && entry.lastSeenStr !== 'Never'}
                   <span class="text-xs text-slate-500">• {entry.lastSeenStr}</span>
