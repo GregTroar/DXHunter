@@ -3,6 +3,7 @@
   import Header from './components/Header.svelte';
   import FilterBar from './components/FilterBar.svelte';
   import SpotsTable from './components/SpotsTable.svelte';
+  import DXInfoTab from './components/DXInfoTab.svelte';
   import Sidebar from './components/Sidebar.svelte';
   import Toast from './components/Toast.svelte';
   import ErrorBanner from './components/ErrorBanner.svelte';
@@ -47,6 +48,8 @@
   let contestMode = false;
   let contestPrefix = "";
   let contestCallsigns = [];
+  let selectedCallsign = '';
+  let mainTab = 'spots';
   
   let spotFilters = {
     showAll: true,
@@ -796,13 +799,37 @@ async function shutdownApp() {
   />
   
   <div class="grid grid-cols-[2.8fr_1.2fr] gap-3 overflow-hidden" style="height: calc(100vh - 280px); min-height: 500px;">
-    <div class="overflow-hidden">
-      <SpotsTable
-        spots={filteredSpots} 
-        {watchlist}
-        myCallsign={stats.myCallsign}
-        on:clickSpot={(e) => sendCallsign(e.detail.callsign, e.detail.frequency, e.detail.mode)} 
-      />
+    <div class="flex flex-col overflow-hidden bg-slate-800/50 backdrop-blur rounded-lg border border-slate-700/50">
+      <!-- Tab bar -->
+      <div class="flex border-b border-slate-700/50 bg-slate-900/30 flex-shrink-0">
+        <button
+          class="px-4 py-2 text-sm font-semibold transition-colors {mainTab === 'spots' ? 'bg-blue-500/20 text-blue-400 border-b-2 border-blue-500' : 'text-slate-400 hover:text-slate-300'}"
+          on:click={() => mainTab = 'spots'}>
+          Recent Spots ({filteredSpots.length})
+        </button>
+        <button
+          class="px-4 py-2 text-sm font-semibold transition-colors {mainTab === 'dxinfo' ? 'bg-blue-500/20 text-blue-400 border-b-2 border-blue-500' : 'text-slate-400 hover:text-slate-300'}"
+          on:click={() => mainTab = 'dxinfo'}>
+          <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
+          DX Info{selectedCallsign ? ` — ${selectedCallsign}` : ''}
+        </button>
+      </div>
+      <!-- Tab content -->
+      <div class="flex-1 overflow-hidden" style="min-height: 0;">
+        {#if mainTab === 'spots'}
+          <SpotsTable
+            spots={filteredSpots}
+            {watchlist}
+            myCallsign={stats.myCallsign}
+            on:clickSpot={(e) => sendCallsign(e.detail.callsign, e.detail.frequency, e.detail.mode)}
+            on:openDXInfo={(e) => { selectedCallsign = e.detail.callsign; mainTab = 'dxinfo'; }}
+          />
+        {:else}
+          <DXInfoTab {selectedCallsign} />
+        {/if}
+      </div>
     </div>
     
     <div class="overflow-hidden">
@@ -824,6 +851,7 @@ async function shutdownApp() {
         clusterType={stats.clusterType || 'unknown'}
         clusters={stats.clusters || []}
         on:toast={(e) => showToast(e.detail.message, e.detail.type)}
+        on:openDXInfo={(e) => { selectedCallsign = e.detail.callsign; mainTab = 'dxinfo'; }}
         on:clearLogs={() => logs = []}
         on:sendCommand={handleSendCommand}
       />

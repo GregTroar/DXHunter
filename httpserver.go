@@ -70,6 +70,8 @@ type Stats struct {
 	ContestCallsigns []string      `json:"contestCallsigns"`
 	ClusterType      string        `json:"clusterType"`
 	Clusters         []ClusterInfo `json:"clusters"`
+	LoTWReady        bool          `json:"lotwReady"`
+	LoTWCount        int           `json:"lotwCount"`
 }
 
 type ClusterInfo struct {
@@ -190,6 +192,10 @@ func (s *HTTPServer) setupRoutes() {
 	api.HandleFunc("/send-callsign", s.handleSendCallsign).Methods("POST", "OPTIONS")
 	api.HandleFunc("/contest/toggle", s.toggleContestMode).Methods("POST", "OPTIONS")
 	api.HandleFunc("/shutdown", s.shutdownApp).Methods("POST", "OPTIONS")
+
+	// Callsign DX info
+	api.HandleFunc("/callsign/{callsign}/band-modes", s.getCallsignBandModes).Methods("GET", "OPTIONS")
+	api.HandleFunc("/callsign/{callsign}/spots", s.getCallsignSpots).Methods("GET", "OPTIONS")
 
 	// External data
 	api.HandleFunc("/solar", s.HandleSolarData).Methods("GET", "OPTIONS")
@@ -547,6 +553,9 @@ func (s *HTTPServer) broadcastUpdates() {
 			// ✅ Spots avec timeout
 			spots := s.FlexRepo.GetAllSpots("0")
 			if len(spots) > 0 {
+				for i := range spots {
+					spots[i].LoTWUser = IsLoTWUser(spots[i].DX)
+				}
 				s.checkBandOpening(spots)
 				spotsMsg := WSMessage{Type: "spots", Data: spots}
 				select {
@@ -738,6 +747,27 @@ func (s *HTTPServer) getRecentQSOs(w http.ResponseWriter, r *http.Request) {
 
 func (s *HTTPServer) getLogStats(w http.ResponseWriter, r *http.Request) {
 	s.sendSuccess(w, s.ContactRepo.GetQSOStats(), "")
+}
+
+func (s *HTTPServer) getCallsignSpots(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	callsign := strings.ToUpper(vars["callsign"])
+	spots := s.FlexRepo.GetSpotsByCallsign(callsign, 10)
+	if spots == nil {
+		spots = []FlexSpot{}
+	}
+	s.sendSuccess(w, spots, "")
+}
+
+func (s *HTTPServer) getCallsignBandModes(w http.ResponseWriter, r *http.Request) {
+	if s.ContactRepo == nil {
+		s.sendError(w, "Log4OM database not configured")
+		return
+	}
+	vars := mux.Vars(r)
+	callsign := strings.ToUpper(vars["callsign"])
+	info := s.ContactRepo.GetCallsignBandModes(callsign)
+	s.sendSuccess(w, info, "")
 }
 
 func (s *HTTPServer) getDXCCProgress(w http.ResponseWriter, r *http.Request) {
@@ -1223,6 +1253,8 @@ func (s *HTTPServer) calculateStats() Stats {
 		ContestMode:      Cfg.General.ContestMode,
 		ContestPrefix:    Cfg.General.ContestPrefix,
 		ContestCallsigns: Cfg.General.ContestCallsigns,
+		LoTWReady:        lotwReady,
+		LoTWCount:        lotwCount,
 	}
 }
 

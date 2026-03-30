@@ -41,21 +41,21 @@ general:
   telnetserver: true # not in use for now
   flexradiospot: true
   sendFreqModeToLog4OM: false # if not using a Flex then turn this on to send Freq and Mode to Log4OM which should in turn change the freq on the radio
-  # Spot colors, if empty then default, colors in HEX AARRGGBB format
-  spot_color_new_entity:
-  background_color_new_entity:
-  spot_color_new_band:
-  background_color_new_band:
-  spot_color_new_mode:
-  background_color_new_mode:
-  spot_color_new_band_mode:
-  background_color_new_band_mode:
-  spot_color_new_slot:
-  background_color_new_slot:
-  spot_color_my_callsign:
-  background_color_my_callsign:
-  spot_color_worked:
-  background_color_worked:
+  # Spot colors — HEX AARRGGBB format (leave empty to use defaults)
+  spot_color_new_entity: "#ff3bf908"         # green text
+  background_color_new_entity: "#ff000000"   # black bg
+  spot_color_new_band: "#fff9f508"           # yellow text
+  background_color_new_band: "#ff000000"     # black bg
+  spot_color_new_mode: "#fff9a908"           # orange text
+  background_color_new_mode: "#ff000000"     # black bg
+  spot_color_new_band_mode: "#ffc603fc"      # purple text
+  background_color_new_band_mode: "#ff000000" # black bg
+  spot_color_new_slot: "#ff91d2ff"           # light blue text
+  background_color_new_slot: "#ff000000"     # black bg
+  spot_color_my_callsign: "#ffff0000"        # red text
+  background_color_my_callsign: "#ff000000"  # black bg
+  spot_color_worked: "#ffffffff"             # white text
+  background_color_worked: "#ff00c0c0"       # cyan bg
 database:
   mysql: false #only one of the two can be true
   sqlite: true

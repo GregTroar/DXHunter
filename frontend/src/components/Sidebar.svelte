@@ -28,6 +28,10 @@
   function handleToast(event) {
     dispatch('toast', event.detail);
   }
+
+  function handleOpenDXInfo(event) {
+    dispatch('openDXInfo', event.detail);
+  }
   
   function handleClearLogs() {
     dispatch('clearLogs');
@@ -37,7 +41,7 @@
 <div class="bg-slate-800/50 backdrop-blur rounded-lg border border-slate-700/50 flex flex-col h-full" style="height: 100%; max-height: 100%;">
   <!-- Tabs Header -->
   <div class="flex border-b border-slate-700/50 bg-slate-900/30 flex-shrink-0">
-    <button 
+    <button
       class="px-4 py-2 text-sm font-semibold transition-colors {activeTab === 'activations' ? 'bg-blue-500/20 text-blue-400 border-b-2 border-blue-500' : 'text-slate-400 hover:text-slate-300'}"
       on:click={() => activeTab = 'activations'}>
       <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -99,6 +103,7 @@
         {contestPrefix}
         {contestCallsigns}
         on:toast={handleToast}
+        on:openDXInfo={handleOpenDXInfo}
       />
     {:else if activeTab === 'log'}
       <LogTab 

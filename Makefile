@@ -42,7 +42,7 @@ frontend:
 	@echo "Frontend built successfully"
 
 ## backend: Build le backend Go
-backend: frontend
+backend:
 	@echo "Building Go binary..."
 	set CGO_ENABLED=1 && go build -ldflags -H=windowsgui .
 	@echo "Backend built successfully"

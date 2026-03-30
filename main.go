@@ -153,6 +153,9 @@ func main() {
 	HTTPServer := NewHTTPServer(fRepo, cRepo, TCPServer, TCPClients, FlexClient, "8080", cfgPath, consoleChan)
 	InitLogHook()
 	log.Info("Running FlexDXCluster version 2.1")
+
+	// Download LoTW user list in background
+	go LoadLoTWUsers()
 	log.Infof("Callsign: %s", Cfg.General.Callsign)
 
 	if Cfg.General.ContestMode {

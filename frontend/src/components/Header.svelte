@@ -144,7 +144,19 @@
       </span>
     {/if}
 
-    <button 
+    {#if stats.lotwReady}
+      <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-teal-500/20 text-teal-400" title="LoTW users loaded: {stats.lotwCount?.toLocaleString()}">
+        <span class="w-1.5 h-1.5 bg-teal-500 rounded-full"></span>
+        LoTW
+      </span>
+    {:else}
+      <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-600/30 text-slate-500" title="LoTW user list loading...">
+        <span class="w-1.5 h-1.5 bg-slate-500 rounded-full animate-pulse"></span>
+        LoTW
+      </span>
+    {/if}
+
+    <button
       on:click={updateCty}
       disabled={ctyUpdating}
       title="Update cty.plist from country-files.com"

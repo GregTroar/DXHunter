@@ -47,6 +47,7 @@ type FlexSpot struct {
 	SOTARef         string // ex: "F/AB-123"
 	ParkName        string // Nom complet du parc POTA
 	SummitName      string // Nom complet du sommet SOTA
+	LoTWUser        bool   // not persisted in DB, enriched at broadcast time
 }
 
 type Discovery struct {

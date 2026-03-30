@@ -296,7 +296,15 @@ func (r *Log4OMContactsRepository) ListByCountryBand(countryID string, band stri
 
 func (r *Log4OMContactsRepository) ListByCallSign(callSign string, band string, mode string, contactsCallChan chan []Contact, wg *sync.WaitGroup) {
 	defer wg.Done()
-	rows, err := r.db.Query("SELECT callsign, band, mode, dxcc, stationcallsign, country FROM log WHERE callsign = ? AND band = ? AND mode = ?", callSign, band, mode)
+
+	modeCondition, modeParams := buildSSBModeCondition(mode)
+	query := fmt.Sprintf(
+		"SELECT callsign, band, mode, dxcc, stationcallsign, country FROM log WHERE callsign = ? AND band = ? AND %s",
+		modeCondition,
+	)
+	args := []interface{}{callSign, band}
+	args = append(args, modeParams...)
+	rows, err := r.db.Query(query, args...)
 	if err != nil {
 		r.Log.Error(err)
 	}
@@ -511,6 +519,63 @@ func (r *Log4OMContactsRepository) GetWorkedCallsignsBandModeToday(callsigns []s
 	return result
 }
 
+type CallsignQSOEntry struct {
+	Band  string `json:"band"`
+	Mode  string `json:"mode"`
+	Count int    `json:"count"`
+}
+
+type CallsignBandModeInfo struct {
+	Callsign  string              `json:"callsign"`
+	Country   string              `json:"country"`
+	DXCC      string              `json:"dxcc"`
+	TotalQSOs int                 `json:"totalQSOs"`
+	FirstQSO  string              `json:"firstQSO"`
+	LastQSO   string              `json:"lastQSO"`
+	BandModes []CallsignQSOEntry  `json:"bandModes"`
+}
+
+func (r *Log4OMContactsRepository) GetCallsignBandModes(callsign string) CallsignBandModeInfo {
+	info := CallsignBandModeInfo{Callsign: strings.ToUpper(callsign)}
+
+	rows, err := r.db.Query(`
+		SELECT band, mode, COUNT(*) as cnt,
+		       MIN(qsodate) as first_qso, MAX(qsodate) as last_qso,
+		       COALESCE(country, '') as country, COALESCE(dxcc, '') as dxcc
+		FROM log
+		WHERE callsign = ?
+		GROUP BY band, mode
+		ORDER BY band, mode
+	`, strings.ToUpper(callsign))
+	if err != nil {
+		r.Log.Errorf("GetCallsignBandModes %s: %v", callsign, err)
+		return info
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var q CallsignQSOEntry
+		var firstQSO, lastQSO, country, dxcc string
+		if err := rows.Scan(&q.Band, &q.Mode, &q.Count, &firstQSO, &lastQSO, &country, &dxcc); err != nil {
+			continue
+		}
+		info.BandModes = append(info.BandModes, q)
+		info.TotalQSOs += q.Count
+		if info.FirstQSO == "" || firstQSO < info.FirstQSO {
+			info.FirstQSO = firstQSO
+		}
+		if lastQSO > info.LastQSO {
+			info.LastQSO = lastQSO
+		}
+		if info.Country == "" {
+			info.Country = country
+			info.DXCC = dxcc
+		}
+	}
+
+	return info
+}
+
 // Garder aussi l'ancienne méthode pour compatibilité (optionnel)
 func (r *Log4OMContactsRepository) HasWorkedCallsignBandMode(callsign, band, mode string) bool {
 	result := r.GetWorkedCallsignsBandMode([]string{callsign}, band, mode)
@@ -520,6 +585,30 @@ func (r *Log4OMContactsRepository) HasWorkedCallsignBandMode(callsign, band, mod
 //
 // Flex from now on
 //
+
+func (r *FlexDXClusterRepository) GetSpotsByCallsign(callsign string, limit int) []FlexSpot {
+	query := fmt.Sprintf(
+		"SELECT * FROM spots WHERE dx = ? ORDER BY id DESC LIMIT %d", limit,
+	)
+	rows, err := r.db.Query(query, strings.ToUpper(callsign))
+	if err != nil {
+		r.Log.Errorf("GetSpotsByCallsign %s: %v", callsign, err)
+		return nil
+	}
+	defer rows.Close()
+
+	var spots []FlexSpot
+	for rows.Next() {
+		s := FlexSpot{}
+		if err := rows.Scan(&s.ID, &s.CommandNumber, &s.FlexSpotNumber, &s.DX, &s.FrequencyMhz, &s.FrequencyHz, &s.Band, &s.Mode, &s.SpotterCallsign, &s.FlexMode, &s.Source, &s.UTCTime, &s.TimeStamp, &s.LifeTime, &s.Priority,
+			&s.OriginalComment, &s.Comment, &s.Color, &s.BackgroundColor, &s.CountryName, &s.DXCC, &s.NewDXCC, &s.NewBand, &s.NewMode, &s.NewSlot, &s.Worked, &s.ClusterName, &s.POTARef, &s.SOTARef, &s.ParkName, &s.SummitName); err != nil {
+			r.Log.Errorf("GetSpotsByCallsign scan: %v", err)
+			continue
+		}
+		spots = append(spots, s)
+	}
+	return spots
+}
 
 func (r *FlexDXClusterRepository) GetAllSpots(limit string) []FlexSpot {
 

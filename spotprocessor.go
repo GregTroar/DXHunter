@@ -106,7 +106,7 @@ func (sp *SpotProcessor) processSpot(spot TelnetSpot) {
 	}
 
 	flexSpot.OriginalComment = spot.Comment
-	flexSpot.Comment = flexSpot.Comment + " [" + flexSpot.Mode + "] [" + flexSpot.SpotterCallsign + "] [" + flexSpot.CountryName + "]"
+	flexSpot.Comment = flexSpot.Comment + " [" + flexSpot.SpotterCallsign + "] [" + flexSpot.CountryName + "]"
 
 	// Check if this spot is in the watchlist
 	isInWatchlist := false
@@ -221,12 +221,12 @@ func (sp *SpotProcessor) applySpotColors(flexSpot *FlexSpot, spot TelnetSpot) {
 			flexSpot.Color = Cfg.General.SpotColorWorked
 			flexSpot.BackgroundColor = Cfg.General.BackgroundColorWorked
 		} else {
-			flexSpot.Color = "#ff000000"
+			flexSpot.Color = "#ffffffff"
 			flexSpot.BackgroundColor = "#ff00c0c0"
 		}
 	} else if spot.NewMode && spot.NewBand {
 		flexSpot.Priority = "1"
-		flexSpot.Comment = flexSpot.Comment + " [New Band & Mode]"
+		flexSpot.Comment = flexSpot.Comment + " [New B&M]"
 		if Cfg.General.SpotColorNewBandMode != "" {
 			flexSpot.Color = Cfg.General.SpotColorNewBandMode
 			flexSpot.BackgroundColor = Cfg.General.BackgroundColorNewBandMode
@@ -245,15 +245,25 @@ func (sp *SpotProcessor) applySpotColors(flexSpot *FlexSpot, spot TelnetSpot) {
 			flexSpot.BackgroundColor = "#ff000000"
 		}
 	} else if spot.NewBand && !spot.NewMode {
-		flexSpot.Color = "#fff9f508"
 		flexSpot.Priority = "1"
-		flexSpot.BackgroundColor = "#ff000000"
 		flexSpot.Comment = flexSpot.Comment + " [New Band]"
+		if Cfg.General.SpotColorNewBand != "" {
+			flexSpot.Color = Cfg.General.SpotColorNewBand
+			flexSpot.BackgroundColor = Cfg.General.BackgroundColorNewBand
+		} else {
+			flexSpot.Color = "#fff9f508"
+			flexSpot.BackgroundColor = "#ff000000"
+		}
 	} else if !spot.NewBand && !spot.NewMode && !spot.NewDXCC && !spot.CallsignWorked && spot.NewSlot {
-		flexSpot.Color = "#ff91d2ff"
 		flexSpot.Priority = "2"
-		flexSpot.BackgroundColor = "#ff000000"
 		flexSpot.Comment = flexSpot.Comment + " [New Slot]"
+		if Cfg.General.SpotColorNewSlot != "" {
+			flexSpot.Color = Cfg.General.SpotColorNewSlot
+			flexSpot.BackgroundColor = Cfg.General.BackgroundColorNewSlot
+		} else {
+			flexSpot.Color = "#ff91d2ff"
+			flexSpot.BackgroundColor = "#ff000000"
+		}
 	}
 }
 
