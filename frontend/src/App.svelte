@@ -36,7 +36,7 @@
   let activations = [];
   let solarData = { sfi: 'N/A', sunspots: 'N/A', aIndex: 'N/A', kIndex: 'N/A' };
   
-  let activeTab = 'activations';
+  let activeTab = 'watchlist';
   let showOnlyActive = true;
   let showOnlyNotWorked = true;
   let wsStatus = 'disconnected';
@@ -89,7 +89,6 @@
   let isShuttingDown = false;
   let filterTimeout;
   let isFiltering = false;
-  let cacheLoaded = false;
   let notifiedSpots = new Set();
 
   $: {
@@ -551,7 +550,6 @@ function applyFilters(allSpots, filters, wl) {
       type: 'telnetCommand',
       data: { command, clusterName: clusterName || '' }
     }));
-    showToast(`📡 Sent: ${command}${clusterName ? ` → ${clusterName}` : ''}`, 'radio');
   }
 
   function showToast(message, type = 'info', duration = 8000) {
@@ -680,8 +678,6 @@ async function shutdownApp() {
       const cachedSpots = await spotCache.getSpots();
       if (cachedSpots.length > 0) {
         spots = cachedSpots;
-        cacheLoaded = true;
-        console.log('📦 Loaded data from cache');
       }
 
       window.addEventListener('loadWatchlistSpots', () => {
@@ -772,14 +768,11 @@ async function shutdownApp() {
     {/each}
   </div>
   
-  <Header 
-    {stats} 
-    {solarData} 
-    {wsStatus} 
-    {cacheLoaded}
+  <Header
+    {stats}
+    {solarData}
+    {wsStatus}
     on:shutdown={shutdownApp}
-    on:ctyUpdate={(e) => showToast(e.detail.success ? `✅ CTY updated: ${e.detail.message}` : `❌ CTY update failed: ${e.detail.message}`, e.detail.success ? 'success' : 'error', 10000)}
-    on:clusterFilter={(e) => updateClusterFilter(e.detail.name, e.detail.value)}
   />
 
   <StatsCards

@@ -210,6 +210,23 @@ func main() {
 	// Start ADXO activations refresher
 	StartADXORefresher(HTTPServer.broadcast, HTTPServer.Watchlist)
 
+	// Bridge telnet client commands → master cluster TCPClient
+	// Commands arriving from external telnet clients (TCPServer.CmdChan) are forwarded
+	// to the master cluster connection so they reach the DX cluster.
+	go func() {
+		for cmd := range TCPServer.CmdChan {
+			master := HTTPServer.MasterClient()
+			if master != nil {
+				select {
+				case master.CmdChan <- cmd:
+					log.Debugf("Bridged telnet command to master cluster: %s", cmd)
+				default:
+					log.Warn("Master cluster CmdChan full, dropping bridged command")
+				}
+			}
+		}
+	}()
+
 	// Start all services
 	go FlexClient.StartFlexClient()
 	for _, client := range TCPClients {

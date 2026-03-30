@@ -49,8 +49,8 @@
     info = null;
     try {
       const [bmRes, spotsRes] = await Promise.all([
-        fetch(`/api/callsign/${encodeURIComponent(call.toUpperCase())}/band-modes`),
-        fetch(`/api/callsign/${encodeURIComponent(call.toUpperCase())}/spots`),
+        fetch(`/api/callsign/band-modes?call=${encodeURIComponent(call.toUpperCase())}`),
+        fetch(`/api/callsign/spots?call=${encodeURIComponent(call.toUpperCase())}`),
       ]);
       const bmJson = await bmRes.json();
       const spotsJson = await spotsRes.json();

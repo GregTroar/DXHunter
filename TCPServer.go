@@ -42,7 +42,7 @@ func NewTCPServer(address string, port string) *TCPServer {
 		Port:    port,
 		Clients: make(map[net.Conn]*ClientInfo),
 		MsgChan: make(chan string, 2000), // Buffer large pour ne jamais bloquer la lecture telnet
-		CmdChan: make(chan string),
+		CmdChan: make(chan string, 50),
 		Mutex:   new(sync.Mutex),
 	}
 }

@@ -190,12 +190,13 @@ func (s *HTTPServer) setupRoutes() {
 	// Actions
 	api.HandleFunc("/filters", s.updateFilters).Methods("POST", "OPTIONS")
 	api.HandleFunc("/send-callsign", s.handleSendCallsign).Methods("POST", "OPTIONS")
+	api.HandleFunc("/tune", s.handleTuneFromToast).Methods("GET", "OPTIONS")
 	api.HandleFunc("/contest/toggle", s.toggleContestMode).Methods("POST", "OPTIONS")
 	api.HandleFunc("/shutdown", s.shutdownApp).Methods("POST", "OPTIONS")
 
-	// Callsign DX info
-	api.HandleFunc("/callsign/{callsign}/band-modes", s.getCallsignBandModes).Methods("GET", "OPTIONS")
-	api.HandleFunc("/callsign/{callsign}/spots", s.getCallsignSpots).Methods("GET", "OPTIONS")
+	// Callsign DX info (query param to handle callsigns with slash e.g. V4/SP9FIH)
+	api.HandleFunc("/callsign/band-modes", s.getCallsignBandModes).Methods("GET", "OPTIONS")
+	api.HandleFunc("/callsign/spots", s.getCallsignSpots).Methods("GET", "OPTIONS")
 
 	// External data
 	api.HandleFunc("/solar", s.HandleSolarData).Methods("GET", "OPTIONS")
@@ -520,6 +521,15 @@ func (s *HTTPServer) handleBroadcasts() {
 	}
 }
 
+// enrichedSpots returns all spots with LoTWUser populated.
+func (s *HTTPServer) enrichedSpots() []FlexSpot {
+	spots := s.FlexRepo.GetAllSpots("0")
+	for i := range spots {
+		spots[i].LoTWUser = IsLoTWUser(spots[i].DX)
+	}
+	return spots
+}
+
 func (s *HTTPServer) broadcastUpdates() {
 	statsTicker := time.NewTicker(1 * time.Second)
 	logTicker := time.NewTicker(5 * time.Second)
@@ -551,11 +561,8 @@ func (s *HTTPServer) broadcastUpdates() {
 			}
 
 			// ✅ Spots avec timeout
-			spots := s.FlexRepo.GetAllSpots("0")
+			spots := s.enrichedSpots()
 			if len(spots) > 0 {
-				for i := range spots {
-					spots[i].LoTWUser = IsLoTWUser(spots[i].DX)
-				}
 				s.checkBandOpening(spots)
 				spotsMsg := WSMessage{Type: "spots", Data: spots}
 				select {
@@ -750,8 +757,11 @@ func (s *HTTPServer) getLogStats(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *HTTPServer) getCallsignSpots(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	callsign := strings.ToUpper(vars["callsign"])
+	callsign := strings.ToUpper(strings.TrimSpace(r.URL.Query().Get("call")))
+	if callsign == "" {
+		s.sendError(w, "missing call parameter")
+		return
+	}
 	spots := s.FlexRepo.GetSpotsByCallsign(callsign, 10)
 	if spots == nil {
 		spots = []FlexSpot{}
@@ -764,8 +774,11 @@ func (s *HTTPServer) getCallsignBandModes(w http.ResponseWriter, r *http.Request
 		s.sendError(w, "Log4OM database not configured")
 		return
 	}
-	vars := mux.Vars(r)
-	callsign := strings.ToUpper(vars["callsign"])
+	callsign := strings.ToUpper(strings.TrimSpace(r.URL.Query().Get("call")))
+	if callsign == "" {
+		s.sendError(w, "missing call parameter")
+		return
+	}
 	info := s.ContactRepo.GetCallsignBandModes(callsign)
 	s.sendSuccess(w, info, "")
 }
@@ -1082,6 +1095,31 @@ func (s *HTTPServer) handleSendCallsign(w http.ResponseWriter, r *http.Request) 
 		"callsign":  req.Callsign,
 		"frequency": req.Frequency,
 	}, "Callsign sent to Log4OM and radio tuned")
+}
+
+// handleTuneFromToast is called when the user clicks a Windows toast notification.
+// It tunes the radio to the spot frequency, identical to clicking a spot in the UI.
+func (s *HTTPServer) handleTuneFromToast(w http.ResponseWriter, r *http.Request) {
+	q := r.URL.Query()
+	callsign := strings.ToUpper(strings.TrimSpace(q.Get("callsign")))
+	frequency := strings.TrimSpace(q.Get("freq"))
+	mode := strings.ToUpper(strings.TrimSpace(q.Get("mode")))
+
+	if callsign != "" {
+		SendUDPMessage([]byte("<CALLSIGN>" + callsign))
+		s.Log.Debugf("Toast click: sent callsign %s to Log4OM", callsign)
+	}
+
+	if frequency != "" {
+		if Cfg.General.SendFreqModeToLog {
+			s.sendFreqModeToLog4OM(frequency, mode)
+		} else if s.isFlexConnected() {
+			s.tuneFlexRadio(frequency, mode)
+		}
+	}
+
+	// Redirect to the dashboard so the browser opens/focuses on it
+	http.Redirect(w, r, "/", http.StatusFound)
 }
 
 func (s *HTTPServer) sendFreqModeToLog4OM(frequency, mode string) {

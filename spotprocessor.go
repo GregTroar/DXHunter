@@ -273,7 +273,7 @@ func (sp *SpotProcessor) handleSpotStorage(flexSpot FlexSpot, srcFlexSpot *FlexS
 		sp.FlexRepo.CreateSpot(flexSpot)
 		CommandNumber++
 		if sp.HTTPServer != nil {
-			sp.HTTPServer.broadcast <- WSMessage{Type: "spots", Data: sp.FlexRepo.GetAllSpots("0")}
+			sp.HTTPServer.broadcast <- WSMessage{Type: "spots", Data: sp.HTTPServer.enrichedSpots()}
 		}
 	} else if srcFlexSpot.Band == flexSpot.Band {
 		// Remove old spot from watchlist tracking before deleting
@@ -442,7 +442,7 @@ func (sp *SpotProcessor) performCleanup() {
 		if sp.HTTPServer != nil {
 			sp.HTTPServer.broadcast <- WSMessage{
 				Type: "spots",
-				Data: sp.FlexRepo.GetAllSpots("0"),
+				Data: sp.HTTPServer.enrichedSpots(),
 			}
 		}
 	}

@@ -147,12 +147,17 @@
     <VirtualList items={sortedSpots} {itemHeight} let:item>
       <div class="flex border-b border-slate-700/30 hover:bg-slate-700/30 transition-colors text-sm" style="height: {itemHeight}px;">
         <div class="p-2 flex items-center gap-1" style="width: 10%;">
-          <button
-            class="font-bold text-slate-200 hover:text-white transition-colors truncate text-left flex-1"
-            on:click={() => handleSpotClick(item)}
-            title="Click to send to Log4OM and tune radio">
-            {item.DX}
-          </button>
+          <div class="flex-1 flex items-center gap-0.5 min-w-0">
+            <button
+              class="font-bold text-slate-200 hover:text-white transition-colors truncate text-left"
+              on:click={() => handleSpotClick(item)}
+              title="Click to send to Log4OM and tune radio">
+              {item.DX}
+            </button>
+            {#if item.LoTWUser}
+              <span class="px-1 py-0.5 rounded text-teal-400 border border-teal-500/40 flex-shrink-0" style="font-size: 0.6rem; line-height: 1;">LoTW</span>
+            {/if}
+          </div>
           <button
             class="text-slate-500 hover:text-blue-400 transition-colors flex-shrink-0"
             on:click={(e) => handleOpenDXInfo(e, item)}
@@ -185,9 +190,6 @@
               {badge.label}
             </span>
           {/each}
-          {#if item.LoTWUser}
-            <span class="px-1 py-0.5 rounded text-xs font-bold bg-teal-500/20 text-teal-400 border border-teal-500/40 whitespace-nowrap" title="LoTW user">LoTW</span>
-          {/if}
         </div>
         <div class="p-2 flex items-center" style="width: 8%;">
           <span class="px-1.5 py-0.5 bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 rounded text-xs truncate" title={item.ClusterName}>
