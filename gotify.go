@@ -6,6 +6,17 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"sync"
+	"time"
+
+	toast "gopkg.in/toast.v1"
+)
+
+// toastThrottle évite les notifications répétées pour le même callsign
+var (
+	toastLastSent = make(map[string]time.Time)
+	toastMutex    sync.Mutex
+	toastCooldown = 5 * time.Minute
 )
 
 type GotifyMessage struct {
@@ -96,5 +107,42 @@ func sendToGotify(mess GotifyMessage) {
 		Log.Errorln("Gotify server returned non-OK status:", resp.Status)
 	} else {
 		Log.Debugln("Push successfully sent to Gotify")
+	}
+}
+
+// WindowsToast envoie une notification Windows native (toast)
+// Uniquement pour les callsigns de la watchlist avec notifications activées
+// Un cooldown de 5 minutes évite les notifications répétées pour le même callsign
+func WindowsToast(spot FlexSpot) {
+	// Throttle — un seul toast par callsign toutes les 5 minutes
+	toastMutex.Lock()
+	last, seen := toastLastSent[spot.DX]
+	if seen && time.Since(last) < toastCooldown {
+		toastMutex.Unlock()
+		Log.Debugf("Windows toast throttled for %s (cooldown)", spot.DX)
+		return
+	}
+	toastLastSent[spot.DX] = time.Now()
+	toastMutex.Unlock()
+
+	freq := spot.FrequencyMhz
+	if freq == "" {
+		freq = "?"
+	}
+
+	title := fmt.Sprintf("FlexDXCluster - %s (%s)", spot.DX, spot.CountryName)
+	msg := fmt.Sprintf("Freq: %s  Mode: %s\nSpotter: %s  Time: %s", freq, spot.Mode, spot.SpotterCallsign, spot.UTCTime)
+
+	notification := toast.Notification{
+		AppID:   "FlexDXCluster",
+		Title:   title,
+		Message: msg,
+		Audio:   toast.Default,
+	}
+
+	if err := notification.Push(); err != nil {
+		Log.Warnf("Windows toast failed for %s: %v", spot.DX, err)
+	} else {
+		Log.Infof("Windows toast sent for %s", spot.DX)
 	}
 }

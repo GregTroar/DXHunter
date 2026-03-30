@@ -137,6 +137,7 @@ type Config struct {
 		NewMode        bool   `yaml:"NewMode"`
 		NewBandAndMode bool   `yaml:"NewBandAndMode"`
 		WatchList      bool   `yaml:"Watchlist"`
+		WindowsNotify  bool   `yaml:"windows_notify"`
 	} `yaml:"gotify"`
 }
 

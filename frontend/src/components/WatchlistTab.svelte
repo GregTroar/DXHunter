@@ -606,12 +606,12 @@ function getDisplayList(wl, wlSpots, activeOnly, onlyNotWorked, modeFilter) {
                   {#if entry.clubLogHasOQRS}
                     <span class="px-1 py-0.5 bg-green-600/20 text-green-400 rounded text-xs" title="OQRS available">OQRS</span>
                   {/if}
-                  {#if entry.clubLogLiveStream}
-                    <a href="https://clublog.org/livestream/{entry.callsign}" target="_blank"
-                       class="px-1 py-0.5 bg-blue-600/20 text-blue-400 rounded text-xs hover:bg-blue-600/40" title="View ClubLog LiveStream">
-                      Live
-                    </a>
-                  {/if}
+                {/if}
+                {#if entry.clubLogLiveStream}
+                  <a href="https://clublog.org/livestream/{entry.callsign}" target="_blank"
+                     class="px-1 py-0.5 bg-blue-600/20 text-blue-400 rounded text-xs hover:bg-blue-600/40" title="View ClubLog LiveStream">
+                    Live
+                  </a>
                 {/if}
                 
                   {#if neededCount > 0}

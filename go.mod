@@ -19,9 +19,11 @@ require (
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.16 // indirect
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d // indirect
+	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d // indirect
 	github.com/onsi/ginkgo v1.16.5 // indirect
 	github.com/onsi/gomega v1.35.1 // indirect
 	golang.org/x/crypto v0.27.0 // indirect
 	golang.org/x/sys v0.26.0 // indirect
 	golang.org/x/term v0.24.0 // indirect
+	gopkg.in/toast.v1 v1.0.0-20180812000517-0a84660828b2 // indirect
 )

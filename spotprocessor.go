@@ -309,6 +309,11 @@ func (sp *SpotProcessor) sendToFlexRadio(flexSpot FlexSpot, srcFlexSpot *FlexSpo
 }
 
 func (sp *SpotProcessor) sendGotifyNotification(flexSpot FlexSpot) {
+	// Windows toast — indépendant de Gotify enable
+	if Cfg.Gotify.WindowsNotify && flexSpot.InWatchlist && !flexSpot.Worked && flexSpot.WatchlistNotify {
+		WindowsToast(flexSpot)
+	}
+
 	if !Cfg.Gotify.Enable {
 		return
 	}

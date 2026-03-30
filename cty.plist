@@ -968,6 +968,29 @@
   <key>ExactCallsign</key>
   <true/>
   </dict>
+<key>VERSION</key>
+  <dict>
+  <key>Country</key>
+  <string>ITU HQ</string>
+  <key>Prefix</key>
+  <string>4U1I</string>
+  <key>ADIF</key>
+  <integer>117</integer>
+  <key>CQZone</key>
+  <integer>14</integer>
+  <key>ITUZone</key>
+  <integer>28</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.17</real>
+  <key>Longitude</key>
+  <real>-6.05</real>
+  <key>GMTOffset</key>
+  <real>-1.0</real>
+  <key>ExactCallsign</key>
+  <true/>
+  </dict>
 <key>4U1UN</key>
   <dict>
   <key>Country</key>
@@ -133379,52 +133402,6 @@
   <key>ExactCallsign</key>
   <true/>
   </dict>
-<key>KC4USV</key>
-  <dict>
-  <key>Country</key>
-  <string>Antarctica</string>
-  <key>Prefix</key>
-  <string>CE9</string>
-  <key>ADIF</key>
-  <integer>13</integer>
-  <key>CQZone</key>
-  <integer>30</integer>
-  <key>ITUZone</key>
-  <integer>71</integer>
-  <key>Continent</key>
-  <string>SA</string>
-  <key>Latitude</key>
-  <real>-77.83</real>
-  <key>Longitude</key>
-  <real>-166.67</real>
-  <key>GMTOffset</key>
-  <real>0.0</real>
-  <key>ExactCallsign</key>
-  <true/>
-  </dict>
-<key>WE9G/KC4</key>
-  <dict>
-  <key>Country</key>
-  <string>Antarctica</string>
-  <key>Prefix</key>
-  <string>CE9</string>
-  <key>ADIF</key>
-  <integer>13</integer>
-  <key>CQZone</key>
-  <integer>13</integer>
-  <key>ITUZone</key>
-  <integer>73</integer>
-  <key>Continent</key>
-  <string>SA</string>
-  <key>Latitude</key>
-  <real>-64.77</real>
-  <key>Longitude</key>
-  <real>64.05</real>
-  <key>GMTOffset</key>
-  <real>0.0</real>
-  <key>ExactCallsign</key>
-  <true/>
-  </dict>
 <key>ZS7</key>
   <dict>
   <key>Country</key>
@@ -154240,29 +154217,6 @@
   <key>ExactCallsign</key>
   <false/>
   </dict>
-<key>AM65KZ</key>
-  <dict>
-  <key>Country</key>
-  <string>Spain</string>
-  <key>Prefix</key>
-  <string>EA</string>
-  <key>ADIF</key>
-  <integer>281</integer>
-  <key>CQZone</key>
-  <integer>14</integer>
-  <key>ITUZone</key>
-  <integer>37</integer>
-  <key>Continent</key>
-  <string>EU</string>
-  <key>Latitude</key>
-  <real>37.25</real>
-  <key>Longitude</key>
-  <real>4.68</real>
-  <key>GMTOffset</key>
-  <real>-1.0</real>
-  <key>ExactCallsign</key>
-  <true/>
-  </dict>
 <key>EA8JR</key>
   <dict>
   <key>Country</key>
@@ -154860,6 +154814,29 @@
   <real>0.0</real>
   <key>ExactCallsign</key>
   <false/>
+  </dict>
+<key>EG2MKO</key>
+  <dict>
+  <key>Country</key>
+  <string>Canary Islands</string>
+  <key>Prefix</key>
+  <string>EA8</string>
+  <key>ADIF</key>
+  <integer>29</integer>
+  <key>CQZone</key>
+  <integer>33</integer>
+  <key>ITUZone</key>
+  <integer>36</integer>
+  <key>Continent</key>
+  <string>AF</string>
+  <key>Latitude</key>
+  <real>28.15</real>
+  <key>Longitude</key>
+  <real>15.42</real>
+  <key>GMTOffset</key>
+  <real>0.0</real>
+  <key>ExactCallsign</key>
+  <true/>
   </dict>
 <key>AM9</key>
   <dict>
@@ -159645,6 +159622,29 @@
   <key>ExactCallsign</key>
   <false/>
   </dict>
+<key>GB0SPD</key>
+  <dict>
+  <key>Country</key>
+  <string>Northern Ireland</string>
+  <key>Prefix</key>
+  <string>GI</string>
+  <key>ADIF</key>
+  <integer>265</integer>
+  <key>CQZone</key>
+  <integer>14</integer>
+  <key>ITUZone</key>
+  <integer>27</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>54.73</real>
+  <key>Longitude</key>
+  <real>6.68</real>
+  <key>GMTOffset</key>
+  <real>0.0</real>
+  <key>ExactCallsign</key>
+  <true/>
+  </dict>
 <key>GB4SPD</key>
   <dict>
   <key>Country</key>
@@ -159668,7 +159668,53 @@
   <key>ExactCallsign</key>
   <true/>
   </dict>
+<key>GB5PAT</key>
+  <dict>
+  <key>Country</key>
+  <string>Northern Ireland</string>
+  <key>Prefix</key>
+  <string>GI</string>
+  <key>ADIF</key>
+  <integer>265</integer>
+  <key>CQZone</key>
+  <integer>14</integer>
+  <key>ITUZone</key>
+  <integer>27</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>54.73</real>
+  <key>Longitude</key>
+  <real>6.68</real>
+  <key>GMTOffset</key>
+  <real>0.0</real>
+  <key>ExactCallsign</key>
+  <true/>
+  </dict>
 <key>GB6SPD</key>
+  <dict>
+  <key>Country</key>
+  <string>Northern Ireland</string>
+  <key>Prefix</key>
+  <string>GI</string>
+  <key>ADIF</key>
+  <integer>265</integer>
+  <key>CQZone</key>
+  <integer>14</integer>
+  <key>ITUZone</key>
+  <integer>27</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>54.73</real>
+  <key>Longitude</key>
+  <real>6.68</real>
+  <key>GMTOffset</key>
+  <real>0.0</real>
+  <key>ExactCallsign</key>
+  <true/>
+  </dict>
+<key>GB9SPD</key>
   <dict>
   <key>Country</key>
   <string>Northern Ireland</string>
@@ -173122,6 +173168,29 @@
   <real>-9.0</real>
   <key>ExactCallsign</key>
   <false/>
+  </dict>
+<key>JD1BPS/1</key>
+  <dict>
+  <key>Country</key>
+  <string>Japan</string>
+  <key>Prefix</key>
+  <string>JA</string>
+  <key>ADIF</key>
+  <integer>339</integer>
+  <key>CQZone</key>
+  <integer>25</integer>
+  <key>ITUZone</key>
+  <integer>45</integer>
+  <key>Continent</key>
+  <string>AS</string>
+  <key>Latitude</key>
+  <real>35.68</real>
+  <key>Longitude</key>
+  <real>-139.68</real>
+  <key>GMTOffset</key>
+  <real>-9.0</real>
+  <key>ExactCallsign</key>
+  <true/>
   </dict>
 <key>8J2</key>
   <dict>
@@ -192714,29 +192783,6 @@
   <real>36.48</real>
   <key>Longitude</key>
   <real>76.12</real>
-  <key>GMTOffset</key>
-  <real>5.0</real>
-  <key>ExactCallsign</key>
-  <true/>
-  </dict>
-<key>AI5SM</key>
-  <dict>
-  <key>Country</key>
-  <string>United States</string>
-  <key>Prefix</key>
-  <string>K</string>
-  <key>ADIF</key>
-  <integer>291</integer>
-  <key>CQZone</key>
-  <integer>5</integer>
-  <key>ITUZone</key>
-  <integer>8</integer>
-  <key>Continent</key>
-  <string>NA</string>
-  <key>Latitude</key>
-  <real>35.10</real>
-  <key>Longitude</key>
-  <real>77.10</real>
   <key>GMTOffset</key>
   <real>5.0</real>
   <key>ExactCallsign</key>
@@ -240490,6 +240536,29 @@
   <key>ExactCallsign</key>
   <true/>
   </dict>
+<key>KK7FAU</key>
+  <dict>
+  <key>Country</key>
+  <string>Guam</string>
+  <key>Prefix</key>
+  <string>KH2</string>
+  <key>ADIF</key>
+  <integer>103</integer>
+  <key>CQZone</key>
+  <integer>27</integer>
+  <key>ITUZone</key>
+  <integer>64</integer>
+  <key>Continent</key>
+  <string>OC</string>
+  <key>Latitude</key>
+  <real>13.37</real>
+  <key>Longitude</key>
+  <real>-144.70</real>
+  <key>GMTOffset</key>
+  <real>-10.0</real>
+  <key>ExactCallsign</key>
+  <true/>
+  </dict>
 <key>AH3</key>
   <dict>
   <key>Country</key>
@@ -241663,29 +241732,6 @@
   <key>ExactCallsign</key>
   <true/>
   </dict>
-<key>KO4V</key>
-  <dict>
-  <key>Country</key>
-  <string>Hawaii</string>
-  <key>Prefix</key>
-  <string>KH6</string>
-  <key>ADIF</key>
-  <integer>110</integer>
-  <key>CQZone</key>
-  <integer>31</integer>
-  <key>ITUZone</key>
-  <integer>61</integer>
-  <key>Continent</key>
-  <string>OC</string>
-  <key>Latitude</key>
-  <real>21.12</real>
-  <key>Longitude</key>
-  <real>157.48</real>
-  <key>GMTOffset</key>
-  <real>10.0</real>
-  <key>ExactCallsign</key>
-  <true/>
-  </dict>
 <key>KT4GL</key>
   <dict>
   <key>Country</key>
@@ -241779,52 +241825,6 @@
   <true/>
   </dict>
 <key>N6KB</key>
-  <dict>
-  <key>Country</key>
-  <string>Hawaii</string>
-  <key>Prefix</key>
-  <string>KH6</string>
-  <key>ADIF</key>
-  <integer>110</integer>
-  <key>CQZone</key>
-  <integer>31</integer>
-  <key>ITUZone</key>
-  <integer>61</integer>
-  <key>Continent</key>
-  <string>OC</string>
-  <key>Latitude</key>
-  <real>21.12</real>
-  <key>Longitude</key>
-  <real>157.48</real>
-  <key>GMTOffset</key>
-  <real>10.0</real>
-  <key>ExactCallsign</key>
-  <true/>
-  </dict>
-<key>N6URO</key>
-  <dict>
-  <key>Country</key>
-  <string>Hawaii</string>
-  <key>Prefix</key>
-  <string>KH6</string>
-  <key>ADIF</key>
-  <integer>110</integer>
-  <key>CQZone</key>
-  <integer>31</integer>
-  <key>ITUZone</key>
-  <integer>61</integer>
-  <key>Continent</key>
-  <string>OC</string>
-  <key>Latitude</key>
-  <real>21.12</real>
-  <key>Longitude</key>
-  <real>157.48</real>
-  <key>GMTOffset</key>
-  <real>10.0</real>
-  <key>ExactCallsign</key>
-  <true/>
-  </dict>
-<key>N6UYY</key>
   <dict>
   <key>Country</key>
   <string>Hawaii</string>
@@ -242859,29 +242859,6 @@
   <key>ExactCallsign</key>
   <true/>
   </dict>
-<key>KE9EMU</key>
-  <dict>
-  <key>Country</key>
-  <string>Alaska</string>
-  <key>Prefix</key>
-  <string>KL</string>
-  <key>ADIF</key>
-  <integer>6</integer>
-  <key>CQZone</key>
-  <integer>1</integer>
-  <key>ITUZone</key>
-  <integer>1</integer>
-  <key>Continent</key>
-  <string>NA</string>
-  <key>Latitude</key>
-  <real>61.40</real>
-  <key>Longitude</key>
-  <real>148.87</real>
-  <key>GMTOffset</key>
-  <real>8.0</real>
-  <key>ExactCallsign</key>
-  <true/>
-  </dict>
 <key>KF7HGP</key>
   <dict>
   <key>Country</key>
@@ -242929,6 +242906,29 @@
   <true/>
   </dict>
 <key>KF8ENL</key>
+  <dict>
+  <key>Country</key>
+  <string>Alaska</string>
+  <key>Prefix</key>
+  <string>KL</string>
+  <key>ADIF</key>
+  <integer>6</integer>
+  <key>CQZone</key>
+  <integer>1</integer>
+  <key>ITUZone</key>
+  <integer>1</integer>
+  <key>Continent</key>
+  <string>NA</string>
+  <key>Latitude</key>
+  <real>61.40</real>
+  <key>Longitude</key>
+  <real>148.87</real>
+  <key>GMTOffset</key>
+  <real>8.0</real>
+  <key>ExactCallsign</key>
+  <true/>
+  </dict>
+<key>KG4HZF</key>
   <dict>
   <key>Country</key>
   <string>Alaska</string>
@@ -244033,6 +244033,29 @@
   <true/>
   </dict>
 <key>K4VIC</key>
+  <dict>
+  <key>Country</key>
+  <string>Puerto Rico</string>
+  <key>Prefix</key>
+  <string>KP4</string>
+  <key>ADIF</key>
+  <integer>202</integer>
+  <key>CQZone</key>
+  <integer>8</integer>
+  <key>ITUZone</key>
+  <integer>11</integer>
+  <key>Continent</key>
+  <string>NA</string>
+  <key>Latitude</key>
+  <real>18.18</real>
+  <key>Longitude</key>
+  <real>66.55</real>
+  <key>GMTOffset</key>
+  <real>4.0</real>
+  <key>ExactCallsign</key>
+  <true/>
+  </dict>
+<key>K4Z</key>
   <dict>
   <key>Country</key>
   <string>Puerto Rico</string>
@@ -267216,29 +267239,6 @@
   <key>ExactCallsign</key>
   <true/>
   </dict>
-<key>LU1VOF/D</key>
-  <dict>
-  <key>Country</key>
-  <string>Argentina</string>
-  <key>Prefix</key>
-  <string>LU</string>
-  <key>ADIF</key>
-  <integer>100</integer>
-  <key>CQZone</key>
-  <integer>13</integer>
-  <key>ITUZone</key>
-  <integer>14</integer>
-  <key>Continent</key>
-  <string>SA</string>
-  <key>Latitude</key>
-  <real>-33.70</real>
-  <key>Longitude</key>
-  <real>61.00</real>
-  <key>GMTOffset</key>
-  <real>3.0</real>
-  <key>ExactCallsign</key>
-  <true/>
-  </dict>
 <key>LU2DGI/D</key>
   <dict>
   <key>Country</key>
@@ -267378,29 +267378,6 @@
   <true/>
   </dict>
 <key>LU4ARU/D</key>
-  <dict>
-  <key>Country</key>
-  <string>Argentina</string>
-  <key>Prefix</key>
-  <string>LU</string>
-  <key>ADIF</key>
-  <integer>100</integer>
-  <key>CQZone</key>
-  <integer>13</integer>
-  <key>ITUZone</key>
-  <integer>14</integer>
-  <key>Continent</key>
-  <string>SA</string>
-  <key>Latitude</key>
-  <real>-33.70</real>
-  <key>Longitude</key>
-  <real>61.00</real>
-  <key>GMTOffset</key>
-  <real>3.0</real>
-  <key>ExactCallsign</key>
-  <true/>
-  </dict>
-<key>LU4DQ/D</key>
   <dict>
   <key>Country</key>
   <string>Argentina</string>
@@ -267653,29 +267630,6 @@
   <key>ExactCallsign</key>
   <true/>
   </dict>
-<key>LU9DEW/D</key>
-  <dict>
-  <key>Country</key>
-  <string>Argentina</string>
-  <key>Prefix</key>
-  <string>LU</string>
-  <key>ADIF</key>
-  <integer>100</integer>
-  <key>CQZone</key>
-  <integer>13</integer>
-  <key>ITUZone</key>
-  <integer>14</integer>
-  <key>Continent</key>
-  <string>SA</string>
-  <key>Latitude</key>
-  <real>-33.70</real>
-  <key>Longitude</key>
-  <real>61.00</real>
-  <key>GMTOffset</key>
-  <real>3.0</real>
-  <key>ExactCallsign</key>
-  <true/>
-  </dict>
 <key>LU9EHB/D</key>
   <dict>
   <key>Country</key>
@@ -267699,53 +267653,7 @@
   <key>ExactCallsign</key>
   <true/>
   </dict>
-<key>LW2DJG/D</key>
-  <dict>
-  <key>Country</key>
-  <string>Argentina</string>
-  <key>Prefix</key>
-  <string>LU</string>
-  <key>ADIF</key>
-  <integer>100</integer>
-  <key>CQZone</key>
-  <integer>13</integer>
-  <key>ITUZone</key>
-  <integer>14</integer>
-  <key>Continent</key>
-  <string>SA</string>
-  <key>Latitude</key>
-  <real>-33.70</real>
-  <key>Longitude</key>
-  <real>61.00</real>
-  <key>GMTOffset</key>
-  <real>3.0</real>
-  <key>ExactCallsign</key>
-  <true/>
-  </dict>
 <key>LW2DMD/D</key>
-  <dict>
-  <key>Country</key>
-  <string>Argentina</string>
-  <key>Prefix</key>
-  <string>LU</string>
-  <key>ADIF</key>
-  <integer>100</integer>
-  <key>CQZone</key>
-  <integer>13</integer>
-  <key>ITUZone</key>
-  <integer>14</integer>
-  <key>Continent</key>
-  <string>SA</string>
-  <key>Latitude</key>
-  <real>-33.70</real>
-  <key>Longitude</key>
-  <real>61.00</real>
-  <key>GMTOffset</key>
-  <real>3.0</real>
-  <key>ExactCallsign</key>
-  <true/>
-  </dict>
-<key>LW2DMS/D</key>
   <dict>
   <key>Country</key>
   <string>Argentina</string>
@@ -267930,29 +267838,6 @@
   <true/>
   </dict>
 <key>LW6DNF/D</key>
-  <dict>
-  <key>Country</key>
-  <string>Argentina</string>
-  <key>Prefix</key>
-  <string>LU</string>
-  <key>ADIF</key>
-  <integer>100</integer>
-  <key>CQZone</key>
-  <integer>13</integer>
-  <key>ITUZone</key>
-  <integer>14</integer>
-  <key>Continent</key>
-  <string>SA</string>
-  <key>Latitude</key>
-  <real>-33.70</real>
-  <key>Longitude</key>
-  <real>61.00</real>
-  <key>GMTOffset</key>
-  <real>3.0</real>
-  <key>ExactCallsign</key>
-  <true/>
-  </dict>
-<key>LW6EGE/D</key>
   <dict>
   <key>Country</key>
   <string>Argentina</string>
@@ -281132,29 +281017,6 @@
   <false/>
   </dict>
 <key>LU1APS/H</key>
-  <dict>
-  <key>Country</key>
-  <string>Argentina</string>
-  <key>Prefix</key>
-  <string>LU</string>
-  <key>ADIF</key>
-  <integer>100</integer>
-  <key>CQZone</key>
-  <integer>13</integer>
-  <key>ITUZone</key>
-  <integer>14</integer>
-  <key>Continent</key>
-  <string>SA</string>
-  <key>Latitude</key>
-  <real>-31.42</real>
-  <key>Longitude</key>
-  <real>64.18</real>
-  <key>GMTOffset</key>
-  <real>3.0</real>
-  <key>ExactCallsign</key>
-  <true/>
-  </dict>
-<key>LU1HEC/H</key>
   <dict>
   <key>Country</key>
   <string>Argentina</string>
@@ -351902,29 +351764,6 @@
   <key>ExactCallsign</key>
   <true/>
   </dict>
-<key>LU1XMO/XA</key>
-  <dict>
-  <key>Country</key>
-  <string>Argentina</string>
-  <key>Prefix</key>
-  <string>LU</string>
-  <key>ADIF</key>
-  <integer>100</integer>
-  <key>CQZone</key>
-  <integer>13</integer>
-  <key>ITUZone</key>
-  <integer>16</integer>
-  <key>Continent</key>
-  <string>SA</string>
-  <key>Latitude</key>
-  <real>-50.43</real>
-  <key>Longitude</key>
-  <real>69.25</real>
-  <key>GMTOffset</key>
-  <real>3.0</real>
-  <key>ExactCallsign</key>
-  <true/>
-  </dict>
 <key>LU3DVN/X</key>
   <dict>
   <key>Country</key>
@@ -351949,29 +351788,6 @@
   <true/>
   </dict>
 <key>LU3EMN/XA</key>
-  <dict>
-  <key>Country</key>
-  <string>Argentina</string>
-  <key>Prefix</key>
-  <string>LU</string>
-  <key>ADIF</key>
-  <integer>100</integer>
-  <key>CQZone</key>
-  <integer>13</integer>
-  <key>ITUZone</key>
-  <integer>16</integer>
-  <key>Continent</key>
-  <string>SA</string>
-  <key>Latitude</key>
-  <real>-50.43</real>
-  <key>Longitude</key>
-  <real>69.25</real>
-  <key>GMTOffset</key>
-  <real>3.0</real>
-  <key>ExactCallsign</key>
-  <true/>
-  </dict>
-<key>LU9WT/XA</key>
   <dict>
   <key>Country</key>
   <string>Argentina</string>
@@ -374971,29 +374787,6 @@
   <key>ExactCallsign</key>
   <false/>
   </dict>
-<key>R065O</key>
-  <dict>
-  <key>Country</key>
-  <string>European Russia</string>
-  <key>Prefix</key>
-  <string>UA</string>
-  <key>ADIF</key>
-  <integer>54</integer>
-  <key>CQZone</key>
-  <integer>16</integer>
-  <key>ITUZone</key>
-  <integer>29</integer>
-  <key>Continent</key>
-  <string>EU</string>
-  <key>Latitude</key>
-  <real>53.65</real>
-  <key>Longitude</key>
-  <real>-41.37</real>
-  <key>GMTOffset</key>
-  <real>-4.0</real>
-  <key>ExactCallsign</key>
-  <true/>
-  </dict>
 <key>RA0ANB/3</key>
   <dict>
   <key>Country</key>
@@ -375110,29 +374903,6 @@
   <false/>
   </dict>
 <key>R1F</key>
-  <dict>
-  <key>Country</key>
-  <string>European Russia</string>
-  <key>Prefix</key>
-  <string>UA</string>
-  <key>ADIF</key>
-  <integer>54</integer>
-  <key>CQZone</key>
-  <integer>16</integer>
-  <key>ITUZone</key>
-  <integer>29</integer>
-  <key>Continent</key>
-  <string>EU</string>
-  <key>Latitude</key>
-  <real>59.95</real>
-  <key>Longitude</key>
-  <real>-30.30</real>
-  <key>GMTOffset</key>
-  <real>-4.0</real>
-  <key>ExactCallsign</key>
-  <false/>
-  </dict>
-<key>R1H</key>
   <dict>
   <key>Country</key>
   <string>European Russia</string>
@@ -375293,29 +375063,6 @@
   <key>ExactCallsign</key>
   <false/>
   </dict>
-<key>RA1H</key>
-  <dict>
-  <key>Country</key>
-  <string>European Russia</string>
-  <key>Prefix</key>
-  <string>UA</string>
-  <key>ADIF</key>
-  <integer>54</integer>
-  <key>CQZone</key>
-  <integer>16</integer>
-  <key>ITUZone</key>
-  <integer>29</integer>
-  <key>Continent</key>
-  <string>EU</string>
-  <key>Latitude</key>
-  <real>59.95</real>
-  <key>Longitude</key>
-  <real>-30.30</real>
-  <key>GMTOffset</key>
-  <real>-4.0</real>
-  <key>ExactCallsign</key>
-  <false/>
-  </dict>
 <key>RA1J</key>
   <dict>
   <key>Country</key>
@@ -375432,29 +375179,6 @@
   <false/>
   </dict>
 <key>RC1F</key>
-  <dict>
-  <key>Country</key>
-  <string>European Russia</string>
-  <key>Prefix</key>
-  <string>UA</string>
-  <key>ADIF</key>
-  <integer>54</integer>
-  <key>CQZone</key>
-  <integer>16</integer>
-  <key>ITUZone</key>
-  <integer>29</integer>
-  <key>Continent</key>
-  <string>EU</string>
-  <key>Latitude</key>
-  <real>59.95</real>
-  <key>Longitude</key>
-  <real>-30.30</real>
-  <key>GMTOffset</key>
-  <real>-4.0</real>
-  <key>ExactCallsign</key>
-  <false/>
-  </dict>
-<key>RC1H</key>
   <dict>
   <key>Country</key>
   <string>European Russia</string>
@@ -375615,29 +375339,6 @@
   <key>ExactCallsign</key>
   <false/>
   </dict>
-<key>RD1H</key>
-  <dict>
-  <key>Country</key>
-  <string>European Russia</string>
-  <key>Prefix</key>
-  <string>UA</string>
-  <key>ADIF</key>
-  <integer>54</integer>
-  <key>CQZone</key>
-  <integer>16</integer>
-  <key>ITUZone</key>
-  <integer>29</integer>
-  <key>Continent</key>
-  <string>EU</string>
-  <key>Latitude</key>
-  <real>59.95</real>
-  <key>Longitude</key>
-  <real>-30.30</real>
-  <key>GMTOffset</key>
-  <real>-4.0</real>
-  <key>ExactCallsign</key>
-  <false/>
-  </dict>
 <key>RD1J</key>
   <dict>
   <key>Country</key>
@@ -375754,29 +375455,6 @@
   <false/>
   </dict>
 <key>RE1F</key>
-  <dict>
-  <key>Country</key>
-  <string>European Russia</string>
-  <key>Prefix</key>
-  <string>UA</string>
-  <key>ADIF</key>
-  <integer>54</integer>
-  <key>CQZone</key>
-  <integer>16</integer>
-  <key>ITUZone</key>
-  <integer>29</integer>
-  <key>Continent</key>
-  <string>EU</string>
-  <key>Latitude</key>
-  <real>59.95</real>
-  <key>Longitude</key>
-  <real>-30.30</real>
-  <key>GMTOffset</key>
-  <real>-4.0</real>
-  <key>ExactCallsign</key>
-  <false/>
-  </dict>
-<key>RE1H</key>
   <dict>
   <key>Country</key>
   <string>European Russia</string>
@@ -375937,29 +375615,6 @@
   <key>ExactCallsign</key>
   <false/>
   </dict>
-<key>RF1H</key>
-  <dict>
-  <key>Country</key>
-  <string>European Russia</string>
-  <key>Prefix</key>
-  <string>UA</string>
-  <key>ADIF</key>
-  <integer>54</integer>
-  <key>CQZone</key>
-  <integer>16</integer>
-  <key>ITUZone</key>
-  <integer>29</integer>
-  <key>Continent</key>
-  <string>EU</string>
-  <key>Latitude</key>
-  <real>59.95</real>
-  <key>Longitude</key>
-  <real>-30.30</real>
-  <key>GMTOffset</key>
-  <real>-4.0</real>
-  <key>ExactCallsign</key>
-  <false/>
-  </dict>
 <key>RF1J</key>
   <dict>
   <key>Country</key>
@@ -376076,29 +375731,6 @@
   <false/>
   </dict>
 <key>RG1F</key>
-  <dict>
-  <key>Country</key>
-  <string>European Russia</string>
-  <key>Prefix</key>
-  <string>UA</string>
-  <key>ADIF</key>
-  <integer>54</integer>
-  <key>CQZone</key>
-  <integer>16</integer>
-  <key>ITUZone</key>
-  <integer>29</integer>
-  <key>Continent</key>
-  <string>EU</string>
-  <key>Latitude</key>
-  <real>59.95</real>
-  <key>Longitude</key>
-  <real>-30.30</real>
-  <key>GMTOffset</key>
-  <real>-4.0</real>
-  <key>ExactCallsign</key>
-  <false/>
-  </dict>
-<key>RG1H</key>
   <dict>
   <key>Country</key>
   <string>European Russia</string>
@@ -376259,29 +375891,6 @@
   <key>ExactCallsign</key>
   <false/>
   </dict>
-<key>RJ1H</key>
-  <dict>
-  <key>Country</key>
-  <string>European Russia</string>
-  <key>Prefix</key>
-  <string>UA</string>
-  <key>ADIF</key>
-  <integer>54</integer>
-  <key>CQZone</key>
-  <integer>16</integer>
-  <key>ITUZone</key>
-  <integer>29</integer>
-  <key>Continent</key>
-  <string>EU</string>
-  <key>Latitude</key>
-  <real>59.95</real>
-  <key>Longitude</key>
-  <real>-30.30</real>
-  <key>GMTOffset</key>
-  <real>-4.0</real>
-  <key>ExactCallsign</key>
-  <false/>
-  </dict>
 <key>RJ1J</key>
   <dict>
   <key>Country</key>
@@ -376398,29 +376007,6 @@
   <false/>
   </dict>
 <key>RK1F</key>
-  <dict>
-  <key>Country</key>
-  <string>European Russia</string>
-  <key>Prefix</key>
-  <string>UA</string>
-  <key>ADIF</key>
-  <integer>54</integer>
-  <key>CQZone</key>
-  <integer>16</integer>
-  <key>ITUZone</key>
-  <integer>29</integer>
-  <key>Continent</key>
-  <string>EU</string>
-  <key>Latitude</key>
-  <real>59.95</real>
-  <key>Longitude</key>
-  <real>-30.30</real>
-  <key>GMTOffset</key>
-  <real>-4.0</real>
-  <key>ExactCallsign</key>
-  <false/>
-  </dict>
-<key>RK1H</key>
   <dict>
   <key>Country</key>
   <string>European Russia</string>
@@ -376581,29 +376167,6 @@
   <key>ExactCallsign</key>
   <false/>
   </dict>
-<key>RL1H</key>
-  <dict>
-  <key>Country</key>
-  <string>European Russia</string>
-  <key>Prefix</key>
-  <string>UA</string>
-  <key>ADIF</key>
-  <integer>54</integer>
-  <key>CQZone</key>
-  <integer>16</integer>
-  <key>ITUZone</key>
-  <integer>29</integer>
-  <key>Continent</key>
-  <string>EU</string>
-  <key>Latitude</key>
-  <real>59.95</real>
-  <key>Longitude</key>
-  <real>-30.30</real>
-  <key>GMTOffset</key>
-  <real>-4.0</real>
-  <key>ExactCallsign</key>
-  <false/>
-  </dict>
 <key>RL1J</key>
   <dict>
   <key>Country</key>
@@ -376720,29 +376283,6 @@
   <false/>
   </dict>
 <key>RM1F</key>
-  <dict>
-  <key>Country</key>
-  <string>European Russia</string>
-  <key>Prefix</key>
-  <string>UA</string>
-  <key>ADIF</key>
-  <integer>54</integer>
-  <key>CQZone</key>
-  <integer>16</integer>
-  <key>ITUZone</key>
-  <integer>29</integer>
-  <key>Continent</key>
-  <string>EU</string>
-  <key>Latitude</key>
-  <real>59.95</real>
-  <key>Longitude</key>
-  <real>-30.30</real>
-  <key>GMTOffset</key>
-  <real>-4.0</real>
-  <key>ExactCallsign</key>
-  <false/>
-  </dict>
-<key>RM1H</key>
   <dict>
   <key>Country</key>
   <string>European Russia</string>
@@ -376903,29 +376443,6 @@
   <key>ExactCallsign</key>
   <false/>
   </dict>
-<key>RN1H</key>
-  <dict>
-  <key>Country</key>
-  <string>European Russia</string>
-  <key>Prefix</key>
-  <string>UA</string>
-  <key>ADIF</key>
-  <integer>54</integer>
-  <key>CQZone</key>
-  <integer>16</integer>
-  <key>ITUZone</key>
-  <integer>29</integer>
-  <key>Continent</key>
-  <string>EU</string>
-  <key>Latitude</key>
-  <real>59.95</real>
-  <key>Longitude</key>
-  <real>-30.30</real>
-  <key>GMTOffset</key>
-  <real>-4.0</real>
-  <key>ExactCallsign</key>
-  <false/>
-  </dict>
 <key>RN1J</key>
   <dict>
   <key>Country</key>
@@ -377042,29 +376559,6 @@
   <false/>
   </dict>
 <key>RO1F</key>
-  <dict>
-  <key>Country</key>
-  <string>European Russia</string>
-  <key>Prefix</key>
-  <string>UA</string>
-  <key>ADIF</key>
-  <integer>54</integer>
-  <key>CQZone</key>
-  <integer>16</integer>
-  <key>ITUZone</key>
-  <integer>29</integer>
-  <key>Continent</key>
-  <string>EU</string>
-  <key>Latitude</key>
-  <real>59.95</real>
-  <key>Longitude</key>
-  <real>-30.30</real>
-  <key>GMTOffset</key>
-  <real>-4.0</real>
-  <key>ExactCallsign</key>
-  <false/>
-  </dict>
-<key>RO1H</key>
   <dict>
   <key>Country</key>
   <string>European Russia</string>
@@ -377225,29 +376719,6 @@
   <key>ExactCallsign</key>
   <false/>
   </dict>
-<key>RQ1H</key>
-  <dict>
-  <key>Country</key>
-  <string>European Russia</string>
-  <key>Prefix</key>
-  <string>UA</string>
-  <key>ADIF</key>
-  <integer>54</integer>
-  <key>CQZone</key>
-  <integer>16</integer>
-  <key>ITUZone</key>
-  <integer>29</integer>
-  <key>Continent</key>
-  <string>EU</string>
-  <key>Latitude</key>
-  <real>59.95</real>
-  <key>Longitude</key>
-  <real>-30.30</real>
-  <key>GMTOffset</key>
-  <real>-4.0</real>
-  <key>ExactCallsign</key>
-  <false/>
-  </dict>
 <key>RQ1J</key>
   <dict>
   <key>Country</key>
@@ -377364,29 +376835,6 @@
   <false/>
   </dict>
 <key>RT1F</key>
-  <dict>
-  <key>Country</key>
-  <string>European Russia</string>
-  <key>Prefix</key>
-  <string>UA</string>
-  <key>ADIF</key>
-  <integer>54</integer>
-  <key>CQZone</key>
-  <integer>16</integer>
-  <key>ITUZone</key>
-  <integer>29</integer>
-  <key>Continent</key>
-  <string>EU</string>
-  <key>Latitude</key>
-  <real>59.95</real>
-  <key>Longitude</key>
-  <real>-30.30</real>
-  <key>GMTOffset</key>
-  <real>-4.0</real>
-  <key>ExactCallsign</key>
-  <false/>
-  </dict>
-<key>RT1H</key>
   <dict>
   <key>Country</key>
   <string>European Russia</string>
@@ -377547,29 +376995,6 @@
   <key>ExactCallsign</key>
   <false/>
   </dict>
-<key>RU1H</key>
-  <dict>
-  <key>Country</key>
-  <string>European Russia</string>
-  <key>Prefix</key>
-  <string>UA</string>
-  <key>ADIF</key>
-  <integer>54</integer>
-  <key>CQZone</key>
-  <integer>16</integer>
-  <key>ITUZone</key>
-  <integer>29</integer>
-  <key>Continent</key>
-  <string>EU</string>
-  <key>Latitude</key>
-  <real>59.95</real>
-  <key>Longitude</key>
-  <real>-30.30</real>
-  <key>GMTOffset</key>
-  <real>-4.0</real>
-  <key>ExactCallsign</key>
-  <false/>
-  </dict>
 <key>RU1J</key>
   <dict>
   <key>Country</key>
@@ -377686,29 +377111,6 @@
   <false/>
   </dict>
 <key>RV1F</key>
-  <dict>
-  <key>Country</key>
-  <string>European Russia</string>
-  <key>Prefix</key>
-  <string>UA</string>
-  <key>ADIF</key>
-  <integer>54</integer>
-  <key>CQZone</key>
-  <integer>16</integer>
-  <key>ITUZone</key>
-  <integer>29</integer>
-  <key>Continent</key>
-  <string>EU</string>
-  <key>Latitude</key>
-  <real>59.95</real>
-  <key>Longitude</key>
-  <real>-30.30</real>
-  <key>GMTOffset</key>
-  <real>-4.0</real>
-  <key>ExactCallsign</key>
-  <false/>
-  </dict>
-<key>RV1H</key>
   <dict>
   <key>Country</key>
   <string>European Russia</string>
@@ -377869,29 +377271,6 @@
   <key>ExactCallsign</key>
   <false/>
   </dict>
-<key>RW1H</key>
-  <dict>
-  <key>Country</key>
-  <string>European Russia</string>
-  <key>Prefix</key>
-  <string>UA</string>
-  <key>ADIF</key>
-  <integer>54</integer>
-  <key>CQZone</key>
-  <integer>16</integer>
-  <key>ITUZone</key>
-  <integer>29</integer>
-  <key>Continent</key>
-  <string>EU</string>
-  <key>Latitude</key>
-  <real>59.95</real>
-  <key>Longitude</key>
-  <real>-30.30</real>
-  <key>GMTOffset</key>
-  <real>-4.0</real>
-  <key>ExactCallsign</key>
-  <false/>
-  </dict>
 <key>RW1J</key>
   <dict>
   <key>Country</key>
@@ -378008,29 +377387,6 @@
   <false/>
   </dict>
 <key>RX1F</key>
-  <dict>
-  <key>Country</key>
-  <string>European Russia</string>
-  <key>Prefix</key>
-  <string>UA</string>
-  <key>ADIF</key>
-  <integer>54</integer>
-  <key>CQZone</key>
-  <integer>16</integer>
-  <key>ITUZone</key>
-  <integer>29</integer>
-  <key>Continent</key>
-  <string>EU</string>
-  <key>Latitude</key>
-  <real>59.95</real>
-  <key>Longitude</key>
-  <real>-30.30</real>
-  <key>GMTOffset</key>
-  <real>-4.0</real>
-  <key>ExactCallsign</key>
-  <false/>
-  </dict>
-<key>RX1H</key>
   <dict>
   <key>Country</key>
   <string>European Russia</string>
@@ -378191,29 +377547,6 @@
   <key>ExactCallsign</key>
   <false/>
   </dict>
-<key>RY1H</key>
-  <dict>
-  <key>Country</key>
-  <string>European Russia</string>
-  <key>Prefix</key>
-  <string>UA</string>
-  <key>ADIF</key>
-  <integer>54</integer>
-  <key>CQZone</key>
-  <integer>16</integer>
-  <key>ITUZone</key>
-  <integer>29</integer>
-  <key>Continent</key>
-  <string>EU</string>
-  <key>Latitude</key>
-  <real>59.95</real>
-  <key>Longitude</key>
-  <real>-30.30</real>
-  <key>GMTOffset</key>
-  <real>-4.0</real>
-  <key>ExactCallsign</key>
-  <false/>
-  </dict>
 <key>RY1J</key>
   <dict>
   <key>Country</key>
@@ -378330,29 +377663,6 @@
   <false/>
   </dict>
 <key>RZ1F</key>
-  <dict>
-  <key>Country</key>
-  <string>European Russia</string>
-  <key>Prefix</key>
-  <string>UA</string>
-  <key>ADIF</key>
-  <integer>54</integer>
-  <key>CQZone</key>
-  <integer>16</integer>
-  <key>ITUZone</key>
-  <integer>29</integer>
-  <key>Continent</key>
-  <string>EU</string>
-  <key>Latitude</key>
-  <real>59.95</real>
-  <key>Longitude</key>
-  <real>-30.30</real>
-  <key>GMTOffset</key>
-  <real>-4.0</real>
-  <key>ExactCallsign</key>
-  <false/>
-  </dict>
-<key>RZ1H</key>
   <dict>
   <key>Country</key>
   <string>European Russia</string>
@@ -378513,29 +377823,6 @@
   <key>ExactCallsign</key>
   <false/>
   </dict>
-<key>U1H</key>
-  <dict>
-  <key>Country</key>
-  <string>European Russia</string>
-  <key>Prefix</key>
-  <string>UA</string>
-  <key>ADIF</key>
-  <integer>54</integer>
-  <key>CQZone</key>
-  <integer>16</integer>
-  <key>ITUZone</key>
-  <integer>29</integer>
-  <key>Continent</key>
-  <string>EU</string>
-  <key>Latitude</key>
-  <real>59.95</real>
-  <key>Longitude</key>
-  <real>-30.30</real>
-  <key>GMTOffset</key>
-  <real>-4.0</real>
-  <key>ExactCallsign</key>
-  <false/>
-  </dict>
 <key>U1J</key>
   <dict>
   <key>Country</key>
@@ -378652,29 +377939,6 @@
   <false/>
   </dict>
 <key>UA1F</key>
-  <dict>
-  <key>Country</key>
-  <string>European Russia</string>
-  <key>Prefix</key>
-  <string>UA</string>
-  <key>ADIF</key>
-  <integer>54</integer>
-  <key>CQZone</key>
-  <integer>16</integer>
-  <key>ITUZone</key>
-  <integer>29</integer>
-  <key>Continent</key>
-  <string>EU</string>
-  <key>Latitude</key>
-  <real>59.95</real>
-  <key>Longitude</key>
-  <real>-30.30</real>
-  <key>GMTOffset</key>
-  <real>-4.0</real>
-  <key>ExactCallsign</key>
-  <false/>
-  </dict>
-<key>UA1H</key>
   <dict>
   <key>Country</key>
   <string>European Russia</string>
@@ -378835,29 +378099,6 @@
   <key>ExactCallsign</key>
   <false/>
   </dict>
-<key>UB1H</key>
-  <dict>
-  <key>Country</key>
-  <string>European Russia</string>
-  <key>Prefix</key>
-  <string>UA</string>
-  <key>ADIF</key>
-  <integer>54</integer>
-  <key>CQZone</key>
-  <integer>16</integer>
-  <key>ITUZone</key>
-  <integer>29</integer>
-  <key>Continent</key>
-  <string>EU</string>
-  <key>Latitude</key>
-  <real>59.95</real>
-  <key>Longitude</key>
-  <real>-30.30</real>
-  <key>GMTOffset</key>
-  <real>-4.0</real>
-  <key>ExactCallsign</key>
-  <false/>
-  </dict>
 <key>UB1J</key>
   <dict>
   <key>Country</key>
@@ -378974,29 +378215,6 @@
   <false/>
   </dict>
 <key>UC1F</key>
-  <dict>
-  <key>Country</key>
-  <string>European Russia</string>
-  <key>Prefix</key>
-  <string>UA</string>
-  <key>ADIF</key>
-  <integer>54</integer>
-  <key>CQZone</key>
-  <integer>16</integer>
-  <key>ITUZone</key>
-  <integer>29</integer>
-  <key>Continent</key>
-  <string>EU</string>
-  <key>Latitude</key>
-  <real>59.95</real>
-  <key>Longitude</key>
-  <real>-30.30</real>
-  <key>GMTOffset</key>
-  <real>-4.0</real>
-  <key>ExactCallsign</key>
-  <false/>
-  </dict>
-<key>UC1H</key>
   <dict>
   <key>Country</key>
   <string>European Russia</string>
@@ -379157,29 +378375,6 @@
   <key>ExactCallsign</key>
   <false/>
   </dict>
-<key>UD1H</key>
-  <dict>
-  <key>Country</key>
-  <string>European Russia</string>
-  <key>Prefix</key>
-  <string>UA</string>
-  <key>ADIF</key>
-  <integer>54</integer>
-  <key>CQZone</key>
-  <integer>16</integer>
-  <key>ITUZone</key>
-  <integer>29</integer>
-  <key>Continent</key>
-  <string>EU</string>
-  <key>Latitude</key>
-  <real>59.95</real>
-  <key>Longitude</key>
-  <real>-30.30</real>
-  <key>GMTOffset</key>
-  <real>-4.0</real>
-  <key>ExactCallsign</key>
-  <false/>
-  </dict>
 <key>UD1J</key>
   <dict>
   <key>Country</key>
@@ -379296,29 +378491,6 @@
   <false/>
   </dict>
 <key>UE1F</key>
-  <dict>
-  <key>Country</key>
-  <string>European Russia</string>
-  <key>Prefix</key>
-  <string>UA</string>
-  <key>ADIF</key>
-  <integer>54</integer>
-  <key>CQZone</key>
-  <integer>16</integer>
-  <key>ITUZone</key>
-  <integer>29</integer>
-  <key>Continent</key>
-  <string>EU</string>
-  <key>Latitude</key>
-  <real>59.95</real>
-  <key>Longitude</key>
-  <real>-30.30</real>
-  <key>GMTOffset</key>
-  <real>-4.0</real>
-  <key>ExactCallsign</key>
-  <false/>
-  </dict>
-<key>UE1H</key>
   <dict>
   <key>Country</key>
   <string>European Russia</string>
@@ -379479,29 +378651,6 @@
   <key>ExactCallsign</key>
   <false/>
   </dict>
-<key>UF1H</key>
-  <dict>
-  <key>Country</key>
-  <string>European Russia</string>
-  <key>Prefix</key>
-  <string>UA</string>
-  <key>ADIF</key>
-  <integer>54</integer>
-  <key>CQZone</key>
-  <integer>16</integer>
-  <key>ITUZone</key>
-  <integer>29</integer>
-  <key>Continent</key>
-  <string>EU</string>
-  <key>Latitude</key>
-  <real>59.95</real>
-  <key>Longitude</key>
-  <real>-30.30</real>
-  <key>GMTOffset</key>
-  <real>-4.0</real>
-  <key>ExactCallsign</key>
-  <false/>
-  </dict>
 <key>UF1J</key>
   <dict>
   <key>Country</key>
@@ -379618,29 +378767,6 @@
   <false/>
   </dict>
 <key>UG1F</key>
-  <dict>
-  <key>Country</key>
-  <string>European Russia</string>
-  <key>Prefix</key>
-  <string>UA</string>
-  <key>ADIF</key>
-  <integer>54</integer>
-  <key>CQZone</key>
-  <integer>16</integer>
-  <key>ITUZone</key>
-  <integer>29</integer>
-  <key>Continent</key>
-  <string>EU</string>
-  <key>Latitude</key>
-  <real>59.95</real>
-  <key>Longitude</key>
-  <real>-30.30</real>
-  <key>GMTOffset</key>
-  <real>-4.0</real>
-  <key>ExactCallsign</key>
-  <false/>
-  </dict>
-<key>UG1H</key>
   <dict>
   <key>Country</key>
   <string>European Russia</string>
@@ -379801,29 +378927,6 @@
   <key>ExactCallsign</key>
   <false/>
   </dict>
-<key>UH1H</key>
-  <dict>
-  <key>Country</key>
-  <string>European Russia</string>
-  <key>Prefix</key>
-  <string>UA</string>
-  <key>ADIF</key>
-  <integer>54</integer>
-  <key>CQZone</key>
-  <integer>16</integer>
-  <key>ITUZone</key>
-  <integer>29</integer>
-  <key>Continent</key>
-  <string>EU</string>
-  <key>Latitude</key>
-  <real>59.95</real>
-  <key>Longitude</key>
-  <real>-30.30</real>
-  <key>GMTOffset</key>
-  <real>-4.0</real>
-  <key>ExactCallsign</key>
-  <false/>
-  </dict>
 <key>UH1J</key>
   <dict>
   <key>Country</key>
@@ -379962,29 +379065,6 @@
   <key>ExactCallsign</key>
   <false/>
   </dict>
-<key>UI1H</key>
-  <dict>
-  <key>Country</key>
-  <string>European Russia</string>
-  <key>Prefix</key>
-  <string>UA</string>
-  <key>ADIF</key>
-  <integer>54</integer>
-  <key>CQZone</key>
-  <integer>16</integer>
-  <key>ITUZone</key>
-  <integer>29</integer>
-  <key>Continent</key>
-  <string>EU</string>
-  <key>Latitude</key>
-  <real>59.95</real>
-  <key>Longitude</key>
-  <real>-30.30</real>
-  <key>GMTOffset</key>
-  <real>-4.0</real>
-  <key>ExactCallsign</key>
-  <false/>
-  </dict>
 <key>UI1J</key>
   <dict>
   <key>Country</key>
@@ -380089,98 +379169,6 @@
   <integer>16</integer>
   <key>ITUZone</key>
   <integer>19</integer>
-  <key>Continent</key>
-  <string>EU</string>
-  <key>Latitude</key>
-  <real>59.95</real>
-  <key>Longitude</key>
-  <real>-30.30</real>
-  <key>GMTOffset</key>
-  <real>-4.0</real>
-  <key>ExactCallsign</key>
-  <true/>
-  </dict>
-<key>R900BL</key>
-  <dict>
-  <key>Country</key>
-  <string>European Russia</string>
-  <key>Prefix</key>
-  <string>UA</string>
-  <key>ADIF</key>
-  <integer>54</integer>
-  <key>CQZone</key>
-  <integer>16</integer>
-  <key>ITUZone</key>
-  <integer>29</integer>
-  <key>Continent</key>
-  <string>EU</string>
-  <key>Latitude</key>
-  <real>59.95</real>
-  <key>Longitude</key>
-  <real>-30.30</real>
-  <key>GMTOffset</key>
-  <real>-4.0</real>
-  <key>ExactCallsign</key>
-  <true/>
-  </dict>
-<key>R900DM</key>
-  <dict>
-  <key>Country</key>
-  <string>European Russia</string>
-  <key>Prefix</key>
-  <string>UA</string>
-  <key>ADIF</key>
-  <integer>54</integer>
-  <key>CQZone</key>
-  <integer>16</integer>
-  <key>ITUZone</key>
-  <integer>29</integer>
-  <key>Continent</key>
-  <string>EU</string>
-  <key>Latitude</key>
-  <real>59.95</real>
-  <key>Longitude</key>
-  <real>-30.30</real>
-  <key>GMTOffset</key>
-  <real>-4.0</real>
-  <key>ExactCallsign</key>
-  <true/>
-  </dict>
-<key>R900OI</key>
-  <dict>
-  <key>Country</key>
-  <string>European Russia</string>
-  <key>Prefix</key>
-  <string>UA</string>
-  <key>ADIF</key>
-  <integer>54</integer>
-  <key>CQZone</key>
-  <integer>16</integer>
-  <key>ITUZone</key>
-  <integer>29</integer>
-  <key>Continent</key>
-  <string>EU</string>
-  <key>Latitude</key>
-  <real>59.95</real>
-  <key>Longitude</key>
-  <real>-30.30</real>
-  <key>GMTOffset</key>
-  <real>-4.0</real>
-  <key>ExactCallsign</key>
-  <true/>
-  </dict>
-<key>R900RO</key>
-  <dict>
-  <key>Country</key>
-  <string>European Russia</string>
-  <key>Prefix</key>
-  <string>UA</string>
-  <key>ADIF</key>
-  <integer>54</integer>
-  <key>CQZone</key>
-  <integer>16</integer>
-  <key>ITUZone</key>
-  <integer>29</integer>
   <key>Continent</key>
   <string>EU</string>
   <key>Latitude</key>
@@ -381722,29 +380710,6 @@
   <integer>16</integer>
   <key>ITUZone</key>
   <integer>19</integer>
-  <key>Continent</key>
-  <string>EU</string>
-  <key>Latitude</key>
-  <real>60.05</real>
-  <key>Longitude</key>
-  <real>-31.75</real>
-  <key>GMTOffset</key>
-  <real>-4.0</real>
-  <key>ExactCallsign</key>
-  <true/>
-  </dict>
-<key>R900DV</key>
-  <dict>
-  <key>Country</key>
-  <string>European Russia</string>
-  <key>Prefix</key>
-  <string>UA</string>
-  <key>ADIF</key>
-  <integer>54</integer>
-  <key>CQZone</key>
-  <integer>16</integer>
-  <key>ITUZone</key>
-  <integer>29</integer>
   <key>Continent</key>
   <string>EU</string>
   <key>Latitude</key>
@@ -472744,29 +471709,6 @@
   <key>ExactCallsign</key>
   <true/>
   </dict>
-<key>R103ME</key>
-  <dict>
-  <key>Country</key>
-  <string>European Russia</string>
-  <key>Prefix</key>
-  <string>UA</string>
-  <key>ADIF</key>
-  <integer>54</integer>
-  <key>CQZone</key>
-  <integer>16</integer>
-  <key>ITUZone</key>
-  <integer>29</integer>
-  <key>Continent</key>
-  <string>EU</string>
-  <key>Latitude</key>
-  <real>47.87</real>
-  <key>Longitude</key>
-  <real>-41.18</real>
-  <key>GMTOffset</key>
-  <real>-4.0</real>
-  <key>ExactCallsign</key>
-  <true/>
-  </dict>
 <key>R108YG</key>
   <dict>
   <key>Country</key>
@@ -472906,29 +471848,6 @@
   <true/>
   </dict>
 <key>UE65YG</key>
-  <dict>
-  <key>Country</key>
-  <string>European Russia</string>
-  <key>Prefix</key>
-  <string>UA</string>
-  <key>ADIF</key>
-  <integer>54</integer>
-  <key>CQZone</key>
-  <integer>16</integer>
-  <key>ITUZone</key>
-  <integer>29</integer>
-  <key>Continent</key>
-  <string>EU</string>
-  <key>Latitude</key>
-  <real>47.87</real>
-  <key>Longitude</key>
-  <real>-41.18</real>
-  <key>GMTOffset</key>
-  <real>-4.0</real>
-  <key>ExactCallsign</key>
-  <true/>
-  </dict>
-<key>UE83AWD</key>
   <dict>
   <key>Country</key>
   <string>European Russia</string>
@@ -485854,6 +484773,5756 @@
   <key>ExactCallsign</key>
   <true/>
   </dict>
+<key>R6O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>R7O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RA6O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RA7O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RC6O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RC7O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RD6O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RD7O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RE6O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RE7O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RF6O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RF7O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RG6O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RG7O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RJ6O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RJ7O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RK6O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RK7O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RL6O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RL7O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RM6O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RM7O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RN6O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RN7O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RO6O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RO7O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RQ6O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RQ7O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RT6O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RT7O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RU6O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RU7O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RV6O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RV7O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RW6O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RW7O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RX6O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RX7O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RY6O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RY7O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RZ6O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RZ7O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>U6O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>U7O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UA6O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UA7O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UB6O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UB7O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UC6O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UC7O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UD6O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UD7O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UE6O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UE7O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UF6O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UF7O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UG6O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UG7O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UH6O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UH7O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UI6O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UI7O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>R065O</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <true/>
+  </dict>
+<key>RT25DO</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.00</real>
+  <key>Longitude</key>
+  <real>-37.83</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <true/>
+  </dict>
+<key>R1H</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>R1V</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RA1H</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RA1V</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RC1H</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RC1V</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RD1H</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RD1V</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RE1H</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RE1V</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RF1H</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RF1V</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RG1H</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RG1V</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RJ1H</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RJ1V</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RK1H</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RK1V</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RL1H</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RL1V</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RM1H</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RM1V</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RN1H</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RN1V</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RO1H</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RO1V</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RQ1H</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RQ1V</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RT1H</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RT1V</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RU1H</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RU1V</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RV1H</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RV1V</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RW1H</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RW1V</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RX1H</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RX1V</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RY1H</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RY1V</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RZ1H</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RZ1V</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>U1H</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>U1V</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UA1H</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UA1V</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UB1H</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UB1V</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UC1H</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UC1V</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UD1H</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UD1V</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UE1H</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UE1V</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UF1H</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UF1V</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UG1H</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UG1V</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UH1H</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UH1V</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UI1H</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UI1V</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>46.65</real>
+  <key>Longitude</key>
+  <real>-32.63</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>R6Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>R7Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RA6Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RA7Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RC6Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RC7Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RD6Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RD7Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RE6Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RE7Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RF6Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RF7Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RG6Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RG7Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RJ6Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RJ7Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RK6Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RK7Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RL6Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RL7Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RM6Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RM7Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RN6Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RN7Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RO6Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RO7Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RQ6Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RQ7Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RT6Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RT7Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RU6Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RU7Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RV6Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RV7Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RW6Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RW7Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RX6Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RX7Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RY6Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RY7Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RZ6Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RZ7Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>U6Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>U7Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UA6Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UA7Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UB6Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UB7Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UC6Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UC7Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UD6Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UD7Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UE6Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UE7Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UF6Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UF7Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UG6Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UG7Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UH6Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UH7Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UI6Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UI7Z</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>48.57</real>
+  <key>Longitude</key>
+  <real>-39.30</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>R6S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>R7S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RA6S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RA7S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RC6S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RC7S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RD6S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RD7S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RE6S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RE7S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RF6S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RF7S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RG6S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RG7S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RJ6S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RJ7S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RK6S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RK7S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RL6S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RL7S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RM6S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RM7S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RN6S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RN7S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RO6S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RO7S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RQ6S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RQ7S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RT6S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RT7S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RU6S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RU7S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RV6S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RV7S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RW6S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RW7S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RX6S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RX7S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RY6S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RY7S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RZ6S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>RZ7S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>U6S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>U7S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UA6S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UA7S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UB6S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UB7S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UC6S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UC7S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UD6S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UD7S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UE6S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UE7S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UF6S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UF7S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UG6S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UG7S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UH6S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UH7S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UI6S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
+<key>UI7S</key>
+  <dict>
+  <key>Country</key>
+  <string>European Russia</string>
+  <key>Prefix</key>
+  <string>UA</string>
+  <key>ADIF</key>
+  <integer>54</integer>
+  <key>CQZone</key>
+  <integer>16</integer>
+  <key>ITUZone</key>
+  <integer>29</integer>
+  <key>Continent</key>
+  <string>EU</string>
+  <key>Latitude</key>
+  <real>47.83</real>
+  <key>Longitude</key>
+  <real>-35.17</real>
+  <key>GMTOffset</key>
+  <real>-2.0</real>
+  <key>ExactCallsign</key>
+  <false/>
+  </dict>
 <key>R8F</key>
   <dict>
   <key>Country</key>
@@ -494387,6 +499056,29 @@
   <key>ExactCallsign</key>
   <false/>
   </dict>
+<key>R1BJA/0</key>
+  <dict>
+  <key>Country</key>
+  <string>Asiatic Russia</string>
+  <key>Prefix</key>
+  <string>UA9</string>
+  <key>ADIF</key>
+  <integer>15</integer>
+  <key>CQZone</key>
+  <integer>19</integer>
+  <key>ITUZone</key>
+  <integer>30</integer>
+  <key>Continent</key>
+  <string>AS</string>
+  <key>Latitude</key>
+  <real>55.88</real>
+  <key>Longitude</key>
+  <real>-84.08</real>
+  <key>GMTOffset</key>
+  <real>-7.0</real>
+  <key>ExactCallsign</key>
+  <true/>
+  </dict>
 <key>UB9MCW/0</key>
   <dict>
   <key>Country</key>
@@ -501563,6 +506255,29 @@
   <key>ExactCallsign</key>
   <false/>
   </dict>
+<key>R130EK</key>
+  <dict>
+  <key>Country</key>
+  <string>Asiatic Russia</string>
+  <key>Prefix</key>
+  <string>UA9</string>
+  <key>ADIF</key>
+  <integer>15</integer>
+  <key>CQZone</key>
+  <integer>17</integer>
+  <key>ITUZone</key>
+  <integer>30</integer>
+  <key>Continent</key>
+  <string>AS</string>
+  <key>Latitude</key>
+  <real>58.70</real>
+  <key>Longitude</key>
+  <real>-61.33</real>
+  <key>GMTOffset</key>
+  <real>-6.0</real>
+  <key>ExactCallsign</key>
+  <true/>
+  </dict>
 <key>RW9C</key>
   <dict>
   <key>Country</key>
@@ -505945,29 +510660,6 @@
   <integer>17</integer>
   <key>ITUZone</key>
   <integer>21</integer>
-  <key>Continent</key>
-  <string>AS</string>
-  <key>Latitude</key>
-  <real>62.25</real>
-  <key>Longitude</key>
-  <real>-70.17</real>
-  <key>GMTOffset</key>
-  <real>-6.0</real>
-  <key>ExactCallsign</key>
-  <true/>
-  </dict>
-<key>RK4PA/9</key>
-  <dict>
-  <key>Country</key>
-  <string>Asiatic Russia</string>
-  <key>Prefix</key>
-  <string>UA9</string>
-  <key>ADIF</key>
-  <integer>15</integer>
-  <key>CQZone</key>
-  <integer>17</integer>
-  <key>ITUZone</key>
-  <integer>20</integer>
   <key>Continent</key>
   <string>AS</string>
   <key>Latitude</key>
@@ -514672,6 +519364,29 @@
   <real>-7.0</real>
   <key>ExactCallsign</key>
   <false/>
+  </dict>
+<key>R0KA/9</key>
+  <dict>
+  <key>Country</key>
+  <string>Asiatic Russia</string>
+  <key>Prefix</key>
+  <string>UA9</string>
+  <key>ADIF</key>
+  <integer>15</integer>
+  <key>CQZone</key>
+  <integer>18</integer>
+  <key>ITUZone</key>
+  <integer>31</integer>
+  <key>Continent</key>
+  <string>AS</string>
+  <key>Latitude</key>
+  <real>55.45</real>
+  <key>Longitude</key>
+  <real>-79.55</real>
+  <key>GMTOffset</key>
+  <real>-7.0</real>
+  <key>ExactCallsign</key>
+  <true/>
   </dict>
 <key>R0YAC/9</key>
   <dict>
@@ -532751,6 +537466,29 @@
   <key>ExactCallsign</key>
   <false/>
   </dict>
+<key>RA2FA/0</key>
+  <dict>
+  <key>Country</key>
+  <string>Asiatic Russia</string>
+  <key>Prefix</key>
+  <string>UA9</string>
+  <key>ADIF</key>
+  <integer>15</integer>
+  <key>CQZone</key>
+  <integer>19</integer>
+  <key>ITUZone</key>
+  <integer>34</integer>
+  <key>Continent</key>
+  <string>AS</string>
+  <key>Latitude</key>
+  <real>50.55</real>
+  <key>Longitude</key>
+  <real>-142.60</real>
+  <key>GMTOffset</key>
+  <real>-11.0</real>
+  <key>ExactCallsign</key>
+  <true/>
+  </dict>
 <key>RM0F</key>
   <dict>
   <key>Country</key>
@@ -532775,6 +537513,29 @@
   <true/>
   </dict>
 <key>RN0F</key>
+  <dict>
+  <key>Country</key>
+  <string>Asiatic Russia</string>
+  <key>Prefix</key>
+  <string>UA9</string>
+  <key>ADIF</key>
+  <integer>15</integer>
+  <key>CQZone</key>
+  <integer>19</integer>
+  <key>ITUZone</key>
+  <integer>34</integer>
+  <key>Continent</key>
+  <string>AS</string>
+  <key>Latitude</key>
+  <real>50.55</real>
+  <key>Longitude</key>
+  <real>-142.60</real>
+  <key>GMTOffset</key>
+  <real>-11.0</real>
+  <key>ExactCallsign</key>
+  <true/>
+  </dict>
+<key>RN1B/0</key>
   <dict>
   <key>Country</key>
   <string>Asiatic Russia</string>
@@ -539444,6 +544205,29 @@
   <key>ExactCallsign</key>
   <false/>
   </dict>
+<key>R4HMS/0</key>
+  <dict>
+  <key>Country</key>
+  <string>Asiatic Russia</string>
+  <key>Prefix</key>
+  <string>UA9</string>
+  <key>ADIF</key>
+  <integer>15</integer>
+  <key>CQZone</key>
+  <integer>19</integer>
+  <key>ITUZone</key>
+  <integer>23</integer>
+  <key>Continent</key>
+  <string>AS</string>
+  <key>Latitude</key>
+  <real>66.40</real>
+  <key>Longitude</key>
+  <real>-129.17</real>
+  <key>GMTOffset</key>
+  <real>-11.0</real>
+  <key>ExactCallsign</key>
+  <true/>
+  </dict>
 <key>R0R</key>
   <dict>
   <key>Country</key>
@@ -545975,6 +550759,29 @@
   <real>-10.0</real>
   <key>ExactCallsign</key>
   <false/>
+  </dict>
+<key>R9PS/0</key>
+  <dict>
+  <key>Country</key>
+  <string>Asiatic Russia</string>
+  <key>Prefix</key>
+  <string>UA9</string>
+  <key>ADIF</key>
+  <integer>15</integer>
+  <key>CQZone</key>
+  <integer>18</integer>
+  <key>ITUZone</key>
+  <integer>33</integer>
+  <key>Continent</key>
+  <string>AS</string>
+  <key>Latitude</key>
+  <real>54.00</real>
+  <key>Longitude</key>
+  <real>-118.00</real>
+  <key>GMTOffset</key>
+  <real>-10.0</real>
+  <key>ExactCallsign</key>
+  <true/>
   </dict>
 <key>UJ</key>
   <dict>
@@ -638597,7 +643404,7 @@
   <key>ExactCallsign</key>
   <false/>
   </dict>
-<key>VER20260317</key>
+<key>VER20260325</key>
   <dict>
   <key>Country</key>
   <string>Canada</string>
@@ -642001,29 +646808,6 @@
   <key>ExactCallsign</key>
   <true/>
   </dict>
-<key>VE2XB/2</key>
-  <dict>
-  <key>Country</key>
-  <string>Canada</string>
-  <key>Prefix</key>
-  <string>VE</string>
-  <key>ADIF</key>
-  <integer>1</integer>
-  <key>CQZone</key>
-  <integer>2</integer>
-  <key>ITUZone</key>
-  <integer>4</integer>
-  <key>Continent</key>
-  <string>NA</string>
-  <key>Latitude</key>
-  <real>52.73</real>
-  <key>Longitude</key>
-  <real>70.18</real>
-  <key>GMTOffset</key>
-  <real>5.0</real>
-  <key>ExactCallsign</key>
-  <true/>
-  </dict>
 <key>VY0ZOO/VE2</key>
   <dict>
   <key>Country</key>
@@ -642506,29 +647290,6 @@
   <real>-10.0</real>
   <key>ExactCallsign</key>
   <false/>
-  </dict>
-<key>VK8MS/3</key>
-  <dict>
-  <key>Country</key>
-  <string>Australia</string>
-  <key>Prefix</key>
-  <string>VK</string>
-  <key>ADIF</key>
-  <integer>150</integer>
-  <key>CQZone</key>
-  <integer>30</integer>
-  <key>ITUZone</key>
-  <integer>59</integer>
-  <key>Continent</key>
-  <string>OC</string>
-  <key>Latitude</key>
-  <real>-38.00</real>
-  <key>Longitude</key>
-  <real>-145.00</real>
-  <key>GMTOffset</key>
-  <real>-10.0</real>
-  <key>ExactCallsign</key>
-  <true/>
   </dict>
 <key>AX4</key>
   <dict>
@@ -644415,29 +649176,6 @@
   <real>2.0</real>
   <key>ExactCallsign</key>
   <false/>
-  </dict>
-<key>VERSION</key>
-  <dict>
-  <key>Country</key>
-  <string>South Sandwich Islands</string>
-  <key>Prefix</key>
-  <string>VP8/s</string>
-  <key>ADIF</key>
-  <integer>240</integer>
-  <key>CQZone</key>
-  <integer>13</integer>
-  <key>ITUZone</key>
-  <integer>73</integer>
-  <key>Continent</key>
-  <string>SA</string>
-  <key>Latitude</key>
-  <real>-58.43</real>
-  <key>Longitude</key>
-  <real>26.33</real>
-  <key>GMTOffset</key>
-  <real>2.0</real>
-  <key>ExactCallsign</key>
-  <true/>
   </dict>
 <key>VP9</key>
   <dict>

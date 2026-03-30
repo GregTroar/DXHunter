@@ -113,3 +113,4 @@ gotify:
   NewMode: false
   NewBandAndMode: false
   Watchlist: false
+  windows_notify: false 
