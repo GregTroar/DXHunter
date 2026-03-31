@@ -73,6 +73,7 @@ buildi: install-deps frontend backendi
 	@echo "Run: ./$(BINARY_NAME)"
 	@echo ""
 
+
 ## run: Build et lance l'application
 run: build
 	@echo "Starting FlexDXCluster..."

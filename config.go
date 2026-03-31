@@ -31,7 +31,6 @@ type ClusterConfig struct {
 }
 
 // GetActiveClusters retourne la liste des clusters activés.
-// Si aucun cluster n'a master:true, le premier est automatiquement désigné maître.
 func (c *Config) GetActiveClusters() []ClusterConfig {
 	var active []ClusterConfig
 	for _, cl := range c.Clusters {
