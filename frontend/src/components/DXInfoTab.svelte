@@ -91,6 +91,109 @@
     if (!d) return '—';
     return d.slice(0, 10);
   }
+
+  function modeAbbrev(key) {
+    switch(key) {
+      case 'phone': return 'PH';
+      case 'cw':    return 'CW';
+      case 'ft8':   return 'FT8';
+      case 'ft4':   return 'FT4';
+      case 'rtty':  return 'RTTY';
+      default:      return key.toUpperCase();
+    }
+  }
+
+  // Filled square color per mode, matching app theme
+  function modeSquareStyle(key) {
+    switch(key) {
+      case 'phone': return 'background:#3b82f6;';          // blue-500
+      case 'cw':    return 'background:#f97316;';          // orange-500
+      case 'ft8':   return 'background:#a855f7;';          // purple-500
+      case 'ft4':   return 'background:#ec4899;';          // pink-500
+      case 'rtty':  return 'background:#eab308;';          // yellow-500
+      default:      return 'background:#6b7280;';
+    }
+  }
+
+  // Country name → ISO 3166-1 alpha-2 code (used for flag image URL)
+  function countryISO(countryName) {
+    if (!countryName) return '';
+    const isoMap = {
+      // Europe
+      'Albania': 'AL', 'Andorra': 'AD', 'Austria': 'AT', 'Azerbaijan': 'AZ',
+      'Belarus': 'BY', 'Belgium': 'BE', 'Bosnia-Herzegovina': 'BA', 'Bulgaria': 'BG',
+      'Croatia': 'HR', 'Cyprus': 'CY', 'Czech Republic': 'CZ', 'Czechia': 'CZ',
+      'Denmark': 'DK', 'Estonia': 'EE', 'Finland': 'FI', 'France': 'FR',
+      'Germany': 'DE', 'Gibraltar': 'GI', 'Greece': 'GR', 'Hungary': 'HU',
+      'Iceland': 'IS', 'Ireland': 'IE', 'Italy': 'IT', 'Kosovo': 'XK',
+      'Latvia': 'LV', 'Liechtenstein': 'LI', 'Lithuania': 'LT', 'Luxembourg': 'LU',
+      'Malta': 'MT', 'Moldova': 'MD', 'Monaco': 'MC', 'Montenegro': 'ME',
+      'Netherlands': 'NL', 'North Macedonia': 'MK', 'Norway': 'NO', 'Poland': 'PL',
+      'Portugal': 'PT', 'Romania': 'RO', 'San Marino': 'SM', 'Serbia': 'RS',
+      'Slovakia': 'SK', 'Slovenia': 'SI', 'Spain': 'ES', 'Sweden': 'SE',
+      'Switzerland': 'CH', 'Turkey': 'TR', 'Ukraine': 'UA', 'United Kingdom': 'GB',
+      'Vatican City': 'VA', 'Armenia': 'AM', 'Georgia': 'GE',
+      // Russia / regional
+      'European Russia': 'RU', 'Asiatic Russia': 'RU', 'Russia': 'RU', 'Kaliningrad': 'RU',
+      // UK territories / islands
+      'Channel Islands': 'GG', 'Isle of Man': 'IM',
+      'Azores': 'PT', 'Madeira': 'PT', 'Canary Islands': 'ES', 'Balearic Islands': 'ES',
+      // North America
+      'Canada': 'CA', 'Mexico': 'MX',
+      'Alaska': 'US', 'Hawaii': 'US', 'USA': 'US', 'United States': 'US',
+      'Puerto Rico': 'PR', 'Guam': 'GU', 'US Virgin Islands': 'VI',
+      'Northern Mariana Islands': 'MP',
+      // Central America & Caribbean
+      'Belize': 'BZ', 'Costa Rica': 'CR', 'Cuba': 'CU', 'Dominican Republic': 'DO',
+      'El Salvador': 'SV', 'Guatemala': 'GT', 'Haiti': 'HT', 'Honduras': 'HN',
+      'Jamaica': 'JM', 'Nicaragua': 'NI', 'Panama': 'PA', 'Trinidad and Tobago': 'TT',
+      'Barbados': 'BB', 'Martinique': 'MQ', 'Guadeloupe': 'GP', 'Aruba': 'AW',
+      'Curacao': 'CW', 'Sint Maarten': 'SX', 'Bahamas': 'BS', 'Cayman Islands': 'KY',
+      'Bermuda': 'BM', 'Grenada': 'GD', 'Saint Lucia': 'LC', 'Dominica': 'DM',
+      'Antigua and Barbuda': 'AG', 'Montserrat': 'MS',
+      // South America
+      'Argentina': 'AR', 'Bolivia': 'BO', 'Brazil': 'BR', 'Chile': 'CL',
+      'Colombia': 'CO', 'Ecuador': 'EC', 'Falkland Islands': 'FK', 'French Guiana': 'GF',
+      'Guyana': 'GY', 'Paraguay': 'PY', 'Peru': 'PE', 'Suriname': 'SR',
+      'Uruguay': 'UY', 'Venezuela': 'VE',
+      // Africa
+      'Algeria': 'DZ', 'Angola': 'AO', 'Benin': 'BJ', 'Botswana': 'BW',
+      'Burkina Faso': 'BF', 'Cameroon': 'CM', 'Cape Verde': 'CV',
+      'Central Africa': 'CF', 'Chad': 'TD', 'Comoros': 'KM', 'Congo': 'CG',
+      'DR Congo': 'CD', 'Egypt': 'EG', 'Ethiopia': 'ET', 'Gabon': 'GA',
+      'Ghana': 'GH', 'Guinea': 'GN', 'Ivory Coast': 'CI', 'Kenya': 'KE',
+      'Libya': 'LY', 'Madagascar': 'MG', 'Malawi': 'MW', 'Mali': 'ML',
+      'Mauritania': 'MR', 'Mauritius': 'MU', 'Morocco': 'MA', 'Mozambique': 'MZ',
+      'Namibia': 'NA', 'Niger': 'NE', 'Nigeria': 'NG', 'Reunion': 'RE',
+      'Rwanda': 'RW', 'Senegal': 'SN', 'Seychelles': 'SC', 'Sierra Leone': 'SL',
+      'Somalia': 'SO', 'South Africa': 'ZA', 'Sudan': 'SD', 'Tanzania': 'TZ',
+      'Togo': 'TG', 'Tunisia': 'TN', 'Uganda': 'UG', 'Zambia': 'ZM', 'Zimbabwe': 'ZW',
+      'Western Sahara': 'EH',
+      // Middle East
+      'Bahrain': 'BH', 'Iran': 'IR', 'Iraq': 'IQ', 'Israel': 'IL',
+      'Jordan': 'JO', 'Kuwait': 'KW', 'Lebanon': 'LB', 'Oman': 'OM',
+      'Qatar': 'QA', 'Saudi Arabia': 'SA', 'Syria': 'SY',
+      'United Arab Emirates': 'AE', 'Yemen': 'YE', 'Palestine': 'PS',
+      // Asia
+      'Afghanistan': 'AF', 'Bangladesh': 'BD', 'Bhutan': 'BT', 'Brunei': 'BN',
+      'Cambodia': 'KH', 'China': 'CN', 'Hong Kong': 'HK', 'Macao': 'MO',
+      'India': 'IN', 'Indonesia': 'ID', 'Japan': 'JP', 'Kazakhstan': 'KZ',
+      'Kyrgyzstan': 'KG', 'Laos': 'LA', 'Maldives': 'MV', 'Malaysia': 'MY',
+      'Mongolia': 'MN', 'Myanmar': 'MM', 'Nepal': 'NP', 'North Korea': 'KP',
+      'Pakistan': 'PK', 'Philippines': 'PH', 'Singapore': 'SG', 'South Korea': 'KR',
+      'Sri Lanka': 'LK', 'Taiwan': 'TW', 'Tajikistan': 'TJ', 'Thailand': 'TH',
+      'Turkmenistan': 'TM', 'Uzbekistan': 'UZ', 'Vietnam': 'VN', 'Korea': 'KR',
+      // Pacific & Oceania
+      'Australia': 'AU', 'Fiji': 'FJ', 'French Polynesia': 'PF',
+      'Kiribati': 'KI', 'Marshall Islands': 'MH', 'Micronesia': 'FM',
+      'Nauru': 'NR', 'New Caledonia': 'NC', 'New Zealand': 'NZ',
+      'Palau': 'PW', 'Papua New Guinea': 'PG', 'Samoa': 'WS', 'Solomon Islands': 'SB',
+      'Tonga': 'TO', 'Tuvalu': 'TV', 'Vanuatu': 'VU', 'Wallis and Futuna': 'WF',
+      'Cook Islands': 'CK', 'Norfolk Island': 'NF', 'Cocos Islands': 'CC',
+      'Christmas Island': 'CX',
+    };
+    return isoMap[countryName] ?? '';
+  }
 </script>
 
 <div class="flex flex-col h-full p-3 gap-3 overflow-y-auto">
@@ -121,14 +224,23 @@
   {:else if info}
     <!-- Header info -->
     <div class="bg-slate-800/60 rounded-lg border border-slate-700/50 p-3 flex flex-wrap gap-4 items-center">
-      <div>
-        <span class="text-xl font-bold text-white">{info.callsign}</span>
-        {#if info.country}
-          <span class="ml-2 text-slate-400 text-sm">{info.country}</span>
+      <div class="flex items-center gap-2">
+        {#if countryISO(info.country)}
+          <img
+            src="https://flagcdn.com/20x15/{countryISO(info.country).toLowerCase()}.png"
+            alt={info.country}
+            style="width:24px; height:18px; object-fit:cover; border-radius:2px;"
+          />
         {/if}
-        {#if info.dxcc}
-          <span class="ml-1 text-xs text-slate-500">({info.dxcc})</span>
-        {/if}
+        <div>
+          <span class="text-xl font-bold text-white">{info.callsign}</span>
+          {#if info.country}
+            <span class="ml-2 text-slate-400 text-sm">{info.country}</span>
+          {/if}
+          {#if info.dxcc}
+            <span class="ml-1 text-xs text-slate-500">({info.dxcc})</span>
+          {/if}
+        </div>
       </div>
       <div class="flex gap-4 text-sm ml-auto">
         <div class="text-center">
@@ -150,99 +262,78 @@
       </div>
     </div>
 
-    <!-- Band/Mode grid -->
-    <div class="bg-slate-800/60 rounded-lg border border-slate-700/50 overflow-hidden">
-      <table class="w-full text-xs">
-        <thead>
-          <tr class="bg-slate-900/60 border-b border-slate-700/50">
-            <th class="py-2 px-3 text-left text-slate-400 font-semibold w-14">Band</th>
-            {#each MODE_COLS as col}
-              <th class="py-2 px-2 text-center text-slate-300 font-bold">{col.label}</th>
-            {/each}
-          </tr>
-        </thead>
-        <tbody>
-          {#each BANDS as band}
-            {@const hasAny = MODE_COLS.some(c => (grid[band]?.[c.key] ?? 0) > 0)}
-            <tr class="border-b border-slate-700/30 {hasAny ? '' : 'opacity-40'}">
-              <td class="py-1.5 px-3 font-semibold text-slate-300">{band}</td>
-              {#each MODE_COLS as col}
-                {@const count = grid[band]?.[col.key] ?? 0}
-                <td class="py-1.5 px-2 text-center">
-                  {#if count > 0}
-                    <div class="inline-flex items-center justify-center rounded font-bold
-                      {col.key === 'phone' ? 'bg-blue-500/30 text-blue-300' :
-                       col.key === 'cw'    ? 'bg-orange-500/30 text-orange-300' :
-                       col.key === 'ft8'   ? 'bg-purple-500/30 text-purple-300' :
-                       col.key === 'ft4'   ? 'bg-pink-500/30 text-pink-300' :
-                                             'bg-yellow-500/30 text-yellow-300'}
-                      min-w-[2rem] px-1.5 py-0.5 text-xs">
-                      {count}
-                    </div>
-                  {:else}
-                    <span class="text-slate-700">·</span>
-                  {/if}
-                </td>
-              {/each}
-            </tr>
-          {/each}
-        </tbody>
-        <tfoot>
-          <tr class="bg-slate-900/40 border-t border-slate-600/50">
-            <td class="py-1.5 px-3 text-slate-400 font-semibold text-xs">Total</td>
-            {#each MODE_COLS as col}
-              {@const t = colTotal(col.key)}
-              <td class="py-1.5 px-2 text-center">
-                {#if t > 0}
-                  <span class="text-slate-200 font-bold">{t}</span>
-                {:else}
-                  <span class="text-slate-600">0</span>
-                {/if}
-              </td>
-            {/each}
-          </tr>
-        </tfoot>
-      </table>
-    </div>
+    <!-- Band/Mode grid + Recent spots side by side -->
+    <div class="flex gap-3 items-start">
 
-    <!-- Derniers spots -->
-    {#if recentSpots.length > 0}
-      <div class="bg-slate-800/60 rounded-lg border border-slate-700/50 overflow-hidden">
-        <div class="px-3 py-2 border-b border-slate-700/50 bg-slate-900/40">
-          <span class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Last {recentSpots.length} spots</span>
-        </div>
-        <table class="w-full text-xs">
-          <thead>
-            <tr class="border-b border-slate-700/30 text-slate-500">
-              <th class="py-1.5 px-3 text-left">Time</th>
-              <th class="py-1.5 px-2 text-left">Freq</th>
-              <th class="py-1.5 px-2 text-left">Band</th>
-              <th class="py-1.5 px-2 text-left">Mode</th>
-              <th class="py-1.5 px-2 text-left">Spotter</th>
-              <th class="py-1.5 px-2 text-left">Comment</th>
-              <th class="py-1.5 px-2 text-left">Cluster</th>
-            </tr>
-          </thead>
-          <tbody>
-            {#each recentSpots as s}
-              <tr class="border-b border-slate-700/20 hover:bg-slate-700/20">
-                <td class="py-1.5 px-3 text-slate-400 font-mono">{s.UTCTime}</td>
-                <td class="py-1.5 px-2 font-mono text-slate-200">{parseFloat(s.FrequencyMhz).toFixed(3)}</td>
-                <td class="py-1.5 px-2">
-                  <span class="px-1.5 py-0.5 bg-slate-700/50 rounded text-slate-300">{s.Band}</span>
-                </td>
-                <td class="py-1.5 px-2">
-                  <span class="px-1.5 py-0.5 bg-purple-500/20 text-purple-400 rounded">{s.Mode}</span>
-                </td>
-                <td class="py-1.5 px-2 text-slate-400">{s.SpotterCallsign}</td>
-                <td class="py-1.5 px-2 text-slate-500 truncate max-w-[120px]" title={s.OriginalComment}>{s.OriginalComment || '—'}</td>
-                <td class="py-1.5 px-2 text-slate-600 text-xs">{s.ClusterName || '—'}</td>
-              </tr>
+      <!-- Band/Mode compact grid: bands on top, modes on left, small colored squares -->
+      <div class="bg-slate-800/60 rounded-lg border border-slate-700/50 p-2.5 flex-none">
+        <div class="flex flex-col gap-0.5">
+          <!-- Band column headers -->
+          <div class="flex items-end mb-0.5">
+            <div class="flex-none" style="width:40px;"></div>
+            {#each BANDS as band}
+              <div class="flex-none text-center" style="width:20px; font-size:9px; color:#64748b; font-weight:600; line-height:1.4; letter-spacing:-0.5px;">
+                {band.replace('M','')}
+              </div>
             {/each}
-          </tbody>
-        </table>
+          </div>
+          <!-- One row per mode -->
+          {#each MODE_COLS as col}
+            <div class="flex items-center">
+              <div class="flex-none text-right pr-1.5" style="width:40px; font-size:10px; color:#94a3b8; font-weight:700; letter-spacing:0.3px;">
+                {modeAbbrev(col.key)}
+              </div>
+              {#each BANDS as band}
+                {@const count = grid[band]?.[col.key] ?? 0}
+                <div
+                  class="flex-none rounded-sm"
+                  title="{band} {col.label}: {count} QSO{count !== 1 ? 's' : ''}"
+                  style="width:17px; height:17px; margin:1.5px; {count > 0 ? modeSquareStyle(col.key) : 'background:rgba(15,23,42,0.9); border:1px solid rgba(51,65,85,0.5);'}"
+                ></div>
+              {/each}
+            </div>
+          {/each}
+        </div>
       </div>
-    {/if}
+
+      <!-- Recent spots -->
+      {#if recentSpots.length > 0}
+        <div class="bg-slate-800/60 rounded-lg border border-slate-700/50 overflow-hidden flex-1 min-w-0">
+          <div class="px-3 py-2 border-b border-slate-700/50 bg-slate-900/40">
+            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Last {recentSpots.length} spots</span>
+          </div>
+          <table class="w-full text-xs">
+            <thead>
+              <tr class="border-b border-slate-700/30 text-slate-500">
+                <th class="py-1.5 px-2 text-left">Time</th>
+                <th class="py-1.5 px-2 text-left">Freq</th>
+                <th class="py-1.5 px-2 text-left">Band</th>
+                <th class="py-1.5 px-2 text-left">Mode</th>
+                <th class="py-1.5 px-2 text-left">Spotter</th>
+                <th class="py-1.5 px-2 text-left">Comment</th>
+              </tr>
+            </thead>
+            <tbody>
+              {#each recentSpots as s}
+                <tr class="border-b border-slate-700/20 hover:bg-slate-700/20">
+                  <td class="py-1.5 px-2 text-slate-400 font-mono">{s.UTCTime}</td>
+                  <td class="py-1.5 px-2 font-mono text-slate-200">{parseFloat(s.FrequencyMhz).toFixed(3)}</td>
+                  <td class="py-1.5 px-2">
+                    <span class="px-1.5 py-0.5 bg-slate-700/50 rounded text-slate-300">{s.Band}</span>
+                  </td>
+                  <td class="py-1.5 px-2">
+                    <span class="px-1.5 py-0.5 bg-purple-500/20 text-purple-400 rounded">{s.Mode}</span>
+                  </td>
+                  <td class="py-1.5 px-2 text-slate-400">{s.SpotterCallsign}</td>
+                  <td class="py-1.5 px-2 text-slate-500 truncate max-w-[160px]" title={s.OriginalComment}>{s.OriginalComment || '—'}</td>
+                </tr>
+              {/each}
+            </tbody>
+          </table>
+        </div>
+      {/if}
+
+    </div>
 
   {:else}
     <div class="flex flex-col items-center justify-center py-12 text-slate-500 gap-2">
