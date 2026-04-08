@@ -45,6 +45,7 @@
   $: displayList = getDisplayList(watchlist, watchlistSpots, showOnlyActive, showOnlyNotWorked, selectedMode);
   $: matchingSpots = watchlistSpots.length;
   $: filteredSpots = countFilteredSpots(watchlistSpots, selectedBand, selectedMode, showOnlyNotWorked);
+  $: notWorkedCount = watchlistSpots.filter(s => !s.workedBandMode).length;
   
   $: if (watchlist.length > 0) {
     fetchWatchlistSpots();
@@ -479,20 +480,36 @@ function getDisplayList(wl, wlSpots, activeOnly, onlyNotWorked, modeFilter) {
       </div>
     </div>
     
-    <div class="flex items-center gap-2 mb-3">
+    <div class="flex items-center gap-3 mb-3 flex-wrap">
       <div class="flex items-center gap-1.5 text-xs">
-        <span class="text-slate-400">Spots:</span>
+        <span class="text-slate-500">Watchlist:</span>
+        <span class="px-2 py-0.5 bg-slate-700/50 text-slate-200 rounded font-semibold">
+          {watchlist.length}
+        </span>
+      </div>
+      <span class="text-slate-700">|</span>
+      <div class="flex items-center gap-1.5 text-xs">
+        <span class="text-slate-500">Active:</span>
         <span class="px-2 py-0.5 bg-slate-700/50 text-white rounded font-semibold">
           {matchingSpots}
         </span>
-        {#if (selectedBand !== 'ALL' || selectedMode !== 'ALL') && filteredSpots !== matchingSpots}
-          <span class="text-slate-500">•</span>
-          <span class="text-slate-400">Filtered:</span>
+      </div>
+      <span class="text-slate-700">|</span>
+      <div class="flex items-center gap-1.5 text-xs">
+        <span class="text-slate-500">Needed:</span>
+        <span class="px-2 py-0.5 rounded font-semibold {notWorkedCount > 0 ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'bg-slate-700/50 text-slate-400'}">
+          {notWorkedCount}
+        </span>
+      </div>
+      {#if (selectedBand !== 'ALL' || selectedMode !== 'ALL') && filteredSpots !== matchingSpots}
+        <span class="text-slate-700">|</span>
+        <div class="flex items-center gap-1.5 text-xs">
+          <span class="text-slate-500">Filtered:</span>
           <span class="px-2 py-0.5 bg-blue-600/20 text-blue-400 rounded font-semibold border border-blue-500/30">
             {filteredSpots}
           </span>
-        {/if}
-      </div>
+        </div>
+      {/if}
     </div>
     
     <!-- ✅ NOUVEAU : Filtres de bande et mode -->

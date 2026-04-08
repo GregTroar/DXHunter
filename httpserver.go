@@ -111,6 +111,7 @@ type WatchlistSpot struct {
 	NewDXCC         bool   `json:"newDXCC"`
 	NewBand         bool   `json:"newBand"`
 	NewMode         bool   `json:"newMode"`
+	NewSlot         bool   `json:"newSlot"`
 	Worked          bool   `json:"worked"`
 	WorkedBandMode  bool   `json:"workedBandMode"`
 }
@@ -535,17 +536,35 @@ func (s *HTTPServer) broadcastUpdates() {
 	logTicker := time.NewTicker(5 * time.Second)
 	watchlistSaveTicker := time.NewTicker(20 * time.Second)
 	cleanupTicker := time.NewTicker(30 * time.Second) // ✅ Nouveau ticker pour le nettoyage
+	watchlistCleanupTicker := time.NewTicker(24 * time.Hour)
 
 	defer func() {
 		statsTicker.Stop()
 		logTicker.Stop()
 		watchlistSaveTicker.Stop()
 		cleanupTicker.Stop()
+		watchlistCleanupTicker.Stop()
 		Log.Info("Broadcast updates stopped")
 	}()
 
+	// Run watchlist stale cleanup once at startup
+	if s.Watchlist != nil {
+		removed := s.Watchlist.CleanupStale(28 * 24 * time.Hour)
+		if len(removed) > 0 {
+			Log.Infof("Watchlist startup cleanup: removed %d stale entries: %v", len(removed), removed)
+		}
+	}
+
 	for {
 		select {
+		case <-watchlistCleanupTicker.C:
+			if s.Watchlist != nil {
+				removed := s.Watchlist.CleanupStale(28 * 24 * time.Hour)
+				if len(removed) > 0 {
+					Log.Infof("Watchlist daily cleanup: removed %d stale entries: %v", len(removed), removed)
+				}
+			}
+
 		case <-statsTicker.C:
 			if s.clientCount() == 0 {
 				continue
@@ -962,6 +981,7 @@ func (s *HTTPServer) getWatchlistSpotsWithStatus(w http.ResponseWriter, r *http.
 				NewDXCC:         spot.NewDXCC,
 				NewBand:         spot.NewBand,
 				NewMode:         spot.NewMode,
+				NewSlot:         spot.NewSlot,
 				Worked:          spot.Worked,
 				WorkedBandMode:  workedMap[spot.DX],
 			})

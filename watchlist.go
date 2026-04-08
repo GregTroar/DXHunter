@@ -395,6 +395,35 @@ func (w *Watchlist) GetAllCallsigns() []string {
 	return callsigns
 }
 
+// CleanupStale removes watchlist entries that were spotted at some point but have
+// not been seen for longer than maxAge. Entries with SpotCount == 0 (never spotted,
+// likely a future expedition) are intentionally left untouched.
+// Returns the callsigns that were removed.
+func (w *Watchlist) CleanupStale(maxAge time.Duration) []string {
+	w.mutex.Lock()
+	defer w.mutex.Unlock()
+
+	cutoff := time.Now().Add(-maxAge)
+	var removed []string
+
+	for callsign, entry := range w.entries {
+		// Never spotted → keep (waiting for future expedition)
+		if entry.LastSeen.IsZero() {
+			continue
+		}
+		// Has been spotted but not seen within maxAge → remove
+		if entry.LastSeen.Before(cutoff) {
+			delete(w.entries, callsign)
+			removed = append(removed, callsign)
+		}
+	}
+
+	if len(removed) > 0 {
+		_ = w.saveUnsafe()
+	}
+	return removed
+}
+
 func formatLastSeen(t time.Time) string {
 	if t.IsZero() {
 		return "Never"
