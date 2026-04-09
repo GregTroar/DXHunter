@@ -40,8 +40,8 @@
     if (!spotsList || !Array.isArray(spotsList)) return 0;
     
     switch(type) {
-      case 'newDXCC': 
-        return spotsList.filter(s => s.NewDXCC).length;
+      case 'newDXCC':
+        return new Set(spotsList.filter(s => s.NewDXCC).map(s => s.DXCC || s.CountryName)).size;
       case 'newBandMode': 
         return spotsList.filter(s => s.NewBand && s.NewMode && !s.NewDXCC).length;
       case 'newBand': 
