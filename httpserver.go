@@ -204,6 +204,48 @@ func (s *HTTPServer) handleFTxReply(w http.ResponseWriter, r *http.Request) {
 	s.sendSuccess(w, nil, "Reply sent")
 }
 
+func (s *HTTPServer) handleFTxHaltTX(w http.ResponseWriter, r *http.Request) {
+	if s.FTx == nil {
+		s.sendError(w, "FTx not enabled")
+		return
+	}
+	var req struct {
+		ClientID string `json:"clientId"`
+		AutoOnly bool   `json:"autoOnly"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		req.ClientID = "MSHV"
+	}
+	if err := s.FTx.HaltTX(req.ClientID, req.AutoOnly); err != nil {
+		s.sendError(w, "halt TX failed: "+err.Error())
+		return
+	}
+	s.sendSuccess(w, nil, "TX halted")
+}
+
+func (s *HTTPServer) handleFTxHighlight(w http.ResponseWriter, r *http.Request) {
+	if s.FTx == nil {
+		s.sendError(w, "FTx not enabled")
+		return
+	}
+	var req struct {
+		ClientID  string `json:"clientId"`
+		Callsign  string `json:"callsign"`
+		BgColor   [4]uint8 `json:"bgColor"`  // RGBA
+		FgColor   [4]uint8 `json:"fgColor"`
+		Highlight bool     `json:"highlight"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		s.sendError(w, "invalid request: "+err.Error())
+		return
+	}
+	if err := s.FTx.HighlightCallsign(req.ClientID, req.Callsign, req.BgColor, req.FgColor, req.Highlight); err != nil {
+		s.sendError(w, "highlight failed: "+err.Error())
+		return
+	}
+	s.sendSuccess(w, nil, "Highlight sent")
+}
+
 func (s *HTTPServer) setupRoutes() {
 	s.Router.Use(s.corsMiddleware)
 
@@ -243,6 +285,8 @@ func (s *HTTPServer) setupRoutes() {
 	// FTx (WSJT-X/JTDX/MSHV) — reply to a decoded station
 	api.HandleFunc("/ftx/reply", s.handleFTxReply).Methods("POST", "OPTIONS")
 	api.HandleFunc("/ftx/toggle", s.handleFTxToggle).Methods("POST", "OPTIONS")
+	api.HandleFunc("/ftx/halttx", s.handleFTxHaltTX).Methods("POST", "OPTIONS")
+	api.HandleFunc("/ftx/highlight", s.handleFTxHighlight).Methods("POST", "OPTIONS")
 
 	// External data
 	api.HandleFunc("/solar", s.HandleSolarData).Methods("GET", "OPTIONS")

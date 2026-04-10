@@ -82,10 +82,12 @@ const (
 	wsjtxMagic  uint32 = 0xADBCCBDA
 	wsjtxSchema uint32 = 2
 
-	msgStatus uint32 = 1
-	msgDecode uint32 = 2
-	msgClear  uint32 = 3
-	msgReply  uint32 = 4
+	msgStatus    uint32 = 1
+	msgDecode    uint32 = 2
+	msgClear     uint32 = 3
+	msgReply     uint32 = 4
+	msgHaltTX    uint32 = 8
+	msgHighlight uint32 = 13
 )
 
 // FTxDecode is one decoded line broadcast to the frontend via WebSocket.
@@ -120,6 +122,7 @@ type FTxService struct {
 
 	mu         sync.RWMutex
 	dialFreq   uint64       // last known dial frequency from Status message
+	statusMode string       // mode from Status message (e.g. "FT8") — decode messages may send "~"
 	sourceAddr *net.UDPAddr // last seen sender (MSHV/WSJT-X/JTDX)
 	myCall     string
 
@@ -251,8 +254,14 @@ func (f *FTxService) handleStatus(r *bytes.Reader) {
 	if err := binary.Read(r, binary.BigEndian, &dialFreq); err != nil {
 		return
 	}
+	// Status message also carries the current mode (field 2 after DialFrequency).
+	mode, _ := readQString(r)
+
 	f.mu.Lock()
 	f.dialFreq = dialFreq
+	if mode != "" {
+		f.statusMode = strings.ToUpper(mode)
+	}
 	f.mu.Unlock()
 }
 
@@ -305,7 +314,16 @@ func (f *FTxService) handleDecode(r *bytes.Reader, src *net.UDPAddr) {
 
 	f.mu.RLock()
 	dialFreq := f.dialFreq
+	statusMode := f.statusMode
 	f.mu.RUnlock()
+
+	// WSJT-X sends "~" as the submode in Decode messages (means "standard FT8").
+	// Fall back to the mode from the last Status message which always has the real name.
+	if mode == "~" || mode == "" {
+		if statusMode != "" {
+			mode = statusMode
+		}
+	}
 
 	frequency := dialFreq + uint64(df)
 	band := getBandFromHz(frequency)
@@ -549,6 +567,90 @@ func (f *FTxService) SendReply(decode FTxDecode, clientID string) error {
 	return err
 }
 
+// HaltTX sends a WSJT-X "Halt TX" message (type 8).
+// autoOnly: true = only halt if auto-sequence is active, false = halt immediately.
+func (f *FTxService) HaltTX(clientID string, autoOnly bool) error {
+	f.mu.RLock()
+	src := f.sourceAddr
+	f.mu.RUnlock()
+	if src == nil {
+		return fmt.Errorf("no source address known yet")
+	}
+	conn, err := net.DialUDP("udp4", nil, src)
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	buf := new(bytes.Buffer)
+	writeUint32(buf, wsjtxMagic)
+	writeUint32(buf, wsjtxSchema)
+	writeUint32(buf, msgHaltTX)
+	writeQString(buf, clientID)
+	writeBool(buf, autoOnly)
+
+	_, err = conn.Write(buf.Bytes())
+	return err
+}
+
+// HighlightCallsign sends a WSJT-X "Highlight Callsign" message (type 13).
+// Passing empty colors clears the highlight. Set last = true to highlight
+// the last compound callsign only.
+func (f *FTxService) HighlightCallsign(clientID, callsign string, bgColor, fgColor [4]uint8, highlight bool) error {
+	f.mu.RLock()
+	src := f.sourceAddr
+	f.mu.RUnlock()
+	if src == nil {
+		return fmt.Errorf("no source address known yet")
+	}
+	conn, err := net.DialUDP("udp4", nil, src)
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	buf := new(bytes.Buffer)
+	writeUint32(buf, wsjtxMagic)
+	writeUint32(buf, wsjtxSchema)
+	writeUint32(buf, msgHighlight)
+	writeQString(buf, clientID)
+	writeQString(buf, callsign)
+	writeQColor(buf, bgColor)
+	writeQColor(buf, fgColor)
+	writeBool(buf, highlight) // highlight last callsign only
+
+	_, err = conn.Write(buf.Bytes())
+	return err
+}
+
+// writeQColor writes a Qt QColor in QDataStream format:
+//   uint8  colorSpec  (0=invalid, 1=RGB)
+//   uint16 alpha
+//   uint16 red
+//   uint16 green
+//   uint16 blue
+//   uint16 pad
+// 8-bit component → 16-bit: multiply by 257 (0xFF * 257 = 0xFFFF).
+// Pass all-zero [4]uint8 to write an invalid color (clears highlight).
+func writeQColor(buf *bytes.Buffer, c [4]uint8) {
+	if c[0] == 0 && c[1] == 0 && c[2] == 0 && c[3] == 0 {
+		// Invalid color — clears any existing highlight
+		buf.WriteByte(0)
+		binary.Write(buf, binary.BigEndian, uint16(0)) // alpha
+		binary.Write(buf, binary.BigEndian, uint16(0)) // red
+		binary.Write(buf, binary.BigEndian, uint16(0)) // green
+		binary.Write(buf, binary.BigEndian, uint16(0)) // blue
+		binary.Write(buf, binary.BigEndian, uint16(0)) // pad
+		return
+	}
+	buf.WriteByte(1) // ColorSpec = RGB
+	binary.Write(buf, binary.BigEndian, uint16(c[3])*257) // alpha
+	binary.Write(buf, binary.BigEndian, uint16(c[0])*257) // red
+	binary.Write(buf, binary.BigEndian, uint16(c[1])*257) // green
+	binary.Write(buf, binary.BigEndian, uint16(c[2])*257) // blue
+	binary.Write(buf, binary.BigEndian, uint16(0))        // pad
+}
+
 // ============================================================================
 // Helpers
 // ============================================================================
@@ -646,12 +748,26 @@ func parseFTxMessage(msg, myCall string) (dxCall string, isCQ bool) {
 		return "", false
 	}
 
-	// Angle-bracket token <CALL> = hashed/DX call = transmitter in MSHV Type-4
-	// messages.  Check this before anything else.
-	for _, p := range parts {
+	// Angle-bracket token <CALL> = hashed callsign in MSHV/WSJT-X Type-4 messages.
+	// Position determines role:
+	//   pos 0 → addressed station (DX being called), next token = transmitter
+	//           e.g. "<3X3A> E7/K9AW"  → transmitter = E7/K9AW
+	//   pos 1+ → the transmitter itself
+	//           e.g. "SP7IFM <3X3A> -06" → transmitter = 3X3A
+	for i, p := range parts {
 		if m := angledCallRe.FindStringSubmatch(p); m != nil {
-			dxCall = m[1]
-			return
+			if i == 0 {
+				// <DX> CALLER REPORT — transmitter is the next token
+				for _, next := range parts[1:] {
+					if callsignRe.MatchString(next) {
+						dxCall = next
+						return
+					}
+				}
+			} else {
+				dxCall = m[1]
+				return
+			}
 		}
 	}
 

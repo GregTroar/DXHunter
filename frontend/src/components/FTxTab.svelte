@@ -2,42 +2,54 @@
   export let ftxEnabled = false;
   export let ftxDecodes = [];   // maintained by App.svelte — persists across tab switches
 
-  let paused = false;
   let filterCQOnly = false;
   let filterMyCall = false;
   let showSlotAdvisor = false;
+  let isDXpedition = true;
 
-  let snapshot = [];
   let clearedAt = 0;
-
-  function togglePause() {
-    if (!paused) snapshot = [...ftxDecodes];
-    paused = !paused;
-  }
 
   function clearDisplay() {
     clearedAt = Date.now();
-    paused = false;
-    snapshot = [];
   }
 
   async function toggleEnabled() {
     await fetch('/api/ftx/toggle', { method: 'POST' });
   }
 
+  let haltBusy = false;
+  let haltOk = false;
+
+  async function haltTX() {
+    haltBusy = true;
+    haltOk = false;
+    try {
+      await fetch('/api/ftx/halttx', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ clientId: 'MSHV', autoOnly: false })
+      });
+      haltOk = true;
+      setTimeout(() => haltOk = false, 1500);
+    } finally {
+      haltBusy = false;
+    }
+  }
+
   const cols = '50px 34px 36px 52px 48px minmax(0,2fr) minmax(0,1.5fr) 130px';
 
-  // FT8 passband — DXpéditions écoutent entre 1000 et 3000 Hz
-  const DF_MIN    = 1000;  // Hz
-  const DF_MAX    = 3000;  // Hz
-  const DF_RANGE  = DF_MAX - DF_MIN;
-  const SIG_WIDTH = 60;    // Hz — largeur pratique d'un signal FT8 (50 Hz + marge minimale)
+  const SIG_WIDTH = 60;  // Hz — practical FT8 signal width
+
+  // Passband: DXpeditions listen 1000-3000 Hz, normal QSO 0-3000 Hz
+  $: DF_MIN   = isDXpedition ? 1000 : 0;
+  $: DF_MAX   = 3000;
+  $: DF_RANGE = DF_MAX - DF_MIN;
 
   $: visibleDecodes = clearedAt > 0
     ? ftxDecodes.filter(d => d.receivedAt > clearedAt)
     : ftxDecodes;
 
-  $: displayed = (paused ? snapshot : visibleDecodes).filter(d => {
+  $: displayed = visibleDecodes.filter(d => {
     if (filterCQOnly && !d.isCQ) return false;
     if (filterMyCall && !d.myCall) return false;
     return true;
@@ -168,15 +180,20 @@
     </label>
 
     <button
-      on:click={togglePause}
-      class="px-2 py-0.5 rounded text-xs font-semibold transition-colors {paused ? 'bg-orange-500/30 text-orange-300 border border-orange-500/50' : 'bg-slate-700 text-slate-300 border border-slate-600 hover:border-slate-500'}">
-      {paused ? '▶ Resume' : '⏸ Pause'}
-    </button>
-
-    <button
       on:click={clearDisplay}
       class="px-2 py-0.5 rounded text-xs font-semibold bg-slate-700 text-slate-300 border border-slate-600 hover:border-red-500/50 hover:text-red-400 transition-colors">
       Clear
+    </button>
+
+    <span class="text-slate-500">|</span>
+
+    <!-- Halt TX -->
+    <button
+      on:click={haltTX}
+      disabled={haltBusy}
+      class="px-2 py-0.5 rounded text-xs font-semibold transition-colors border {haltOk ? 'bg-green-500/20 text-green-400 border-green-500/50' : haltBusy ? 'bg-red-600/10 text-red-400/50 border-red-600/20 cursor-wait' : 'bg-red-600/20 text-red-400 border-red-600/40 hover:bg-red-600/40 hover:border-red-500'}"
+      title="Stop TX immediately in WSJT-X/JTDX/MSHV">
+      {haltBusy ? '…' : haltOk ? '✓ Halted' : '⛔ Halt TX'}
     </button>
 
     <span class="ml-auto text-slate-500">
@@ -189,9 +206,21 @@
   <!-- TX Slot Advisor Panel -->
   {#if showSlotAdvisor}
     <div class="px-3 py-2 bg-slate-950 border-b border-violet-500/30 flex-shrink-0">
-      <div class="flex items-center gap-2 mb-1.5">
+      <div class="flex items-center gap-3 mb-1.5">
         <span class="text-violet-400 font-semibold uppercase tracking-wide text-[10px]">TX Slot Advisor</span>
-        <span class="text-slate-600 text-[10px]">— {slotAnalysis?.dfs?.length ?? 0} signaux · 1000-3000 Hz · dernière période</span>
+        <span class="text-slate-600 text-[10px]">{slotAnalysis?.dfs?.length ?? 0} signals · {DF_MIN}-{DF_MAX} Hz</span>
+        <div class="flex items-center gap-1.5 ml-auto cursor-pointer select-none">
+          <span class="text-slate-500 text-[10px]">DXpedition</span>
+          <div
+            role="switch"
+            aria-checked={isDXpedition}
+            tabindex="0"
+            on:click={() => isDXpedition = !isDXpedition}
+            on:keydown={(e) => e.key === 'Enter' && (isDXpedition = !isDXpedition)}
+            class="relative w-8 h-4 rounded-full transition-colors cursor-pointer {isDXpedition ? 'bg-violet-500/60' : 'bg-slate-600'}">
+            <div class="absolute top-0.5 h-3 w-3 rounded-full bg-white shadow transition-transform {isDXpedition ? 'translate-x-4' : 'translate-x-0.5'}"></div>
+          </div>
+        </div>
       </div>
 
       {#if !slotAnalysis || slotAnalysis.dfs.length === 0}
@@ -262,7 +291,7 @@
 
         <!-- Frequency axis labels -->
         <div class="relative h-3 text-[9px] text-slate-600 font-mono select-none">
-          {#each [1000, 1250, 1500, 1750, 2000, 2250, 2500, 2750, 3000] as f}
+          {#each (isDXpedition ? [1000, 1250, 1500, 1750, 2000, 2250, 2500, 2750, 3000] : [0, 250, 500, 750, 1000, 1250, 1500, 1750, 2000, 2250, 2500, 2750, 3000]) as f}
             <span class="absolute -translate-x-1/2" style="left:{dfPct(f)}%">{f}</span>
           {/each}
         </div>
