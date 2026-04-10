@@ -123,6 +123,12 @@ type Config struct {
 		Port string `yaml:"port"`
 	} `yaml:"telnetserver"`
 
+	FTx struct {
+		Enabled     bool   `yaml:"enabled"`
+		MulticastIP string `yaml:"multicast_ip"`
+		Port        int    `yaml:"port"`
+	} `yaml:"ftx"`
+
 	ClubLog struct {
 		APIKey string `yaml:"api_key"`
 	} `yaml:"clublog"`

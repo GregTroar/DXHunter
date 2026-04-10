@@ -1,6 +1,6 @@
 module git.rouggy.com/rouggy/FlexDXCluster
 
-go 1.23.1
+go 1.25.0
 
 require (
 	github.com/fsnotify/fsnotify v1.9.0
@@ -22,8 +22,9 @@ require (
 	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d // indirect
 	github.com/onsi/ginkgo v1.16.5 // indirect
 	github.com/onsi/gomega v1.35.1 // indirect
-	golang.org/x/crypto v0.27.0 // indirect
-	golang.org/x/sys v0.26.0 // indirect
-	golang.org/x/term v0.24.0 // indirect
+	golang.org/x/crypto v0.50.0 // indirect
+	golang.org/x/net v0.53.0 // indirect
+	golang.org/x/sys v0.43.0 // indirect
+	golang.org/x/term v0.42.0 // indirect
 	gopkg.in/toast.v1 v1.0.0-20180812000517-0a84660828b2 // indirect
 )

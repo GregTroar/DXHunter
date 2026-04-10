@@ -50,6 +50,8 @@
   let contestCallsigns = [];
   let selectedCallsign = '';
   let mainTab = 'spots';
+  let ftxEnabled = false;
+  let ftxDecodes = [];
   
   let spotFilters = {
     showAll: true,
@@ -379,6 +381,9 @@ function applyFilters(allSpots, filters, wl) {
       if (message.data.contestCallsigns !== undefined) {
         contestCallsigns = message.data.contestCallsigns || [];
       }
+      if (message.data.ftxEnabled !== undefined) {
+        ftxEnabled = message.data.ftxEnabled;
+      }
       break;
       case 'spots':
         const newSpots = message.data || [];
@@ -523,6 +528,12 @@ function applyFilters(allSpots, filters, wl) {
         );
         break;
       // ✅ NOUVEAU : Gérer les changements de bande du FlexRadio
+      case 'ftxBatch':
+        ftxDecodes = [...(message.data || []), ...ftxDecodes].slice(0, 500);
+        break;
+      case 'ftxClear':
+        ftxDecodes = [];
+        break;
       case 'toAll':
         showToast(`📡 ${message.data.message}`, 'info', 10000);
         break;
@@ -826,7 +837,7 @@ async function shutdownApp() {
     </div>
     
     <div class="overflow-hidden">
-      <Sidebar 
+      <Sidebar
         bind:activeTab
         bind:showOnlyActive
         bind:showOnlyNotWorked
@@ -840,6 +851,8 @@ async function shutdownApp() {
         {contestMode}
         {contestPrefix}
         {contestCallsigns}
+        {ftxEnabled}
+        {ftxDecodes}
         wsStatus={wsStatus}
         clusterType={stats.clusterType || 'unknown'}
         clusters={stats.clusters || []}

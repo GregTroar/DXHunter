@@ -49,6 +49,7 @@ type HTTPServer struct {
 	Watchlist       *Watchlist
 	ConfigPath      string
 	ConsoleChan     chan string
+	FTx             *FTxService
 }
 
 type Stats struct {
@@ -72,6 +73,7 @@ type Stats struct {
 	Clusters         []ClusterInfo `json:"clusters"`
 	LoTWReady        bool          `json:"lotwReady"`
 	LoTWCount        int           `json:"lotwCount"`
+	FTxEnabled       bool          `json:"ftxEnabled"`
 }
 
 type ClusterInfo struct {
@@ -160,7 +162,33 @@ func NewHTTPServer(flexRepo *FlexDXClusterRepository, contactRepo *Log4OMContact
 	go server.broadcastUpdates()
 	go server.handleConsoleMessages()
 
+	// FTx multicast listener — shares the broadcast channel
+	if Cfg.FTx.Enabled {
+		server.FTx = NewFTxService(contactRepo, server.broadcast)
+		go server.FTx.Start()
+	}
+
 	return server
+}
+
+func (s *HTTPServer) handleFTxReply(w http.ResponseWriter, r *http.Request) {
+	if s.FTx == nil {
+		s.sendError(w, "FTx not enabled")
+		return
+	}
+	var req struct {
+		Decode   FTxDecode `json:"decode"`
+		ClientID string    `json:"clientId"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		s.sendError(w, "invalid request: "+err.Error())
+		return
+	}
+	if err := s.FTx.SendReply(req.Decode, req.ClientID); err != nil {
+		s.sendError(w, "reply failed: "+err.Error())
+		return
+	}
+	s.sendSuccess(w, nil, "Reply sent")
 }
 
 func (s *HTTPServer) setupRoutes() {
@@ -198,6 +226,9 @@ func (s *HTTPServer) setupRoutes() {
 	// Callsign DX info (query param to handle callsigns with slash e.g. V4/SP9FIH)
 	api.HandleFunc("/callsign/band-modes", s.getCallsignBandModes).Methods("GET", "OPTIONS")
 	api.HandleFunc("/callsign/spots", s.getCallsignSpots).Methods("GET", "OPTIONS")
+
+	// FTx (WSJT-X/JTDX/MSHV) — reply to a decoded station
+	api.HandleFunc("/ftx/reply", s.handleFTxReply).Methods("POST", "OPTIONS")
 
 	// External data
 	api.HandleFunc("/solar", s.HandleSolarData).Methods("GET", "OPTIONS")
@@ -1313,6 +1344,7 @@ func (s *HTTPServer) calculateStats() Stats {
 		ContestCallsigns: Cfg.General.ContestCallsigns,
 		LoTWReady:        lotwReady,
 		LoTWCount:        lotwCount,
+		FTxEnabled:       Cfg.FTx.Enabled,
 	}
 }
 

@@ -5,7 +5,8 @@
   import LogTab from './LogTab.svelte';
   import LogsTab from './LogsTab.svelte';
   import ConsoleTab from './ConsoleTab.svelte';
-  
+  import FTxTab from './FTxTab.svelte';
+
   export let activeTab;
   export let spots;
   export let watchlist;
@@ -22,20 +23,14 @@
   export let wsStatus = 'disconnected';
   export let clusterType = 'unknown';
   export let clusters = [];
-  
-  const dispatch = createEventDispatcher();
-  
-  function handleToast(event) {
-    dispatch('toast', event.detail);
-  }
+  export let ftxEnabled = false;
+  export let ftxDecodes = [];
 
-  function handleOpenDXInfo(event) {
-    dispatch('openDXInfo', event.detail);
-  }
-  
-  function handleClearLogs() {
-    dispatch('clearLogs');
-  }
+  const dispatch = createEventDispatcher();
+
+  function handleToast(event) { dispatch('toast', event.detail); }
+  function handleOpenDXInfo(event) { dispatch('openDXInfo', event.detail); }
+  function handleClearLogs() { dispatch('clearLogs'); }
 </script>
 
 <div class="bg-slate-800/50 backdrop-blur rounded-lg border border-slate-700/50 flex flex-col h-full" style="height: 100%; max-height: 100%;">
@@ -50,7 +45,7 @@
       DXpedition
     </button>
 
-    <button 
+    <button
       class="px-4 py-2 text-sm font-semibold transition-colors {activeTab === 'watchlist' ? 'bg-blue-500/20 text-blue-400 border-b-2 border-blue-500' : 'text-slate-400 hover:text-slate-300'}"
       on:click={() => activeTab = 'watchlist'}>
       <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -59,8 +54,17 @@
       </svg>
       Watchlist
     </button>
-    
-    <button 
+
+    <button
+      class="px-4 py-2 text-sm font-semibold transition-colors {activeTab === 'ftx' ? 'bg-purple-500/20 text-purple-400 border-b-2 border-purple-500' : 'text-slate-400 hover:text-slate-300'}"
+      on:click={() => activeTab = 'ftx'}>
+      <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+      </svg>
+      FTx
+    </button>
+
+    <button
       class="px-4 py-2 text-sm font-semibold transition-colors {activeTab === 'log' ? 'bg-blue-500/20 text-blue-400 border-b-2 border-blue-500' : 'text-slate-400 hover:text-slate-300'}"
       on:click={() => activeTab = 'log'}>
       <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -69,16 +73,7 @@
       Log4OM
     </button>
 
-    <button 
-      class="px-4 py-2 text-sm font-semibold transition-colors {activeTab === 'logs' ? 'bg-blue-500/20 text-blue-400 border-b-2 border-blue-500' : 'text-slate-400 hover:text-slate-300'}"
-      on:click={() => activeTab = 'logs'}>
-      <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-      </svg>
-      AppLogs
-    </button>
-
-    <button 
+    <button
       class="px-4 py-2 text-sm font-semibold transition-colors {activeTab === 'console' ? 'bg-blue-500/20 text-blue-400 border-b-2 border-blue-500' : 'text-slate-400 hover:text-slate-300'}"
       on:click={() => activeTab = 'console'}>
       <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -87,13 +82,21 @@
       Console
     </button>
 
+    <button
+      class="px-4 py-2 text-sm font-semibold transition-colors {activeTab === 'logs' ? 'bg-blue-500/20 text-blue-400 border-b-2 border-blue-500' : 'text-slate-400 hover:text-slate-300'}"
+      on:click={() => activeTab = 'logs'}>
+      <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+      </svg>
+      AppLogs
+    </button>
   </div>
-  
+
   <!-- Tab Content -->
   <div class="flex-1 overflow-hidden" style="min-height: 0;">
     {#if activeTab === 'activations'}
       <ActivationsTab {activations} {watchlist} on:toast={handleToast} />
-    {:else if activeTab === 'watchlist'}  
+    {:else if activeTab === 'watchlist'}
       <WatchlistTab
         {watchlist}
         {spots}
@@ -105,24 +108,19 @@
         on:toast={handleToast}
         on:openDXInfo={handleOpenDXInfo}
       />
+    {:else if activeTab === 'ftx'}
+      <FTxTab {ftxEnabled} {ftxDecodes} />
     {:else if activeTab === 'log'}
-      <LogTab 
-        {recentQSOs} 
-        {logStats}
-        {dxccProgress}
-      />
-    {:else if activeTab === 'logs'}
-      <LogsTab 
-        {logs} 
-        on:clearLogs={handleClearLogs}
-      />
+      <LogTab {recentQSOs} {logStats} {dxccProgress} />
     {:else if activeTab === 'console'}
-      <ConsoleTab 
+      <ConsoleTab
         {wsStatus}
         {clusterType}
         {clusters}
         on:sendCommand={(e) => dispatch('sendCommand', e.detail)}
       />
+    {:else if activeTab === 'logs'}
+      <LogsTab {logs} on:clearLogs={handleClearLogs} />
     {/if}
   </div>
 </div>

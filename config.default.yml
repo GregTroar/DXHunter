@@ -102,6 +102,10 @@ flex:
 telnetserver: # Log4OM must be connected to this server ie: localhost:7301 if on same machine as this program else ip:7301
   host: 0.0.0.0
   port: 7301
+ftx:
+  enabled: false                # Enable WSJT-X / JTDX / MSHV UDP multicast decodes
+  multicast_ip: "239.255.0.1"  # Multicast group IP (or leave empty for unicast/broadcast)
+  port: 2237                   # UDP port (default 2237 for WSJT-X protocol)
 clublog:
   api_key: ""  # Clé API ClubLog pour la détection des DXpeditions
 gotify:
