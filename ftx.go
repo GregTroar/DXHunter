@@ -110,6 +110,7 @@ type FTxDecode struct {
 	NewSlot       bool    `json:"newSlot"`
 	Worked        bool    `json:"worked"`
 	LowConfidence bool    `json:"lowConfidence"`
+	LoTWUser      bool    `json:"lotwUser"`
 	SourceAddr    string  `json:"-"` // UDP source — used to send Reply
 }
 
@@ -332,6 +333,7 @@ func (f *FTxService) handleDecode(r *bytes.Reader, src *net.UDPAddr) {
 			dxccInfo := GetDXCC(dxCall)
 			d.CountryName = dxccInfo.CountryName
 			d.DXCC = dxccInfo.DXCC
+			d.LoTWUser = IsLoTWUser(dxCall)
 		}
 		if f.contactRepo != nil && dxCall != "" && d.DXCC != "" && band != "" {
 			d.NewDXCC, d.NewBand, d.NewMode, d.NewSlot, d.Worked =
@@ -524,6 +526,9 @@ func getBandFromHz(hz uint64) string {
 // callsignRe matches a ham callsign loosely.
 var callsignRe = regexp.MustCompile(`\b([A-Z0-9]{1,3}[0-9][A-Z0-9]{1,4}(?:/[A-Z0-9]+)?)\b`)
 
+// angledCallRe matches a hashed/angle-bracket callsign like <3X3A>.
+var angledCallRe = regexp.MustCompile(`^<([A-Z0-9/]+)>$`)
+
 // parseFTxMessage extracts the DX callsign and CQ flag from a decoded FT8/FT4 message.
 // Typical formats:
 //
@@ -532,10 +537,32 @@ var callsignRe = regexp.MustCompile(`\b([A-Z0-9]{1,3}[0-9][A-Z0-9]{1,4}(?:/[A-Z0
 //	F4BPO TK5EP KN06
 //	TK5EP F4BPO -12
 //	CQ NA F4BPO JN03
+//
+// MSHV compound / Type-4 formats:
+//
+//	F4BPO RR73; SP7IFM <3X3A> -06   — 3X3A is transmitter (angled = DX station)
+//	SP7IFM <3X3A> RR73               — 3X3A is transmitter
 func parseFTxMessage(msg, myCall string) (dxCall string, isCQ bool) {
-	parts := strings.Fields(strings.ToUpper(msg))
+	upper := strings.ToUpper(msg)
+
+	// For compound messages ("F4BPO RR73; SP7IFM <3X3A> -06") focus on the
+	// last segment — that contains the current transmitter.
+	if idx := strings.LastIndex(upper, ";"); idx >= 0 {
+		upper = strings.TrimSpace(upper[idx+1:])
+	}
+
+	parts := strings.Fields(upper)
 	if len(parts) == 0 {
 		return "", false
+	}
+
+	// Angle-bracket token <CALL> = hashed/DX call = transmitter in MSHV Type-4
+	// messages.  Check this before anything else.
+	for _, p := range parts {
+		if m := angledCallRe.FindStringSubmatch(p); m != nil {
+			dxCall = m[1]
+			return
+		}
 	}
 
 	if parts[0] == "CQ" {
@@ -550,13 +577,12 @@ func parseFTxMessage(msg, myCall string) (dxCall string, isCQ bool) {
 		return
 	}
 
-	// Format: CALL1 CALL2 REPORT
+	// Standard format: CALL1 CALL2 REPORT
 	// CALL2 is always the transmitting station (the one sending this decode).
 	// CALL1 is the station being addressed.
-	// We want the transmitter for country/status lookup.
 	if len(parts) >= 2 {
 		if parts[1] == myCall {
-			// I am transmitting — interesting station is CALL1 (the one I'm working)
+			// I am being called — interesting station is CALL1 (the caller)
 			dxCall = parts[0]
 		} else {
 			// Normal case: CALL2 is the transmitter

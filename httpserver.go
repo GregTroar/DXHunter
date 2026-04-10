@@ -171,6 +171,19 @@ func NewHTTPServer(flexRepo *FlexDXClusterRepository, contactRepo *Log4OMContact
 	return server
 }
 
+func (s *HTTPServer) handleFTxToggle(w http.ResponseWriter, r *http.Request) {
+	Cfg.FTx.Enabled = !Cfg.FTx.Enabled
+	s.Log.Infof("FTx toggled to: %v", Cfg.FTx.Enabled)
+
+	if Cfg.FTx.Enabled && s.FTx == nil {
+		s.FTx = NewFTxService(s.ContactRepo, s.broadcast)
+		go s.FTx.Start()
+	}
+
+	s.broadcast <- WSMessage{Type: "stats", Data: s.calculateStats()}
+	s.sendSuccess(w, map[string]bool{"enabled": Cfg.FTx.Enabled}, fmt.Sprintf("FTx %s", map[bool]string{true: "enabled", false: "disabled"}[Cfg.FTx.Enabled]))
+}
+
 func (s *HTTPServer) handleFTxReply(w http.ResponseWriter, r *http.Request) {
 	if s.FTx == nil {
 		s.sendError(w, "FTx not enabled")
@@ -229,6 +242,7 @@ func (s *HTTPServer) setupRoutes() {
 
 	// FTx (WSJT-X/JTDX/MSHV) — reply to a decoded station
 	api.HandleFunc("/ftx/reply", s.handleFTxReply).Methods("POST", "OPTIONS")
+	api.HandleFunc("/ftx/toggle", s.handleFTxToggle).Methods("POST", "OPTIONS")
 
 	// External data
 	api.HandleFunc("/solar", s.HandleSolarData).Methods("GET", "OPTIONS")

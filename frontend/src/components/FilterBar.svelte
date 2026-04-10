@@ -20,6 +20,7 @@
   
   $: ft8Count  = spots ? countSpotsByMode(spots, 'ft8') : 0;
   $: ft4Count  = spots ? countSpotsByMode(spots, 'ft4') : 0;
+  $: ft2Count  = spots ? countSpotsByMode(spots, 'ft2') : 0;
   $: rttyCount = spots ? countSpotsByMode(spots, 'rtty') : 0;
   $: ssbCount = spots ? countSpotsByMode(spots, 'ssb') : 0;
   $: cwCount = spots ? countSpotsByMode(spots, 'cw') : 0;
@@ -65,6 +66,8 @@
         return spotsList.filter(s => s.Mode === 'FT8').length;
       case 'ft4':
         return spotsList.filter(s => s.Mode === 'FT4').length;
+      case 'ft2':
+        return spotsList.filter(s => s.Mode === 'FT2').length;
       case 'rtty':
         return spotsList.filter(s => s.Mode === 'RTTY').length;
       case 'ssb':
@@ -153,7 +156,13 @@
       FT4 ({ft4Count})
     </button>
     
-    <button 
+    <button
+      on:click={() => dispatch('toggleFilter', 'showFT2')}
+      class={spotFilters.showFT2 ? 'px-2 py-0.5 text-xs rounded transition-colors bg-teal-600 text-white' : 'px-2 py-0.5 text-xs rounded transition-colors bg-slate-700/50 text-slate-300 hover:bg-slate-700'}>
+      FT2 ({ft2Count})
+    </button>
+
+    <button
       on:click={() => dispatch('toggleFilter', 'showRTTY')}
       class={spotFilters.showRTTY ? 'px-2 py-0.5 text-xs rounded transition-colors bg-teal-600 text-white' : 'px-2 py-0.5 text-xs rounded transition-colors bg-slate-700/50 text-slate-300 hover:bg-slate-700'}>
       RTTY ({rttyCount})

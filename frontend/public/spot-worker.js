@@ -42,7 +42,7 @@ function filterSpots(allSpots, filters, watchlist) {
     filters.showNewMode || filters.showNewBandMode || filters.showNewSlot || 
     filters.showWorked || filters.showWatchlist || filters.showPOTA || filters.showSOTA;
   
-  const modeFiltersActive = filters.showFT8 || filters.showFT4 || filters.showRTTY || filters.showSSB || filters.showCW;
+  const modeFiltersActive = filters.showFT8 || filters.showFT4 || filters.showFT2 || filters.showRTTY || filters.showSSB || filters.showCW;
   
   return allSpots.filter(spot => {
     let matchesBand = false;
@@ -89,6 +89,7 @@ function filterSpots(allSpots, filters, watchlist) {
       const mode = spot.Mode || '';
       if (filters.showFT8 && mode === 'FT8') matchesMode = true;
       if (filters.showFT4 && mode === 'FT4') matchesMode = true;
+      if (filters.showFT2 && mode === 'FT2') matchesMode = true;
       if (filters.showRTTY && mode === 'RTTY') matchesMode = true;
       if (filters.showSSB && ['SSB', 'USB', 'LSB'].includes(mode)) matchesMode = true;
       if (filters.showCW && mode === 'CW') matchesMode = true;

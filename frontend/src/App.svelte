@@ -67,6 +67,7 @@
     showSOTA: false,
     showFT8: false,
     showFT4: false,
+    showFT2: false,
     showRTTY: false,
     showSSB: false,
     showCW: false,
@@ -145,7 +146,7 @@ function applyFilters(allSpots, filters, wl) {
     filters.showWorked || filters.showWatchlist || filters.showContest ||
     filters.showPOTA || filters.showSOTA;
   
-  const modeFiltersActive = filters.showFT8 || filters.showFT4 || filters.showRTTY || filters.showSSB || filters.showCW;
+  const modeFiltersActive = filters.showFT8 || filters.showFT4 || filters.showFT2 || filters.showRTTY || filters.showSSB || filters.showCW;
   
   return allSpots.filter(spot => {
     let matchesBand = false;
@@ -221,6 +222,7 @@ function applyFilters(allSpots, filters, wl) {
       const mode = spot.Mode || '';
       if (filters.showFT8 && mode === 'FT8') matchesMode = true;
       if (filters.showFT4 && mode === 'FT4') matchesMode = true;
+      if (filters.showFT2 && mode === 'FT2') matchesMode = true;
       if (filters.showRTTY && mode === 'RTTY') matchesMode = true;
       if (filters.showSSB && ['SSB', 'USB', 'LSB'].includes(mode)) matchesMode = true;
       if (filters.showCW && mode === 'CW') matchesMode = true;
@@ -262,6 +264,7 @@ function applyFilters(allSpots, filters, wl) {
         showSOTA: false,
         showFT8: false,
         showFT4: false,
+        showFT2: false,
         showRTTY: false,
         showSSB: false,
         showCW: false,
@@ -529,7 +532,8 @@ function applyFilters(allSpots, filters, wl) {
         break;
       // ✅ NOUVEAU : Gérer les changements de bande du FlexRadio
       case 'ftxBatch':
-        ftxDecodes = [...(message.data || []), ...ftxDecodes].slice(0, 500);
+        const ftxNow = Date.now();
+        ftxDecodes = [...(message.data || []).map(d => ({ ...d, receivedAt: ftxNow })), ...ftxDecodes].slice(0, 500);
         break;
       case 'ftxClear':
         ftxDecodes = [];
