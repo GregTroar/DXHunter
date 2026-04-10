@@ -166,6 +166,26 @@ func (r *Log4OMContactsRepository) CountEntries() int {
 	return contacts
 }
 
+// ListByCountrySync fetches all contacts for a DXCC in a single blocking call.
+func (r *Log4OMContactsRepository) ListByCountrySync(countryID string) []Contact {
+	rows, err := r.db.Query("SELECT callsign, band, mode, dxcc, stationcallsign, country FROM log WHERE dxcc = ?", countryID)
+	if err != nil {
+		r.Log.Error("could not query database", err)
+		return nil
+	}
+	defer rows.Close()
+	var contacts []Contact
+	for rows.Next() {
+		c := Contact{}
+		if err := rows.Scan(&c.Callsign, &c.Band, &c.Mode, &c.DXCC, &c.StationCallsign, &c.Country); err != nil {
+			r.Log.Error("could not scan row", err)
+			continue
+		}
+		contacts = append(contacts, c)
+	}
+	return contacts
+}
+
 func (r *Log4OMContactsRepository) ListByCountry(countryID string, contactsChan chan []Contact, wg *sync.WaitGroup) {
 	defer wg.Done()
 	rows, err := r.db.Query("SELECT callsign, band, mode, dxcc, stationcallsign, country FROM log WHERE dxcc = ?", countryID)

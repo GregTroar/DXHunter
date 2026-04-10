@@ -535,6 +535,14 @@ function applyFilters(allSpots, filters, wl) {
         const ftxNow = Date.now();
         ftxDecodes = [...(message.data || []).map(d => ({ ...d, receivedAt: ftxNow })), ...ftxDecodes].slice(0, 500);
         break;
+      case 'ftxEnrich':
+        const u = message.data;
+        ftxDecodes = ftxDecodes.map(d =>
+          d.message === u.message && d.df === u.df && d.time === u.time
+            ? { ...d, newDXCC: u.newDXCC, newBand: u.newBand, newMode: u.newMode, newSlot: u.newSlot, worked: u.worked }
+            : d
+        );
+        break;
       case 'ftxClear':
         ftxDecodes = [];
         break;

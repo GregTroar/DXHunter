@@ -110,7 +110,6 @@ type FTxDecode struct {
 	NewSlot       bool    `json:"newSlot"`
 	Worked        bool    `json:"worked"`
 	LowConfidence bool    `json:"lowConfidence"`
-	LoTWUser      bool    `json:"lotwUser"`
 	SourceAddr    string  `json:"-"` // UDP source — used to send Reply
 }
 
@@ -124,11 +123,17 @@ type FTxService struct {
 	sourceAddr *net.UDPAddr // last seen sender (MSHV/WSJT-X/JTDX)
 	myCall     string
 
-	// Period batching: group decodes by timeMs period, flush 1s after last decode
+	// Period batching: group decodes by timeMs, flush after last UDP packet.
 	batchMu      sync.Mutex
-	batchTime    uint32       // current period timeMs
+	batchTime    uint32
 	batchDecodes []FTxDecode
 	batchTimer   *time.Timer
+
+	// Per-period DXCC contact cache: avoids N identical SQLite queries when many
+	// callers share the same DXCC (e.g. 80 Europeans all hit dxcc="269" once).
+	cacheMu    sync.Mutex
+	cacheTime  uint32               // period this cache belongs to
+	cacheByDXCC map[string][]Contact // dxcc -> contacts
 }
 
 func NewFTxService(contactRepo *Log4OMContactsRepository, broadcast chan WSMessage) *FTxService {
@@ -326,30 +331,37 @@ func (f *FTxService) handleDecode(r *bytes.Reader, src *net.UDPAddr) {
 		SourceAddr:    src.String(),
 	}
 
-	// Run DXCC lookup + log status check in a goroutine so readLoop is not
-	// blocked and all decodes of a period are processed concurrently.
-	go func(d FTxDecode, tMs uint32) {
-		if dxCall != "" {
-			dxccInfo := GetDXCC(dxCall)
-			d.CountryName = dxccInfo.CountryName
-			d.DXCC = dxccInfo.DXCC
-			d.LoTWUser = IsLoTWUser(dxCall)
-		}
-		if f.contactRepo != nil && dxCall != "" && d.DXCC != "" && band != "" {
+	// DXCC lookup is in-memory — do it synchronously before batching.
+	if dxCall != "" {
+		dxccInfo := GetDXCC(dxCall)
+		decode.CountryName = dxccInfo.CountryName
+		decode.DXCC = dxccInfo.DXCC
+
+		Log.Debugf("FTx: dxCall=%q country=%q", dxCall, decode.CountryName)
+	} else {
+		Log.Debugf("FTx: no dxCall parsed from message %q", message)
+	}
+
+	// Add to batch immediately with country already filled in.
+	f.addToBatch(timeMs, decode)
+
+	// Only the SQLite log-status queries run async. If the batch is still pending
+	// when they finish, the result is patched in place; otherwise discarded.
+	if f.contactRepo != nil && dxCall != "" && decode.DXCC != "" && band != "" {
+		go func(d FTxDecode, tMs uint32) {
 			d.NewDXCC, d.NewBand, d.NewMode, d.NewSlot, d.Worked =
 				f.checkLogStatus(dxCall, d.DXCC, band, mode)
-		}
-		Log.Debugf("FTx: buffering decode %s %s %s", d.Time, d.Mode, d.Message)
-		f.addToBatch(tMs, d)
-	}(decode, timeMs)
+			f.enrichInBatch(tMs, d)
+		}(decode, timeMs)
+	}
 }
 
-// addToBatch accumulates decodes by period and flushes 1s after the last one.
+// addToBatch adds a raw decode immediately and debounces the flush timer on UDP arrival.
 func (f *FTxService) addToBatch(timeMs uint32, decode FTxDecode) {
 	f.batchMu.Lock()
 	defer f.batchMu.Unlock()
 
-	// New period detected — flush the previous one immediately
+	// New period — flush previous immediately.
 	if f.batchTime != 0 && timeMs != f.batchTime {
 		f.flushLocked()
 	}
@@ -357,14 +369,67 @@ func (f *FTxService) addToBatch(timeMs uint32, decode FTxDecode) {
 	f.batchTime = timeMs
 	f.batchDecodes = append(f.batchDecodes, decode)
 
-	// Start the timer only once per period (on the first decode).
-	// Do NOT reset it — resetting would delay the flush by 1s after every decode.
-	if f.batchTimer == nil {
-		f.batchTimer = time.AfterFunc(1*time.Second, func() {
-			f.batchMu.Lock()
-			defer f.batchMu.Unlock()
-			f.flushLocked()
-		})
+	// Debounce on UDP packet arrival (not DB completion).
+	// 200ms after the last UDP packet = all raw decodes are in.
+	if f.batchTimer != nil {
+		f.batchTimer.Stop()
+	}
+	f.batchTimer = time.AfterFunc(200*time.Millisecond, func() {
+		f.batchMu.Lock()
+		defer f.batchMu.Unlock()
+		f.flushLocked()
+	})
+}
+
+// FTxEnrichUpdate is a minimal status update sent after the batch is already displayed.
+type FTxEnrichUpdate struct {
+	Message string `json:"message"`
+	DF      uint32 `json:"df"`
+	Time    string `json:"time"`
+	NewDXCC bool   `json:"newDXCC"`
+	NewBand bool   `json:"newBand"`
+	NewMode bool   `json:"newMode"`
+	NewSlot bool   `json:"newSlot"`
+	Worked  bool   `json:"worked"`
+}
+
+// enrichInBatch patches a decode still in the pending batch, or sends a
+// ftxEnrich WS message if the batch was already flushed.
+func (f *FTxService) enrichInBatch(timeMs uint32, enriched FTxDecode) {
+	f.batchMu.Lock()
+
+	if f.batchTime == timeMs {
+		// Batch still pending — patch in place.
+		for i := range f.batchDecodes {
+			if f.batchDecodes[i].Message == enriched.Message && f.batchDecodes[i].DeltaFreq == enriched.DeltaFreq {
+				f.batchDecodes[i].NewDXCC = enriched.NewDXCC
+				f.batchDecodes[i].NewBand = enriched.NewBand
+				f.batchDecodes[i].NewMode = enriched.NewMode
+				f.batchDecodes[i].NewSlot = enriched.NewSlot
+				f.batchDecodes[i].Worked = enriched.Worked
+				break
+			}
+		}
+		f.batchMu.Unlock()
+		return
+	}
+	f.batchMu.Unlock()
+
+	// Batch already flushed — send a lightweight update so the frontend can
+	// patch the status on the already-displayed row.
+	update := FTxEnrichUpdate{
+		Message: enriched.Message,
+		DF:      enriched.DeltaFreq,
+		Time:    enriched.Time,
+		NewDXCC: enriched.NewDXCC,
+		NewBand: enriched.NewBand,
+		NewMode: enriched.NewMode,
+		NewSlot: enriched.NewSlot,
+		Worked:  enriched.Worked,
+	}
+	select {
+	case f.broadcast <- WSMessage{Type: "ftxEnrich", Data: update}:
+	default:
 	}
 }
 
@@ -384,42 +449,67 @@ func (f *FTxService) flushLocked() {
 	default:
 		Log.Debugf("FTx: broadcast channel full, dropping batch")
 	}
+
+	// Invalidate the DXCC contact cache for the next period.
+	f.cacheMu.Lock()
+	f.cacheByDXCC = nil
+	f.cacheTime = 0
+	f.cacheMu.Unlock()
 }
 
-// checkLogStatus queries Log4OM to determine worked/new status.
-// Mirrors the logic in spot.go ProcessTelnetSpot.
+// cachedContactsByDXCC returns contacts for a DXCC, fetching from DB only once per period.
+func (f *FTxService) cachedContactsByDXCC(dxcc string) []Contact {
+	f.cacheMu.Lock()
+	defer f.cacheMu.Unlock()
+
+	if f.cacheByDXCC == nil {
+		f.cacheByDXCC = make(map[string][]Contact)
+	}
+	if contacts, ok := f.cacheByDXCC[dxcc]; ok {
+		return contacts
+	}
+	contacts := f.contactRepo.ListByCountrySync(dxcc)
+	f.cacheByDXCC[dxcc] = contacts
+	return contacts
+}
+
+// checkLogStatus fetches all contacts for this DXCC (cached per period), then
+// filters in memory. Many callers share the same DXCC so the DB is hit once per
+// unique DXCC per period instead of once per decode.
 func (f *FTxService) checkLogStatus(callsign, dxcc, band, mode string) (newDXCC, newBand, newMode, newSlot, worked bool) {
-	chCountry := make(chan []Contact)
-	chMode := make(chan []Contact)
-	chBand := make(chan []Contact)
-	chBandMode := make(chan []Contact)
-	chCall := make(chan []Contact)
+	contacts := f.cachedContactsByDXCC(dxcc)
 
-	wg := new(sync.WaitGroup)
-	wg.Add(5)
+	modeUpper := strings.ToUpper(mode)
+	bandUpper := strings.ToUpper(band)
+	callUpper := strings.ToUpper(callsign)
 
-	go f.contactRepo.ListByCountry(dxcc, chCountry, wg)
-	contacts := <-chCountry
+	var hasCountry, hasBand, hasMode, hasBandMode, hasCall bool
+	for _, c := range contacts {
+		cMode := strings.ToUpper(c.Mode)
+		cBand := strings.ToUpper(c.Band)
+		cCall := strings.ToUpper(c.Callsign)
+		modeMatch := cMode == modeUpper || (modeUpper == "SSB" && (cMode == "USB" || cMode == "LSB"))
 
-	go f.contactRepo.ListByCountryMode(dxcc, mode, chMode, wg)
-	contactsMode := <-chMode
+		hasCountry = true
+		if cBand == bandUpper {
+			hasBand = true
+		}
+		if modeMatch {
+			hasMode = true
+		}
+		if cBand == bandUpper && modeMatch {
+			hasBandMode = true
+		}
+		if cCall == callUpper && cBand == bandUpper && modeMatch {
+			hasCall = true
+		}
+	}
 
-	go f.contactRepo.ListByCountryBand(dxcc, band, chBand, wg)
-	contactsBand := <-chBand
-
-	go f.contactRepo.ListByCallSign(callsign, band, mode, chCall, wg)
-	contactsCall := <-chCall
-
-	go f.contactRepo.ListByCountryModeBand(dxcc, band, mode, chBandMode, wg)
-	contactsBandMode := <-chBandMode
-
-	wg.Wait()
-
-	newDXCC = len(contacts) == 0
-	newMode = len(contactsMode) == 0
-	newBand = len(contactsBand) == 0
-	newSlot = len(contactsBandMode) == 0 && !newDXCC && !newBand && !newMode
-	worked = len(contactsCall) > 0
+	newDXCC = !hasCountry
+	newBand = !hasBand
+	newMode = !hasMode
+	newSlot = !hasBandMode && !newDXCC && !newBand && !newMode
+	worked = hasCall
 	return
 }
 

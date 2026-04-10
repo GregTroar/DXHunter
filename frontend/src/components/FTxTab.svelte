@@ -5,9 +5,9 @@
   let paused = false;
   let filterCQOnly = false;
   let filterMyCall = false;
+  let showSlotAdvisor = false;
 
   let snapshot = [];
-  // Wall-clock ms when Clear was last pressed; hide any decode received before this.
   let clearedAt = 0;
 
   function togglePause() {
@@ -23,11 +23,15 @@
 
   async function toggleEnabled() {
     await fetch('/api/ftx/toggle', { method: 'POST' });
-    // ftxEnabled will update via the stats WS message
   }
 
-  // Grid columns — no Mode column, added LoTW column
-  const cols = '50px 34px 36px 52px 48px minmax(0,1fr) 140px 130px 46px';
+  const cols = '50px 34px 36px 52px 48px minmax(0,2fr) minmax(0,1.5fr) 130px';
+
+  // FT8 passband — DXpéditions écoutent entre 1000 et 3000 Hz
+  const DF_MIN    = 1000;  // Hz
+  const DF_MAX    = 3000;  // Hz
+  const DF_RANGE  = DF_MAX - DF_MIN;
+  const SIG_WIDTH = 60;    // Hz — largeur pratique d'un signal FT8 (50 Hz + marge minimale)
 
   $: visibleDecodes = clearedAt > 0
     ? ftxDecodes.filter(d => d.receivedAt > clearedAt)
@@ -39,7 +43,7 @@
     return true;
   });
 
-  // Group displayed decodes by period (same time = same period), newest group first
+  // Group by period (same time = same period), newest first
   $: groupedDecodes = (() => {
     const groups = [];
     let current = null;
@@ -53,12 +57,53 @@
     return groups;
   })();
 
-  // Session total (since last clear, ignoring CQ/MyCall filters)
-  $: sessionCount = visibleDecodes.length;
-
-  // Count of decodes in the most recent period
+  $: sessionCount    = visibleDecodes.length;
   $: lastPeriodCount = groupedDecodes.length > 0 ? groupedDecodes[0].decodes.length : 0;
 
+  // ── TX Slot Advisor ─────────────────────────────────────────────────────────
+  // Cherche les espaces entre signaux consécutifs ≥ SIG_WIDTH Hz.
+  // Calculé uniquement si le panel est ouvert — pas de ressource gaspillée sinon.
+  $: slotAnalysis = (() => {
+    if (!showSlotAdvisor) return null;
+
+    // Uniquement la dernière période reçue (index 0).
+    const recent = groupedDecodes[0]?.decodes || [];
+    if (recent.length === 0) return null;
+
+    // DFs triés dans le passband utile
+    const dfs = [...new Set(
+      recent.map(d => d.df).filter(df => df >= DF_MIN && df <= DF_MAX)
+    )].sort((a, b) => a - b);
+
+    if (dfs.length === 0) return null;
+
+    // Tous les gaps entre signaux consécutifs (+ bords du passband), sans filtre minimum.
+    // Sur bande saturée on veut quand même proposer quelque chose.
+    const allEdges = [DF_MIN, ...dfs, DF_MAX];
+    const gaps = [];
+    for (let i = 0; i < allEdges.length - 1; i++) {
+      const lo   = allEdges[i];
+      const hi   = allEdges[i + 1];
+      const size = hi - lo;
+      if (size > 0) {
+        // ok: gap suffisant pour un signal FT8 (≥ SIG_WIDTH)
+        // tight: gap serré mais utilisable (≥ 30 Hz)
+        // busy: bande vraiment saturée, risque de collision
+        const quality = size >= SIG_WIDTH ? 'ok' : size >= 30 ? 'tight' : 'busy';
+        gaps.push({ lo, hi, size, df: Math.round((lo + hi) / 2), quality });
+      }
+    }
+
+    // Le DX décode tout 1000-3000 Hz : plus grand gap = moins de QRM = meilleur décodage.
+    gaps.sort((a, b) => b.size - a.size);
+
+    return { dfs, gaps, best: gaps[0] || null };
+  })();
+
+  // Convert Hz to % position in the spectrum bar
+  function dfPct(hz) { return ((hz - DF_MIN) / DF_RANGE) * 100; }
+
+  // ── Helpers ─────────────────────────────────────────────────────────────────
   async function sendReply(decode) {
     try {
       const res = await fetch('/api/ftx/reply', {
@@ -94,14 +139,22 @@
 </script>
 
 <div class="flex flex-col h-full overflow-hidden text-xs">
+
   <!-- Toolbar -->
   <div class="flex items-center gap-2 px-2 py-1.5 bg-slate-900/50 border-b border-slate-700/50 flex-shrink-0 flex-wrap">
 
-    <!-- Enable toggle -->
     <button
       on:click={toggleEnabled}
       class="px-2 py-0.5 rounded text-xs font-semibold transition-colors {ftxEnabled ? 'bg-green-500/20 text-green-400 border border-green-500/40' : 'bg-slate-700 text-slate-400 border border-slate-600 hover:border-slate-500'}">
       {ftxEnabled ? '● ON' : '○ OFF'}
+    </button>
+
+    <span class="text-slate-500">|</span>
+
+    <button
+      on:click={() => showSlotAdvisor = !showSlotAdvisor}
+      class="px-2 py-0.5 rounded text-xs font-semibold transition-colors {showSlotAdvisor ? 'bg-violet-500/25 text-violet-300 border border-violet-500/50' : 'bg-slate-700 text-slate-400 border border-slate-600 hover:border-slate-500'}">
+      📡 Slots
     </button>
 
     <span class="text-slate-500">|</span>
@@ -133,13 +186,104 @@
     </span>
   </div>
 
+  <!-- TX Slot Advisor Panel -->
+  {#if showSlotAdvisor}
+    <div class="px-3 py-2 bg-slate-950 border-b border-violet-500/30 flex-shrink-0">
+      <div class="flex items-center gap-2 mb-1.5">
+        <span class="text-violet-400 font-semibold uppercase tracking-wide text-[10px]">TX Slot Advisor</span>
+        <span class="text-slate-600 text-[10px]">— {slotAnalysis?.dfs?.length ?? 0} signaux · 1000-3000 Hz · dernière période</span>
+      </div>
+
+      {#if !slotAnalysis || slotAnalysis.dfs.length === 0}
+        <div class="text-slate-600 text-[10px]">Pas encore de décodes à analyser.</div>
+      {:else}
+        <!-- Best suggestion -->
+        {#if slotAnalysis.best}
+          {@const q = slotAnalysis.best.quality}
+          <div class="flex items-center gap-3 mb-2">
+            <div class="flex items-center gap-1.5">
+              <span class="text-slate-500 text-[10px]">Meilleur créneau :</span>
+              <span class="font-bold text-sm font-mono {q === 'ok' ? 'text-green-300' : q === 'tight' ? 'text-yellow-300' : 'text-red-400'}">{slotAnalysis.best.df} Hz</span>
+              <span class="text-slate-600 text-[10px]">({slotAnalysis.best.size} Hz)</span>
+              {#if q === 'ok'}
+                <span class="text-[10px] text-green-500">✓ libre</span>
+              {:else if q === 'tight'}
+                <span class="text-[10px] text-yellow-500">⚠ serré</span>
+              {:else}
+                <span class="text-[10px] text-red-500">✗ saturé</span>
+              {/if}
+            </div>
+            {#if slotAnalysis.gaps.length > 1}
+              <span class="text-slate-600">|</span>
+              <div class="flex gap-2">
+                {#each slotAnalysis.gaps.slice(1, 4) as g}
+                  <span class="font-mono text-[11px] {g.quality === 'ok' ? 'text-blue-300' : g.quality === 'tight' ? 'text-yellow-400/70' : 'text-red-400/60'}">{g.df} <span class="text-slate-600">({g.size})</span></span>
+                {/each}
+              </div>
+            {/if}
+          </div>
+        {/if}
+
+        <!-- Spectrum bar -->
+        <div class="relative h-5 rounded overflow-hidden bg-slate-800 mb-1" style="width:100%">
+
+          <!-- Free gap highlights (top 3) -->
+          {#each slotAnalysis.gaps.slice(0, 3) as gap, i}
+            <div
+              class="absolute top-0 h-full {i === 0 ? 'bg-green-500/25' : 'bg-blue-500/12'}"
+              style="left:{dfPct(gap.lo)}%; width:{dfPct(gap.hi) - dfPct(gap.lo)}%">
+            </div>
+          {/each}
+
+          <!-- Signal marks -->
+          {#each slotAnalysis.dfs as df}
+            <div
+              class="absolute top-0 h-full w-px bg-red-500/70"
+              style="left:{dfPct(df)}%">
+            </div>
+          {/each}
+
+          <!-- Best suggestion marker -->
+          {#if slotAnalysis.best}
+            <div
+              class="absolute top-0 h-full w-0.5 bg-green-400"
+              style="left:{dfPct(slotAnalysis.best.df)}%">
+            </div>
+          {/if}
+
+          <!-- Alt suggestions markers -->
+          {#each slotAnalysis.gaps.slice(1, 4) as gap}
+            <div
+              class="absolute top-0 h-full w-0.5 bg-blue-400/70"
+              style="left:{dfPct(gap.df)}%">
+            </div>
+          {/each}
+        </div>
+
+        <!-- Frequency axis labels -->
+        <div class="relative h-3 text-[9px] text-slate-600 font-mono select-none">
+          {#each [1000, 1250, 1500, 1750, 2000, 2250, 2500, 2750, 3000] as f}
+            <span class="absolute -translate-x-1/2" style="left:{dfPct(f)}%">{f}</span>
+          {/each}
+        </div>
+
+        <!-- Legend -->
+        <div class="flex gap-3 mt-1 text-[9px] text-slate-600">
+          <span><span class="text-red-400">▌</span> Signal occupé</span>
+          <span><span class="text-green-400">▌</span> Meilleur créneau</span>
+          <span><span class="text-blue-400">▌</span> Alternatives</span>
+        </div>
+      {/if}
+    </div>
+  {/if}
+
   {#if !ftxEnabled}
     <div class="flex-1 flex items-center justify-center text-slate-500 text-sm">
       FTx monitoring is disabled
     </div>
   {:else}
-    <!-- Header -->
-    <div class="grid text-slate-500 font-semibold uppercase tracking-wide bg-slate-900/50 border-b border-slate-700/50 flex-shrink-0"
+    <!-- Column header -->
+    <div class="grid text-slate-500 font-semibold tracking-wide bg-slate-900/50 border-b border-slate-700/50 flex-shrink-0"
          style="grid-template-columns: {cols};">
       <div class="px-1 py-1 text-center">Time</div>
       <div class="px-1 py-1 text-center">SNR</div>
@@ -149,7 +293,6 @@
       <div class="px-1 py-1 text-center">Message</div>
       <div class="px-1 py-1 text-center">Country</div>
       <div class="px-1 py-1 text-center">Status</div>
-      <div class="px-1 py-1 text-center">LoTW</div>
     </div>
 
     <!-- Rows grouped by period -->
@@ -161,7 +304,8 @@
       {/if}
 
       {#each groupedDecodes as group, gi (group.time)}
-        <!-- Period separator row (not before the first/newest group) -->
+
+        <!-- Period separator (between groups, not before the first) -->
         {#if gi > 0}
           <div class="flex items-center gap-2 px-2 py-0.5 bg-slate-950 border-t border-b border-slate-700/60 text-[10px] font-mono select-none">
             <span class="text-slate-400 font-semibold">{formatTime(group.time)}</span>
@@ -216,31 +360,25 @@
 
             <div class="px-1 py-0.5 flex gap-1 items-center justify-center flex-wrap">
               {#if decode.newDXCC}
-                <span class="px-1.5 py-0.5 rounded text-[11px] font-semibold bg-green-500/30 text-green-300 border border-green-500/50 whitespace-nowrap">DXCC</span>
+                <span class="px-3 py-0 leading-none rounded text-[11px] font-semibold bg-green-500/30 text-green-300 border border-green-500/50 whitespace-nowrap">DXCC</span>
               {/if}
               {#if decode.newBand && !decode.newDXCC}
-                <span class="px-1.5 py-0.5 rounded text-[11px] font-semibold bg-yellow-500/30 text-yellow-300 border border-yellow-500/50 whitespace-nowrap">Band</span>
+                <span class="px-3 py-0 leading-none rounded text-[11px] font-semibold bg-yellow-500/30 text-yellow-300 border border-yellow-500/50 whitespace-nowrap">Band</span>
               {/if}
               {#if decode.newMode && !decode.newDXCC}
-                <span class="px-1.5 py-0.5 rounded text-[11px] font-semibold bg-orange-500/30 text-orange-300 border border-orange-500/50 whitespace-nowrap">Mode</span>
+                <span class="px-3 py-0 leading-none rounded text-[11px] font-semibold bg-orange-500/30 text-orange-300 border border-orange-500/50 whitespace-nowrap">Mode</span>
               {/if}
               {#if decode.newSlot && !decode.newDXCC}
-                <span class="px-1.5 py-0.5 rounded text-[11px] font-semibold bg-cyan-500/30 text-cyan-300 border border-cyan-500/50 whitespace-nowrap">Slot</span>
+                <span class="px-3 py-0 leading-none rounded text-[11px] font-semibold bg-cyan-500/30 text-cyan-300 border border-cyan-500/50 whitespace-nowrap">Slot</span>
               {/if}
               {#if decode.worked && !decode.newDXCC && !decode.newBand && !decode.newMode && !decode.newSlot}
-                <span class="px-1.5 py-0.5 rounded text-[11px] bg-slate-500/30 text-slate-400 border border-slate-500/40 whitespace-nowrap">Wkd</span>
+                <span class="px-3 py-0 leading-none rounded text-[11px] bg-slate-500/30 text-slate-400 border border-slate-500/40 whitespace-nowrap">Wkd</span>
               {/if}
               {#if decode.lowConfidence}
-                <span class="px-1.5 py-0.5 rounded text-[11px] bg-red-500/20 text-red-400 border border-red-500/30">?</span>
+                <span class="px-3 py-0 leading-none rounded text-[11px] bg-red-500/20 text-red-400 border border-red-500/30">?</span>
               {/if}
             </div>
 
-            <!-- LoTW -->
-            <div class="px-1 py-0.5 text-center">
-              {#if decode.lotwUser}
-                <span class="px-1.5 py-0.5 rounded text-[11px] font-semibold bg-blue-500/30 text-blue-300 border border-blue-500/50">LoTW</span>
-              {/if}
-            </div>
           </div>
         {/each}
       {/each}
