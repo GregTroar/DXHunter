@@ -109,7 +109,7 @@
         on:openDXInfo={handleOpenDXInfo}
       />
     {:else if activeTab === 'ftx'}
-      <FTxTab {ftxEnabled} {ftxDecodes} {watchlist} />
+      <FTxTab {ftxEnabled} {ftxDecodes} {watchlist} {spots} />
     {:else if activeTab === 'log'}
       <LogTab {recentQSOs} {logStats} {dxccProgress} />
     {:else if activeTab === 'console'}

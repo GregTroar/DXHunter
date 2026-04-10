@@ -1,6 +1,8 @@
 <script>
   export let ftxEnabled = false;
   export let ftxDecodes = [];   // maintained by App.svelte — persists across tab switches
+  export let watchlist = [];
+  export let spots = [];
 
   let filterCQOnly = false;
   let filterMyCall = false;
@@ -115,6 +117,35 @@
   // Convert Hz to % position in the spectrum bar
   function dfPct(hz) { return ((hz - DF_MIN) / DF_RANGE) * 100; }
 
+  // ── Watchlist active+not-worked match ───────────────────────────────────────
+  // Build a Set of watchlist callsigns that currently have at least one active
+  // spot on the cluster that has NOT been worked yet.
+  $: activeWatchlistCalls = (() => {
+    const wlCalls = new Set(watchlist.map(w => w.callsign?.toUpperCase()).filter(Boolean));
+    if (wlCalls.size === 0 || spots.length === 0) return new Set();
+    const active = new Set();
+    for (const s of spots) {
+      const dx = (s.dx || '').toUpperCase();
+      if (wlCalls.has(dx) && !s.workedBandMode) {
+        active.add(dx);
+      }
+    }
+    return active;
+  })();
+
+  function isActiveWatchlist(decode) {
+    if (activeWatchlistCalls.size === 0) return false;
+    const msg = (decode.message || '').toUpperCase();
+    for (const call of activeWatchlistCalls) {
+      const idx = msg.indexOf(call);
+      if (idx === -1) continue;
+      const before = idx > 0 ? msg[idx - 1] : ' ';
+      const after  = idx + call.length < msg.length ? msg[idx + call.length] : ' ';
+      if (!/[A-Z0-9/]/.test(before) && !/[A-Z0-9/]/.test(after)) return true;
+    }
+    return false;
+  }
+
   // ── Helpers ─────────────────────────────────────────────────────────────────
   async function sendReply(decode) {
     try {
@@ -131,10 +162,11 @@
   }
 
   function rowBg(decode) {
-    if (decode.myCall)  return 'bg-cyan-500/25 border-l-2 border-cyan-400';
-    if (decode.newDXCC) return 'bg-green-500/15 border-l-2 border-green-500';
+    if (decode.myCall)         return 'bg-cyan-500/25 border-l-2 border-cyan-400';
+    if (isActiveWatchlist(decode)) return 'bg-orange-500/15 border-l-2 border-orange-400';
+    if (decode.newDXCC)        return 'bg-green-500/15 border-l-2 border-green-500';
     if (decode.newBand || decode.newMode || decode.newSlot)
-                        return 'bg-yellow-500/10 border-l-2 border-yellow-500';
+                               return 'bg-yellow-500/10 border-l-2 border-yellow-500';
     return 'hover:bg-slate-700/40';
   }
 
@@ -388,6 +420,9 @@
             </div>
 
             <div class="px-1 py-0.5 flex gap-1 items-center justify-center flex-wrap">
+              {#if isActiveWatchlist(decode)}
+                <span class="px-3 py-0 leading-none rounded text-[11px] font-semibold bg-orange-500/30 text-orange-300 border border-orange-500/50 whitespace-nowrap">WL</span>
+              {/if}
               {#if decode.newDXCC}
                 <span class="px-3 py-0 leading-none rounded text-[11px] font-semibold bg-green-500/30 text-green-300 border border-green-500/50 whitespace-nowrap">DXCC</span>
               {/if}
