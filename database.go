@@ -73,17 +73,21 @@ func NewLog4OMContactsRepository(filePath string) *Log4OMContactsRepository {
 		db, err := sql.Open("sqlite3", filePath)
 		if err != nil {
 			Log.Errorf("Cannot open SQLite database: %v", err)
+			return nil
 		}
 
-		// Configure connection pool for SQLite
-		db.SetMaxOpenConns(1) // SQLite works best with single connection for writes
+		// SQLite works best with a single connection for reads alongside Log4OM
+		db.SetMaxOpenConns(1)
 		db.SetMaxIdleConns(1)
 
-		_, err = db.Exec("PRAGMA journal_mode=WAL")
-		if err != nil {
-			panic(err)
+		// Log4OM uses WAL mode while running — we must match it to read live data.
+		// If Log4OM holds an exclusive lock at this instant the pragma may fail;
+		// that's harmless (we fall back to whatever mode is active).
+		if _, err = db.Exec("PRAGMA journal_mode=WAL"); err != nil {
+			Log.Warnf("Could not set WAL mode on Log4OM database (non-fatal): %v", err)
 		}
 
+		Log.Infof("Log4OM SQLite opened: %s", filePath)
 		return &Log4OMContactsRepository{
 			db:  db,
 			Log: Log}
@@ -154,7 +158,7 @@ func NewFlexDXDatabase(filePath string) *FlexDXClusterRepository {
 
 func (r *Log4OMContactsRepository) CountEntries() int {
 	var contacts int
-	err := r.db.QueryRow("SELECT COUNT(*) FROM log").Scan(&contacts)
+	err := r.db.QueryRow("SELECT COUNT(*) FROM Log").Scan(&contacts)
 	if err != nil {
 		log.Error("could not query database", err)
 	}
@@ -526,13 +530,13 @@ type CallsignQSOEntry struct {
 }
 
 type CallsignBandModeInfo struct {
-	Callsign  string              `json:"callsign"`
-	Country   string              `json:"country"`
-	DXCC      string              `json:"dxcc"`
-	TotalQSOs int                 `json:"totalQSOs"`
-	FirstQSO  string              `json:"firstQSO"`
-	LastQSO   string              `json:"lastQSO"`
-	BandModes []CallsignQSOEntry  `json:"bandModes"`
+	Callsign  string             `json:"callsign"`
+	Country   string             `json:"country"`
+	DXCC      string             `json:"dxcc"`
+	TotalQSOs int                `json:"totalQSOs"`
+	FirstQSO  string             `json:"firstQSO"`
+	LastQSO   string             `json:"lastQSO"`
+	BandModes []CallsignQSOEntry `json:"bandModes"`
 }
 
 func (r *Log4OMContactsRepository) GetCallsignBandModes(callsign string) CallsignBandModeInfo {
