@@ -108,8 +108,6 @@
         on:toast={handleToast}
         on:openDXInfo={handleOpenDXInfo}
       />
-    {:else if activeTab === 'ftx'}
-      <FTxTab {ftxEnabled} {ftxDecodes} {watchlist} {spots} />
     {:else if activeTab === 'log'}
       <LogTab {recentQSOs} {logStats} {dxccProgress} />
     {:else if activeTab === 'console'}
@@ -122,5 +120,10 @@
     {:else if activeTab === 'logs'}
       <LogsTab {logs} on:clearLogs={handleClearLogs} />
     {/if}
+
+    <!-- FTxTab stays mounted permanently to preserve autocall state -->
+    <div class="h-full" class:hidden={activeTab !== 'ftx'}>
+      <FTxTab {ftxEnabled} {ftxDecodes} {watchlist} {spots} />
+    </div>
   </div>
 </div>

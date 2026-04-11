@@ -1,4 +1,6 @@
 <script>
+  import { onMount } from 'svelte';
+
   export let ftxEnabled = false;
   export let ftxDecodes = [];   // maintained by App.svelte — persists across tab switches
   export let watchlist = [];
@@ -270,21 +272,38 @@
     return Math.max(1, Math.round((_periodSecs(cur) - _periodSecs(prev)) / 15));
   }
 
-  // Detect new period arrival and schedule auto call decision after enrichment delay.
-  // DB enrichment arrives ~1s after decodes; 2500ms gives it time to land.
+  // Clock-based period detection — fires every FT8 period (15s) regardless of decodes.
+  // Periods start at :00, :15, :30, :45. We fire 3s in to let DB enrichment land.
   let _acLastPeriod        = '';
   let _acLastHandledPeriod = '';
-  $: if (autoCallEnabled && groupedDecodes.length > 0) {
-    const t = groupedDecodes[0].time;
-    if (t !== _acLastPeriod) {
-      _acLastPeriod = t;
-      setTimeout(() => _handleAutoCallPeriod(t), 2500);
-    }
-  }
+
+  onMount(() => {
+    const id = setInterval(() => {
+      if (!autoCallEnabled) return;
+      const now = new Date();
+      const totalSecs = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+      const secsInPeriod = totalSecs % 15;
+      if (secsInPeriod < 3 || secsInPeriod > 5) return; // fire only 3-5s into each period
+      const periodStart = totalSecs - secsInPeriod;
+      const h = Math.floor(periodStart / 3600) % 24;
+      const m = Math.floor((periodStart % 3600) / 60);
+      const s = periodStart % 60;
+      const t = String(h).padStart(2, '0') + String(m).padStart(2, '0') + String(s).padStart(2, '0');
+      if (t !== _acLastPeriod) {
+        _acLastPeriod = t;
+        _handleAutoCallPeriod(t);
+      }
+    }, 500);
+    return () => clearInterval(id);
+  });
 
   async function _handleAutoCallPeriod(periodTime) {
     if (!autoCallEnabled || autoCallBusy) return;
     autoCallBusy = true;
+
+    // action collected during decision phase, executed after releasing the busy lock
+    let action = null; // { type: 'reply'|'halt', decode? }
+
     try {
       // How many 15s periods elapsed since last handler — counts TX periods too
       const periods = _periodsElapsed(_acLastHandledPeriod, periodTime);
@@ -294,7 +313,20 @@
       const group = groupedDecodes.find(g => g.time === periodTime);
       const decodes = group ? group.decodes : [];
 
-      if (autoCallTarget) {
+      // Priority call: if set and decoded, override any current target immediately
+      if (priorityCall) {
+        const prioUC = priorityCall.toUpperCase();
+        const prioDecode = decodes.find(d => (d.dxCall || '').toUpperCase() === prioUC);
+        if (prioDecode && (autoCallTarget?.dxCall || '').toUpperCase() !== prioUC) {
+          autoCallTarget        = prioDecode;
+          autoCallAttempts      = 0;
+          autoCallMissed        = 0;
+          _acLastHandledPeriod  = '';
+          action = { type: 'reply', decode: prioDecode };
+        }
+      }
+
+      if (!action && autoCallTarget) {
         const targetUC = (autoCallTarget.dxCall || '').toUpperCase();
 
         if (acTargetSeen(decodes, targetUC)) {
@@ -307,28 +339,28 @@
             autoCallMissed        = 0;
             autoCallAttempts      = 0;
             _acLastHandledPeriod  = '';
-            return;
-          }
-
-          // Did target reply to us specifically?
-          const replied = decodes.some(d =>
-            (d.dxCall || '').toUpperCase() === targetUC && d.myCall
-          );
-          if (replied) {
-            autoCallAttempts = 0; // in QSO — reset counter
+            // No TX action — WSJT-X stops automatically on 73
           } else {
-            autoCallAttempts += 1;
-            if (autoCallAttempts >= AUTO_ATTEMPT_MAX) {
-              // No reply after MAX attempts — yield and try someone else
-              acYielded.add(targetUC);
-              autoCallTarget        = null;
-              autoCallAttempts      = 0;
-              autoCallMissed        = 0;
-              _acLastHandledPeriod  = '';
-              await haltTX();
+            // Did target reply to us specifically?
+            const replied = decodes.some(d =>
+              (d.dxCall || '').toUpperCase() === targetUC && d.myCall
+            );
+            if (replied) {
+              autoCallAttempts = 0; // in QSO — reset counter
             } else {
-              // Re-send call every period — ensures TX restarts if MSHV was stopped manually
-              await sendReply(autoCallTarget);
+              autoCallAttempts += 1;
+              if (autoCallAttempts >= AUTO_ATTEMPT_MAX) {
+                // No reply after MAX attempts — yield and try someone else
+                acYielded.add(targetUC);
+                autoCallTarget        = null;
+                autoCallAttempts      = 0;
+                autoCallMissed        = 0;
+                _acLastHandledPeriod  = '';
+                action = { type: 'halt' };
+              } else {
+                // Re-send call every period — ensures TX restarts if MSHV was stopped manually
+                action = { type: 'reply', decode: autoCallTarget };
+              }
             }
           }
         } else {
@@ -340,10 +372,10 @@
             autoCallMissed        = 0;
             autoCallAttempts      = 0;
             _acLastHandledPeriod  = '';
-            await haltTX();
+            action = { type: 'halt' };
           }
         }
-      } else {
+      } else if (!action) {
         // No active target — check if a yielded station is now calling us
         const resume = decodes.find(d =>
           d.myCall && acYielded.has((d.dxCall || '').toUpperCase())
@@ -354,27 +386,28 @@
           autoCallAttempts      = 0;
           autoCallMissed        = 0;
           _acLastHandledPeriod  = '';
-          await sendReply(resume);
-        } else {
-          // Priority call: if user typed a callsign, watch for it and target it immediately
-          let candidate = null;
-          if (priorityCall) {
-            const uc = priorityCall.toUpperCase();
-            candidate = decodes.find(d => (d.dxCall || '').toUpperCase() === uc) || null;
-          }
-          if (!candidate) candidate = acBestCandidate(decodes);
+          action = { type: 'reply', decode: resume };
+        } else if (!priorityCall) {
+          // No priority call set — pick best candidate normally
+          const candidate = acBestCandidate(decodes);
           if (candidate) {
             autoCallTarget        = candidate;
             autoCallAttempts      = 0;
             autoCallMissed        = 0;
             _acLastHandledPeriod  = '';
-            await sendReply(candidate);
+            action = { type: 'reply', decode: candidate };
           }
         }
+        // If priorityCall is set but not decoded this period: wait, call nobody else
       }
     } finally {
+      // Release the busy lock BEFORE any network call so missed periods are never skipped
       autoCallBusy = false;
     }
+
+    // Execute network action outside the busy lock — slow responses can't block the timer
+    if (action?.type === 'reply') sendReply(action.decode).catch(e => console.error('FTx reply:', e));
+    if (action?.type === 'halt')  haltTX().catch(e => console.error('FTx halt:', e));
   }
 </script>
 
