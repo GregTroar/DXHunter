@@ -38,7 +38,7 @@
     }
   }
 
-  const cols = '50px 34px 36px 52px 48px minmax(0,2fr) minmax(0,1.5fr) 130px';
+  const cols = '50px 34px 36px 52px 48px 36px minmax(0,2fr) minmax(0,1.5fr) 130px';
 
   const SIG_WIDTH = 60;  // Hz — practical FT8 signal width
 
@@ -163,6 +163,8 @@
 
   function rowBg(decode) {
     if (decode.myCall)         return 'bg-cyan-500/25 border-l-2 border-cyan-400';
+    if (autoCallTarget && (decode.dxCall || '').toUpperCase() === (autoCallTarget.dxCall || '').toUpperCase())
+                               return 'bg-emerald-500/20 border-l-2 border-emerald-400';
     if (isActiveWatchlist(decode)) return 'bg-orange-500/15 border-l-2 border-orange-400';
     if (decode.newDXCC)        return 'bg-green-500/15 border-l-2 border-green-500';
     if (decode.newBand || decode.newMode || decode.newSlot)
@@ -179,6 +181,106 @@
   function formatTime(t) {
     if (t.length !== 6) return t;
     return `${t.slice(0,2)}:${t.slice(2,4)}:${t.slice(4,6)}`;
+  }
+
+  // ── Auto Call ────────────────────────────────────────────────────────────────
+  let autoCallEnabled = false;
+  let autoCallTarget  = null;   // decode whose dxCall we are currently calling
+  let autoCallMissed  = 0;      // consecutive periods target not decoded
+  let autoCallBusy    = false;  // prevent concurrent period handlers
+
+  const AUTO_MISS_MAX = 3;
+
+  // Priority: 5=DXCC, 4=Band+Mode, 3=Band, 2=Mode, 1=Slot, 0=nothing, -1=not enriched
+  function acPriority(d) {
+    if (typeof d.newDXCC === 'undefined') return -1;
+    if (d.newDXCC)               return 5;
+    if (d.newBand && d.newMode)  return 4;
+    if (d.newBand)               return 3;
+    if (d.newMode)               return 2;
+    if (d.newSlot)               return 1;
+    return 0;
+  }
+
+  function acPriorityLabel(d) {
+    if (!d) return '';
+    const p = acPriority(d);
+    if (p === 5) return 'DXCC';
+    if (p === 4) return 'B+M';
+    if (p === 3) return 'Band';
+    if (p === 2) return 'Mode';
+    if (p === 1) return 'Slot';
+    return '';
+  }
+
+  function acBestCandidate(decodes) {
+    const eligible = decodes.filter(d => acPriority(d) > 0);
+    if (!eligible.length) return null;
+    eligible.sort((a, b) => {
+      const pd = acPriority(b) - acPriority(a);
+      return pd !== 0 ? pd : b.snr - a.snr;
+    });
+    return eligible[0];
+  }
+
+  // Check if the target station (dxCall) appears as transmitter in a period's decodes
+  function acTargetSeen(decodes, targetCall) {
+    if (!targetCall) return false;
+    const uc = targetCall.toUpperCase();
+    return decodes.some(d => (d.dxCall || '').toUpperCase() === uc);
+  }
+
+  // Disable: halt TX and clear state
+  $: if (!autoCallEnabled && autoCallTarget) {
+    autoCallTarget = null;
+    autoCallMissed = 0;
+    haltTX();
+  }
+
+  // Detect new period arrival and schedule auto call decision after enrichment delay.
+  // DB enrichment arrives ~1s after decodes; 800ms gives it time to land while
+  // still leaving margin inside the 15s FT8 period.
+  let _acLastPeriod = '';
+  $: if (autoCallEnabled && groupedDecodes.length > 0) {
+    const t = groupedDecodes[0].time;
+    if (t !== _acLastPeriod) {
+      _acLastPeriod = t;
+      // Re-read groupedDecodes at call time (after enrichment), not now
+      setTimeout(() => _handleAutoCallPeriod(t), 2500);
+    }
+  }
+
+  async function _handleAutoCallPeriod(periodTime) {
+    if (!autoCallEnabled || autoCallBusy) return;
+    autoCallBusy = true;
+    try {
+      // Re-look up the period in the now-enriched groupedDecodes
+      const group = groupedDecodes.find(g => g.time === periodTime);
+      const decodes = group ? group.decodes : [];
+
+      if (autoCallTarget) {
+        if (acTargetSeen(decodes, autoCallTarget.dxCall)) {
+          autoCallMissed = 0;
+          // WSJT-X auto-seq handles the exchange — nothing to do
+        } else {
+          autoCallMissed += 1;
+          if (autoCallMissed > AUTO_MISS_MAX) {
+            autoCallTarget = null;
+            autoCallMissed = 0;
+            await haltTX();
+          }
+        }
+      } else {
+        const candidate = acBestCandidate(decodes);
+        if (candidate) {
+          autoCallTarget = candidate;
+          autoCallMissed = 0;
+          await sendReply(candidate);
+        }
+      }
+    } finally {
+      autoCallBusy = false;
+    }
   }
 </script>
 
@@ -227,6 +329,26 @@
       title="Stop TX immediately in WSJT-X/JTDX/MSHV">
       {haltBusy ? '…' : haltOk ? '✓ Halted' : '⛔ Halt TX'}
     </button>
+
+    <span class="text-slate-500">|</span>
+
+    <!-- Auto Call -->
+    <button
+      on:click={() => autoCallEnabled = !autoCallEnabled}
+      class="px-2 py-0.5 rounded text-xs font-semibold transition-colors border {autoCallEnabled ? 'bg-emerald-500/25 text-emerald-300 border-emerald-500/50' : 'bg-slate-700 text-slate-400 border border-slate-600 hover:border-slate-500'}"
+      title="Auto call: picks the best new station each period (DXCC > Band+Mode > Band > Mode > Slot)">
+      {autoCallEnabled ? '▶ Auto' : '▷ Auto'}
+    </button>
+
+    {#if autoCallEnabled && autoCallTarget}
+      <span class="font-mono text-emerald-300 font-semibold">{autoCallTarget.dxCall}</span>
+      <span class="text-[10px] text-emerald-500/80 font-semibold">{acPriorityLabel(autoCallTarget)}</span>
+      {#if autoCallMissed > 0}
+        <span class="text-[10px] text-orange-400">miss:{autoCallMissed}/{AUTO_MISS_MAX}</span>
+      {/if}
+    {:else if autoCallEnabled}
+      <span class="text-[10px] text-slate-500 italic">waiting…</span>
+    {/if}
 
     <span class="ml-auto text-slate-500">
       last: <span class="text-slate-400">{lastPeriodCount}</span>
@@ -351,6 +473,7 @@
       <div class="px-1 py-1 text-center">DT</div>
       <div class="px-1 py-1 text-center">Freq</div>
       <div class="px-1 py-1 text-center">Band</div>
+      <div class="px-1 py-1 text-center">Mode</div>
       <div class="px-1 py-1 text-center">Message</div>
       <div class="px-1 py-1 text-center">Country</div>
       <div class="px-1 py-1 text-center">Status</div>
@@ -403,6 +526,10 @@
               {#if decode.band}
                 <span class="px-1 rounded bg-blue-500/20 text-blue-300">{decode.band}</span>
               {/if}
+            </div>
+
+            <div class="px-1 py-0.5 text-center font-mono text-[10px] {decode.mode === 'FT4' ? 'text-violet-400' : decode.mode === 'FT2' ? 'text-orange-400' : 'text-slate-500'}">
+              {decode.mode || ''}
             </div>
 
             <div class="px-1 py-0.5 font-mono truncate" title={decode.message}>

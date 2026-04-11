@@ -86,6 +86,7 @@ const (
 	msgDecode    uint32 = 2
 	msgClear     uint32 = 3
 	msgReply     uint32 = 4
+	msgQSOLogged uint32 = 5
 	msgHaltTX    uint32 = 8
 	msgHighlight uint32 = 13
 )
@@ -246,23 +247,124 @@ func (f *FTxService) handlePacket(data []byte, src *net.UDPAddr) {
 		case f.broadcast <- WSMessage{Type: "ftxClear", Data: nil}:
 		default:
 		}
+	case msgQSOLogged:
+		f.handleQSOLogged(r)
 	}
 }
 
 func (f *FTxService) handleStatus(r *bytes.Reader) {
+	// WSJT-X Status message fields (after magic/schema/type/id):
+	//  DialFrequency uint64
+	//  Mode          string
+	//  DXCall        string
+	//  Report        string
+	//  TXMode        string
+	//  TXEnabled     bool
+	//  Transmitting  bool
+	//  Decoding      bool
+	//  RXDF          uint32
+	//  TXDF          uint32
+	//  DECall        string
+	//  DEGrid        string
+	//  DXGrid        string
+	//  TXWatchdog    bool
+	//  SubMode       string   ← "4" when FT4 sub-mode (WSJT-X)
+	//  FastMode      bool
+	//  SpecialOp     uint8
+	//  FreqTolerance uint32
+	//  TRPeriod      uint32   ← 7500 = FT4, 15000 = FT8, 3750 = FT2
+	//  ConfigName    string
+	//  TXMessage     string
+
 	var dialFreq uint64
 	if err := binary.Read(r, binary.BigEndian, &dialFreq); err != nil {
 		return
 	}
-	// Status message also carries the current mode (field 2 after DialFrequency).
-	mode, _ := readQString(r)
+	mode, _ := readQString(r) // field: Mode
+
+	// Read intermediate fields to reach SubMode and TRPeriod
+	readQString(r)              // DXCall
+	readQString(r)              // Report
+	readQString(r)              // TXMode
+	var boolBuf [3]bool
+	binary.Read(r, binary.BigEndian, &boolBuf[0]) // TXEnabled
+	binary.Read(r, binary.BigEndian, &boolBuf[1]) // Transmitting
+	binary.Read(r, binary.BigEndian, &boolBuf[2]) // Decoding
+	var u32 uint32
+	binary.Read(r, binary.BigEndian, &u32) // RXDF
+	binary.Read(r, binary.BigEndian, &u32) // TXDF
+	readQString(r)                          // DECall
+	readQString(r)                          // DEGrid
+	readQString(r)                          // DXGrid
+	var watchdog bool
+	binary.Read(r, binary.BigEndian, &watchdog) // TXWatchdog
+	subMode, _ := readQString(r)                // SubMode ("4" = FT4 in WSJT-X)
+	var fastMode bool
+	binary.Read(r, binary.BigEndian, &fastMode) // FastMode
+	var specialOp uint8
+	binary.Read(r, binary.BigEndian, &specialOp) // SpecialOp
+	binary.Read(r, binary.BigEndian, &u32)        // FreqTolerance
+	var trPeriod uint32
+	binary.Read(r, binary.BigEndian, &trPeriod) // T/R Period in ms
+
+	// Determine actual mode: T/R period and sub-mode are more reliable than
+	// the Mode string (MSHV may report "FT8" even when doing FT4).
+	resolvedMode := strings.ToUpper(mode)
+	switch {
+	case trPeriod == 7500, strings.ToUpper(subMode) == "4", resolvedMode == "FT4":
+		resolvedMode = "FT4"
+	case trPeriod == 3750:
+		resolvedMode = "FT2"
+	case trPeriod == 15000 && resolvedMode == "":
+		resolvedMode = "FT8"
+	}
 
 	f.mu.Lock()
 	f.dialFreq = dialFreq
-	if mode != "" {
-		f.statusMode = strings.ToUpper(mode)
+	if resolvedMode != "" {
+		f.statusMode = resolvedMode
 	}
 	f.mu.Unlock()
+}
+
+// skipQDateTime skips a Qt5 QDataStream-encoded QDateTime field.
+// Format: QDate(int64 Julian day) + QTime(uint32 msecs) + timespec(uint8) + optional extra.
+func skipQDateTime(r *bytes.Reader) {
+	var jd int64
+	binary.Read(r, binary.BigEndian, &jd) // QDate julian day
+	var ms uint32
+	binary.Read(r, binary.BigEndian, &ms) // QTime msecs since midnight
+	var ts uint8
+	binary.Read(r, binary.BigEndian, &ts) // timespec
+	switch ts {
+	case 2: // OffsetFromUTC: int32 seconds
+		var off int32
+		binary.Read(r, binary.BigEndian, &off)
+	case 3: // TimeZone: QByteArray (uint32 size + bytes)
+		var sz uint32
+		binary.Read(r, binary.BigEndian, &sz)
+		if sz > 0 && sz < 512 {
+			buf := make([]byte, sz)
+			r.Read(buf)
+		}
+	}
+}
+
+// handleQSOLogged processes UDP message type 5 (QSO Logged).
+// It extracts the DX callsign and broadcasts ftxQSOLogged so the frontend
+// can mark existing decodes as worked and un-target auto call.
+func (f *FTxService) handleQSOLogged(r *bytes.Reader) {
+	skipQDateTime(r) // DateTimeOff
+	dxCall, err := readQString(r)
+	if err != nil || dxCall == "" {
+		return
+	}
+	dxCall = strings.ToUpper(strings.TrimSpace(dxCall))
+	Log.Debugf("FTx: QSO logged with %s", dxCall)
+	select {
+	case f.broadcast <- WSMessage{Type: "ftxQSOLogged", Data: map[string]string{"dxCall": dxCall}}:
+	default:
+	}
 }
 
 func (f *FTxService) handleDecode(r *bytes.Reader, src *net.UDPAddr) {

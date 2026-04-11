@@ -546,6 +546,19 @@ function applyFilters(allSpots, filters, wl) {
       case 'ftxClear':
         ftxDecodes = [];
         break;
+      case 'ftxQSOLogged': {
+        // QSO just logged — mark all decodes for that callsign as worked so
+        // auto call skips them and the row loses its new-DXCC/Band/Mode colour.
+        const logged = (message.data?.dxCall || '').toUpperCase();
+        if (logged) {
+          ftxDecodes = ftxDecodes.map(d =>
+            (d.dxCall || '').toUpperCase() === logged
+              ? { ...d, newDXCC: false, newBand: false, newMode: false, newSlot: false, worked: true }
+              : d
+          );
+        }
+        break;
+      }
       case 'toAll':
         showToast(`📡 ${message.data.message}`, 'info', 10000);
         break;
