@@ -2,8 +2,14 @@
   import { createEventDispatcher } from 'svelte';
   
   export let stats;
-  
+  export let spots = [];
+
   const dispatch = createEventDispatcher();
+
+  // Same logic as FilterBar: count unique DXCCs, not spots
+  $: newDXCCCount = spots.length
+    ? new Set(spots.filter(s => s.NewDXCC).map(s => s.DXCC || s.CountryName)).size
+    : (stats.newDXCC || 0);
   
   function handleFilterChange(filterName, checked) {
     dispatch('filterChange', { name: filterName, value: checked });
@@ -52,7 +58,7 @@
       <svg class="w-6 h-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
-      <div class="text-xl font-bold text-emerald-400">{stats.newDXCC}</div>
+      <div class="text-xl font-bold text-emerald-400">{newDXCCCount}</div>
     </div>
     <p class="text-xs text-slate-400 mt-1">New DXCC</p>
   </div>

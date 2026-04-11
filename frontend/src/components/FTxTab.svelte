@@ -71,7 +71,6 @@
     return groups;
   })();
 
-  $: sessionCount    = visibleDecodes.length;
   $: lastPeriodCount = groupedDecodes.length > 0 ? groupedDecodes[0].decodes.length : 0;
 
   // ── TX Slot Advisor ─────────────────────────────────────────────────────────
@@ -118,15 +117,17 @@
   function dfPct(hz) { return ((hz - DF_MIN) / DF_RANGE) * 100; }
 
   // ── Watchlist active+not-worked match ───────────────────────────────────────
-  // Build a Set of watchlist callsigns that currently have at least one active
-  // spot on the cluster that has NOT been worked yet.
+  // spots are TelnetSpot (no json tags) → fields are DX/NewDXCC/NewBand/etc. (PascalCase).
+  // workedBandMode doesn't exist on TelnetSpot; use NewXxx flags + CallsignWorked instead.
   $: activeWatchlistCalls = (() => {
     const wlCalls = new Set(watchlist.map(w => w.callsign?.toUpperCase()).filter(Boolean));
     if (wlCalls.size === 0 || spots.length === 0) return new Set();
     const active = new Set();
     for (const s of spots) {
-      const dx = (s.dx || '').toUpperCase();
-      if (wlCalls.has(dx) && !s.workedBandMode) {
+      const dx = (s.DX || s.dx || '').toUpperCase();
+      if (!wlCalls.has(dx)) continue;
+      // Needed = new on at least one dimension, or never worked at all
+      if (s.NewDXCC || s.NewBand || s.NewMode || s.NewSlot || !s.CallsignWorked) {
         active.add(dx);
       }
     }
@@ -135,15 +136,8 @@
 
   function isActiveWatchlist(decode) {
     if (activeWatchlistCalls.size === 0) return false;
-    const msg = (decode.message || '').toUpperCase();
-    for (const call of activeWatchlistCalls) {
-      const idx = msg.indexOf(call);
-      if (idx === -1) continue;
-      const before = idx > 0 ? msg[idx - 1] : ' ';
-      const after  = idx + call.length < msg.length ? msg[idx + call.length] : ' ';
-      if (!/[A-Z0-9/]/.test(before) && !/[A-Z0-9/]/.test(after)) return true;
-    }
-    return false;
+    const call = (decode.dxCall || '').toUpperCase();
+    return call !== '' && activeWatchlistCalls.has(call);
   }
 
   // ── Helpers ─────────────────────────────────────────────────────────────────
@@ -184,12 +178,17 @@
   }
 
   // ── Auto Call ────────────────────────────────────────────────────────────────
-  let autoCallEnabled = false;
-  let autoCallTarget  = null;   // decode whose dxCall we are currently calling
-  let autoCallMissed  = 0;      // consecutive periods target not decoded
-  let autoCallBusy    = false;  // prevent concurrent period handlers
+  let autoCallEnabled    = false;
+  let autoCallTarget     = null;   // decode whose dxCall we are currently calling
+  let autoCallMissed     = 0;      // consecutive periods target not decoded at all
+  let autoCallAttempts   = 0;      // periods we called with no reply from target
+  let autoCallBusy       = false;  // prevent concurrent period handlers
+  let acRecentlyWorked   = new Set(); // QSO complete — skip permanently this session
+  let acYielded          = new Set(); // gave up after MAX_ATTEMPTS — resume only if they call us
+  let priorityCall       = '';     // manual callsign to watch for and call immediately
 
-  const AUTO_MISS_MAX = 3;
+  const AUTO_MISS_MAX    = 3;
+  const AUTO_ATTEMPT_MAX = 7;
 
   // Priority: 5=DXCC, 4=Band+Mode, 3=Band, 2=Mode, 1=Slot, 0=nothing, -1=not enriched
   function acPriority(d) {
@@ -214,11 +213,17 @@
   }
 
   function acBestCandidate(decodes) {
-    const eligible = decodes.filter(d => acPriority(d) > 0);
+    const eligible = decodes.filter(d => {
+      const uc = (d.dxCall || '').toUpperCase();
+      return acPriority(d) > 0 && !acRecentlyWorked.has(uc) && !acYielded.has(uc);
+    });
     if (!eligible.length) return null;
     eligible.sort((a, b) => {
       const pd = acPriority(b) - acPriority(a);
-      return pd !== 0 ? pd : b.snr - a.snr;
+      if (pd !== 0) return pd;
+      // Within same priority: CQ before directed calls, then highest SNR
+      const cqDiff = (b.isCQ ? 1 : 0) - (a.isCQ ? 1 : 0);
+      return cqDiff !== 0 ? cqDiff : b.snr - a.snr;
     });
     return eligible[0];
   }
@@ -230,22 +235,49 @@
     return decodes.some(d => (d.dxCall || '').toUpperCase() === uc);
   }
 
-  // Disable: halt TX and clear state
+  // Detect QSO completion: target sends RR73/RRR/73 directed at US (d.myCall)
+  // If they send it to someone else we must NOT treat it as our QSO being done.
+  function acQSOComplete(decodes, targetCall) {
+    const uc = targetCall.toUpperCase();
+    return decodes.some(d => {
+      if ((d.dxCall || '').toUpperCase() !== uc) return false;
+      if (!d.myCall) return false; // directed at someone else — ignore
+      const msg = (d.message || '').toUpperCase();
+      return msg.endsWith(' RR73') || msg.endsWith(' RRR') || msg.endsWith(' 73');
+    });
+  }
+
+  // Disable: halt TX and clear all state
   $: if (!autoCallEnabled && autoCallTarget) {
-    autoCallTarget = null;
-    autoCallMissed = 0;
+    autoCallTarget        = null;
+    autoCallMissed        = 0;
+    autoCallAttempts      = 0;
+    _acLastHandledPeriod  = '';
+    acRecentlyWorked      = new Set();
+    acYielded             = new Set();
     haltTX();
   }
 
+  // Convert "HHMMSS" period string to total seconds
+  function _periodSecs(t) {
+    if (!t || t.length !== 6) return 0;
+    return parseInt(t.slice(0,2)) * 3600 + parseInt(t.slice(2,4)) * 60 + parseInt(t.slice(4,6));
+  }
+
+  // Number of 15s FT8 periods elapsed between two period timestamps
+  function _periodsElapsed(prev, cur) {
+    if (!prev) return 1;
+    return Math.max(1, Math.round((_periodSecs(cur) - _periodSecs(prev)) / 15));
+  }
+
   // Detect new period arrival and schedule auto call decision after enrichment delay.
-  // DB enrichment arrives ~1s after decodes; 800ms gives it time to land while
-  // still leaving margin inside the 15s FT8 period.
-  let _acLastPeriod = '';
+  // DB enrichment arrives ~1s after decodes; 2500ms gives it time to land.
+  let _acLastPeriod        = '';
+  let _acLastHandledPeriod = '';
   $: if (autoCallEnabled && groupedDecodes.length > 0) {
     const t = groupedDecodes[0].time;
     if (t !== _acLastPeriod) {
       _acLastPeriod = t;
-      // Re-read groupedDecodes at call time (after enrichment), not now
       setTimeout(() => _handleAutoCallPeriod(t), 2500);
     }
   }
@@ -254,28 +286,90 @@
     if (!autoCallEnabled || autoCallBusy) return;
     autoCallBusy = true;
     try {
+      // How many 15s periods elapsed since last handler — counts TX periods too
+      const periods = _periodsElapsed(_acLastHandledPeriod, periodTime);
+      _acLastHandledPeriod = periodTime;
+
       // Re-look up the period in the now-enriched groupedDecodes
       const group = groupedDecodes.find(g => g.time === periodTime);
       const decodes = group ? group.decodes : [];
 
       if (autoCallTarget) {
-        if (acTargetSeen(decodes, autoCallTarget.dxCall)) {
+        const targetUC = (autoCallTarget.dxCall || '').toUpperCase();
+
+        if (acTargetSeen(decodes, targetUC)) {
           autoCallMissed = 0;
-          // WSJT-X auto-seq handles the exchange — nothing to do
+
+          // QSO complete: target sent RR73 / RRR / 73
+          if (acQSOComplete(decodes, targetUC)) {
+            acRecentlyWorked.add(targetUC);
+            autoCallTarget        = null;
+            autoCallMissed        = 0;
+            autoCallAttempts      = 0;
+            _acLastHandledPeriod  = '';
+            return;
+          }
+
+          // Did target reply to us specifically?
+          const replied = decodes.some(d =>
+            (d.dxCall || '').toUpperCase() === targetUC && d.myCall
+          );
+          if (replied) {
+            autoCallAttempts = 0; // in QSO — reset counter
+          } else {
+            autoCallAttempts += 1;
+            if (autoCallAttempts >= AUTO_ATTEMPT_MAX) {
+              // No reply after MAX attempts — yield and try someone else
+              acYielded.add(targetUC);
+              autoCallTarget        = null;
+              autoCallAttempts      = 0;
+              autoCallMissed        = 0;
+              _acLastHandledPeriod  = '';
+              await haltTX();
+            } else {
+              // Re-send call every period — ensures TX restarts if MSHV was stopped manually
+              await sendReply(autoCallTarget);
+            }
+          }
         } else {
-          autoCallMissed += 1;
-          if (autoCallMissed > AUTO_MISS_MAX) {
-            autoCallTarget = null;
-            autoCallMissed = 0;
+          // Count all elapsed periods (includes TX periods where no decodes arrive)
+          autoCallMissed += periods;
+          if (autoCallMissed >= AUTO_MISS_MAX) {
+            // Station gone — clear target so she can be picked again if she reappears
+            autoCallTarget        = null;
+            autoCallMissed        = 0;
+            autoCallAttempts      = 0;
+            _acLastHandledPeriod  = '';
             await haltTX();
           }
         }
       } else {
-        const candidate = acBestCandidate(decodes);
-        if (candidate) {
-          autoCallTarget = candidate;
-          autoCallMissed = 0;
-          await sendReply(candidate);
+        // No active target — check if a yielded station is now calling us
+        const resume = decodes.find(d =>
+          d.myCall && acYielded.has((d.dxCall || '').toUpperCase())
+        );
+        if (resume) {
+          acYielded.delete((resume.dxCall || '').toUpperCase());
+          autoCallTarget        = resume;
+          autoCallAttempts      = 0;
+          autoCallMissed        = 0;
+          _acLastHandledPeriod  = '';
+          await sendReply(resume);
+        } else {
+          // Priority call: if user typed a callsign, watch for it and target it immediately
+          let candidate = null;
+          if (priorityCall) {
+            const uc = priorityCall.toUpperCase();
+            candidate = decodes.find(d => (d.dxCall || '').toUpperCase() === uc) || null;
+          }
+          if (!candidate) candidate = acBestCandidate(decodes);
+          if (candidate) {
+            autoCallTarget        = candidate;
+            autoCallAttempts      = 0;
+            autoCallMissed        = 0;
+            _acLastHandledPeriod  = '';
+            await sendReply(candidate);
+          }
         }
       }
     } finally {
@@ -343,18 +437,32 @@
     {#if autoCallEnabled && autoCallTarget}
       <span class="font-mono text-emerald-300 font-semibold">{autoCallTarget.dxCall}</span>
       <span class="text-[10px] text-emerald-500/80 font-semibold">{acPriorityLabel(autoCallTarget)}</span>
+      {#if autoCallAttempts > 0}
+        <span class="text-[10px] text-orange-400">Call:{autoCallAttempts}/{AUTO_ATTEMPT_MAX}</span>
+      {/if}
       {#if autoCallMissed > 0}
-        <span class="text-[10px] text-orange-400">miss:{autoCallMissed}/{AUTO_MISS_MAX}</span>
+        <span class="text-[10px] text-red-400">Miss:{autoCallMissed}/{AUTO_MISS_MAX}</span>
       {/if}
     {:else if autoCallEnabled}
       <span class="text-[10px] text-slate-500 italic">waiting…</span>
     {/if}
 
+    {#if autoCallEnabled}
+      <span class="text-slate-500">|</span>
+      <input
+        type="text"
+        bind:value={priorityCall}
+        placeholder="Watch call…"
+        maxlength="12"
+        on:input={(e) => { priorityCall = e.target.value.toUpperCase(); }}
+        class="w-24 px-1.5 py-0.5 rounded text-xs font-mono bg-slate-800 border border-slate-600 text-amber-300 placeholder-slate-600 focus:outline-none focus:border-amber-500/60"
+        title="Callsign to call immediately when decoded (Auto must be ON)" />
+    {/if}
+
     <span class="ml-auto text-slate-500">
-      last: <span class="text-slate-400">{lastPeriodCount}</span>
-      <span class="mx-1">·</span>
-      session: <span class="text-slate-400">{sessionCount}</span>
+      Last: <span class="text-slate-400">{lastPeriodCount}</span>
     </span>
+
   </div>
 
   <!-- TX Slot Advisor Panel -->

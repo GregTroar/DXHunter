@@ -813,6 +813,7 @@ async function shutdownApp() {
 
   <StatsCards
     {stats}
+    {spots}
     on:filterChange={(e) => updateClusterFilter(e.detail.name, e.detail.value)}
   />
   
