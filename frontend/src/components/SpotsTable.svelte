@@ -56,11 +56,6 @@
     });
   }
 
-  function handleOpenDXInfo(e, spot) {
-    e.stopPropagation();
-    dispatch('openDXInfo', { callsign: spot.DX });
-  }
-  
   // Retourne un tableau de { label, classes } pour afficher plusieurs badges
   function getStatusBadges(spot) {
     const badges = [];
@@ -158,14 +153,6 @@
               <span class="px-1 py-0.5 rounded text-teal-400 border border-teal-500/40 flex-shrink-0" style="font-size: 0.6rem; line-height: 1;">LoTW</span>
             {/if}
           </div>
-          <button
-            class="text-slate-500 hover:text-blue-400 transition-colors flex-shrink-0"
-            on:click={(e) => handleOpenDXInfo(e, item)}
-            title="DX Info — band/mode stats">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </button>
         </div>
         <div class="p-2 flex items-center text-slate-400 text-xs truncate" style="width: 10%;" title={item.CountryName || 'N/A'}>
           {item.CountryName || 'N/A'}

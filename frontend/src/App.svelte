@@ -3,7 +3,7 @@
   import Header from './components/Header.svelte';
   import FilterBar from './components/FilterBar.svelte';
   import SpotsTable from './components/SpotsTable.svelte';
-  import DXInfoTab from './components/DXInfoTab.svelte';
+  import FTxTab from './components/FTxTab.svelte';
   import Sidebar from './components/Sidebar.svelte';
   import Toast from './components/Toast.svelte';
   import ErrorBanner from './components/ErrorBanner.svelte';
@@ -48,7 +48,6 @@
   let contestMode = false;
   let contestPrefix = "";
   let contestCallsigns = [];
-  let selectedCallsign = '';
   let mainTab = 'spots';
   let ftxEnabled = false;
   let ftxDecodes = [];
@@ -838,27 +837,27 @@ async function shutdownApp() {
           Recent Spots ({filteredSpots.length})
         </button>
         <button
-          class="px-4 py-2 text-sm font-semibold transition-colors {mainTab === 'dxinfo' ? 'bg-blue-500/20 text-blue-400 border-b-2 border-blue-500' : 'text-slate-400 hover:text-slate-300'}"
-          on:click={() => mainTab = 'dxinfo'}>
+          class="px-4 py-2 text-sm font-semibold transition-colors {mainTab === 'ftx' ? 'bg-purple-500/20 text-purple-400 border-b-2 border-purple-500' : 'text-slate-400 hover:text-slate-300'}"
+          on:click={() => mainTab = 'ftx'}>
           <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
           </svg>
-          DX Info{selectedCallsign ? ` — ${selectedCallsign}` : ''}
+          FTx
         </button>
       </div>
-      <!-- Tab content -->
+      <!-- Tab content — FTxTab reste monté pour préserver l'état autocall -->
       <div class="flex-1 overflow-hidden" style="min-height: 0;">
-        {#if mainTab === 'spots'}
+        <div class="h-full" class:hidden={mainTab !== 'spots'}>
           <SpotsTable
             spots={filteredSpots}
             {watchlist}
             myCallsign={stats.myCallsign}
             on:clickSpot={(e) => sendCallsign(e.detail.callsign, e.detail.frequency, e.detail.mode)}
-            on:openDXInfo={(e) => { selectedCallsign = e.detail.callsign; mainTab = 'dxinfo'; }}
           />
-        {:else}
-          <DXInfoTab {selectedCallsign} />
-        {/if}
+        </div>
+        <div class="h-full" class:hidden={mainTab !== 'ftx'}>
+          <FTxTab {ftxEnabled} {ftxDecodes} {watchlist} spots={filteredSpots} />
+        </div>
       </div>
     </div>
     
@@ -877,13 +876,10 @@ async function shutdownApp() {
         {contestMode}
         {contestPrefix}
         {contestCallsigns}
-        {ftxEnabled}
-        {ftxDecodes}
         wsStatus={wsStatus}
         clusterType={stats.clusterType || 'unknown'}
         clusters={stats.clusters || []}
         on:toast={(e) => showToast(e.detail.message, e.detail.type)}
-        on:openDXInfo={(e) => { selectedCallsign = e.detail.callsign; mainTab = 'dxinfo'; }}
         on:clearLogs={() => logs = []}
         on:sendCommand={handleSendCommand}
       />
