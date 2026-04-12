@@ -125,6 +125,7 @@ type Config struct {
 
 	FTx struct {
 		Enabled     bool   `yaml:"enabled"`
+		Multicast   bool   `yaml:"multicast"`
 		MulticastIP string `yaml:"multicast_ip"`
 		Port        int    `yaml:"port"`
 	} `yaml:"ftx"`

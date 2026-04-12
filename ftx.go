@@ -133,6 +133,13 @@ type FTxService struct {
 	batchDecodes []FTxDecode
 	batchTimer   *time.Timer
 
+	// Deduplication: on Windows, joining a multicast group on every interface
+	// causes each UDP packet to be delivered once per interface. We drop dupes
+	// within the same period (same timeMs) using a "timeMs|message" key.
+	deduMu   sync.Mutex
+	deduTime uint32
+	deduSeen map[string]struct{}
+
 	// Per-period DXCC contact cache: avoids N identical SQLite queries when many
 	// callers share the same DXCC (e.g. 80 Europeans all hit dxcc="269" once).
 	cacheMu    sync.Mutex
@@ -170,11 +177,14 @@ func (f *FTxService) Start() {
 
 	conn := pc.(*net.UDPConn)
 
-	// Join the multicast group on every eligible interface.
-	if mcIP != nil && mcIP.IsMulticast() {
+	// Join the multicast group if multicast is enabled.
+	// Joining on all eligible interfaces allows multiple apps (GridTracker, Log4OM, …)
+	// to share port 2237 simultaneously. Duplicate deliveries caused by multiple active
+	// interfaces are absorbed by the deduplication in handleDecode.
+	if Cfg.FTx.Multicast && mcIP != nil && mcIP.IsMulticast() {
 		p := ipv4.NewPacketConn(conn)
-		ifaces, _ := net.Interfaces()
 		joined := 0
+		ifaces, _ := net.Interfaces()
 		for _, iface := range ifaces {
 			if iface.Flags&net.FlagUp == 0 || iface.Flags&net.FlagMulticast == 0 {
 				continue
@@ -378,6 +388,7 @@ func (f *FTxService) handleDecode(r *bytes.Reader, src *net.UDPAddr) {
 		return
 	}
 
+
 	var snr int32
 	if err := binary.Read(r, binary.BigEndian, &snr); err != nil {
 		return
@@ -401,6 +412,24 @@ func (f *FTxService) handleDecode(r *bytes.Reader, src *net.UDPAddr) {
 
 	message, err := readQString(r)
 	if err != nil {
+		return
+	}
+
+	// Deduplicate: same packet delivered on multiple interfaces has identical
+	// timeMs and message. Drop it if already seen in this period.
+	deduKey := message // timeMs is the period bucket; message is unique within it
+	f.deduMu.Lock()
+	if f.deduTime != timeMs {
+		f.deduSeen = make(map[string]struct{})
+		f.deduTime = timeMs
+	}
+	_, alreadySeen := f.deduSeen[deduKey]
+	if !alreadySeen {
+		f.deduSeen[deduKey] = struct{}{}
+	}
+	f.deduMu.Unlock()
+	if alreadySeen {
+		Log.Debugf("FTx: duplicate decode dropped (multi-iface multicast): %s", message)
 		return
 	}
 

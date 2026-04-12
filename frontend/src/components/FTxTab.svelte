@@ -179,13 +179,14 @@
   }
 
   // ── Auto Call ────────────────────────────────────────────────────────────────
-  let autoCallEnabled  = false;
-  let autoCallTarget   = null;   // decode currently being called
-  let autoCallAttempts = 0;      // RX periods: target decoded but no reply
-  let autoCallMissed   = 0;      // RX periods: target not decoded at all
-  let autoCallBusy     = false;  // prevent concurrent handlers
-  let autoCallStopped  = false;  // hit attempt/miss limit (watch call: need manual restart)
-  let priorityCall     = '';     // watch call field — only call this station when set
+  let autoCallEnabled      = false;
+  let autoCallTarget       = null;   // decode currently being called
+  let autoCallAttempts     = 0;      // RX periods: target decoded but no reply
+  let autoCallMissed       = 0;      // RX periods: target not decoded at all
+  let autoCallBusy         = false;  // prevent concurrent handlers
+  let autoCallStopped      = false;  // hit attempt/miss limit (watch call: need manual restart)
+  let autoCallManualLocked = false;  // user manually clicked a row — don't auto-pick after halt
+  let priorityCall         = '';     // watch call field — only call this station when set
 
   const AUTO_MISS_MAX    = 3;
   const AUTO_ATTEMPT_MAX = 7;
@@ -246,25 +247,27 @@
     autoCallMissed   = 0;
   }
 
-  // Manual row click: send reply and, if auto is on, adopt clicked station as target
+  // Manual row click: send reply and, if auto is on, adopt clicked station as locked target
   function handleRowClick(decode) {
     sendReply(decode);
     if (autoCallEnabled) {
-      autoCallTarget   = decode;
-      autoCallAttempts = 0;
-      autoCallMissed   = 0;
-      autoCallStopped  = false;
+      autoCallTarget       = decode;
+      autoCallAttempts     = 0;
+      autoCallMissed       = 0;
+      autoCallStopped      = false;
+      autoCallManualLocked = true;  // prevent auto-picking a new candidate
     }
   }
 
   // Disable autocall: halt and reset everything
   $: if (!autoCallEnabled) {
     if (autoCallTarget) haltTX();
-    autoCallTarget   = null;
-    autoCallAttempts = 0;
-    autoCallMissed   = 0;
-    autoCallStopped  = false;
-    _acLastPeriod    = '';
+    autoCallTarget       = null;
+    autoCallAttempts     = 0;
+    autoCallMissed       = 0;
+    autoCallStopped      = false;
+    autoCallManualLocked = false;
+    _acLastPeriod        = '';
   }
 
   // Trigger: fire as soon as DB enrichment lands for the latest period.
@@ -364,8 +367,9 @@
           if (targetSeen) {
             autoCallMissed = 0;
             if (acQSOComplete(decodes, targetUC)) {
-              autoCallTarget   = null;
-              autoCallAttempts = 0;
+              autoCallTarget       = null;
+              autoCallAttempts     = 0;
+              autoCallManualLocked = false;
             } else {
               const replied = decodes.some(d =>
                 (d.dxCall || '').toUpperCase() === targetUC && d.myCall
@@ -375,11 +379,11 @@
               } else {
                 autoCallAttempts++;
                 if (autoCallAttempts >= AUTO_ATTEMPT_MAX) {
-                  autoCallTarget   = null;
-                  autoCallAttempts = 0;
-                  autoCallMissed   = 0;
+                  autoCallTarget       = null;
+                  autoCallAttempts     = 0;
+                  autoCallMissed       = 0;
+                  autoCallManualLocked = false;
                   action = { type: 'halt' };
-                  // Next period will pick a new candidate
                 } else {
                   action = { type: 'reply', decode: autoCallTarget };
                 }
@@ -389,14 +393,15 @@
             // Target not decoded this RX period → miss
             autoCallMissed++;
             if (autoCallMissed >= AUTO_MISS_MAX) {
-              autoCallTarget   = null;
-              autoCallMissed   = 0;
-              autoCallAttempts = 0;
+              autoCallTarget       = null;
+              autoCallMissed       = 0;
+              autoCallAttempts     = 0;
+              autoCallManualLocked = false;
               action = { type: 'halt' };
             }
           }
-        } else {
-          // No target → pick best candidate from this period
+        } else if (!autoCallManualLocked) {
+          // No target and not manually locked → auto-pick best candidate from this period
           const candidate = acBestCandidate(decodes);
           if (candidate) {
             autoCallTarget   = candidate;

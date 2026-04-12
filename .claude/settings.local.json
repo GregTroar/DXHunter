@@ -1,7 +1,24 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(go env:*)",
+      "Bash(powershell -Command \"Get-Item FlexDXCluster.exe | Select-Object Name, Length, LastWriteTime\")",
+      "Bash(powershell -Command \"Get-Item FlexDXCluster.exe -Stream Zone.Identifier -ErrorAction SilentlyContinue | Get-Content\")",
+      "Bash(powershell -Command \"Get-Content 'FlexDXCluster.exe:Zone.Identifier' -ErrorAction SilentlyContinue; if\\(\\\\$?\\) { 'Zone found' } else { 'No Zone.Identifier - pas MoTW' }\")",
+      "Bash(./FlexDXCluster_test.exe --help)",
+      "Bash(set CGO_ENABLED=1)",
+      "Bash(powershell -Command ':*)",
+      "Bash(rm -f test_plain.exe)",
+      "Bash(gcc --version)",
+      "Bash(gcc -dumpmachine)",
+      "Bash(cmd /c \"FlexDXCluster.exe\")",
+      "Bash(powershell.exe -NonInteractive -Command ':*)",
+      "Bash(kill %1)",
+      "Bash(powershell -Command \"[Environment]::Is64BitProcess\")",
+      "Bash(cmd /c \"start /wait FlexDXCluster.exe\")",
+      "Bash(echo \"exit: $?\")",
+      "Bash(powershell -Command \"Get-Process -Name FlexDXCluster -ErrorAction SilentlyContinue | Select-Object Id, CPU, WorkingSet\")"
     ]
   }
 }
