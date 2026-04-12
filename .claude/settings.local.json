@@ -18,7 +18,8 @@
       "Bash(powershell -Command \"[Environment]::Is64BitProcess\")",
       "Bash(cmd /c \"start /wait FlexDXCluster.exe\")",
       "Bash(echo \"exit: $?\")",
-      "Bash(powershell -Command \"Get-Process -Name FlexDXCluster -ErrorAction SilentlyContinue | Select-Object Id, CPU, WorkingSet\")"
+      "Bash(powershell -Command \"Get-Process -Name FlexDXCluster -ErrorAction SilentlyContinue | Select-Object Id, CPU, WorkingSet\")",
+      "Bash(go get:*)"
     ]
   }
 }

@@ -44,13 +44,13 @@ frontend:
 ## backend: Build le backend Go
 backend:
 	@echo "Building Go binary..."
-	set CGO_ENABLED=1 && go build -ldflags -H=windowsgui .
+	go build -ldflags -H=windowsgui .
 	@echo "Backend built successfully"
 
 ## backend: Build le backend Go
 backendi: frontend
 	@echo "Building Go binary..."
-	set CGO_ENABLED=1 && go build .
+	go build .
 	@echo "Backend built successfully"
 
 ## build: Build complet (frontend + backend)

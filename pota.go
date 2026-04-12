@@ -39,7 +39,7 @@ type POTACache struct {
 
 // NewPOTACache ouvre (ou crée) la base de cache pota.sqlite
 func NewPOTACache(path string) (*POTACache, error) {
-	db, err := sql.Open("sqlite3", path)
+	db, err := sql.Open("sqlite", path)
 	if err != nil {
 		return nil, fmt.Errorf("pota cache open: %w", err)
 	}

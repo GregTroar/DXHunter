@@ -70,7 +70,7 @@ func NewLog4OMContactsRepository(filePath string) *Log4OMContactsRepository {
 			Log: Log}
 
 	} else if Cfg.Database.SQLite {
-		db, err := sql.Open("sqlite3", filePath)
+		db, err := sql.Open("sqlite", filePath)
 		if err != nil {
 			Log.Errorf("Cannot open SQLite database: %v", err)
 			return nil
@@ -98,7 +98,7 @@ func NewLog4OMContactsRepository(filePath string) *Log4OMContactsRepository {
 
 func NewFlexDXDatabase(filePath string) *FlexDXClusterRepository {
 
-	db, err := sql.Open("sqlite3", filePath)
+	db, err := sql.Open("sqlite", filePath)
 	if err != nil {
 		Log.Errorf("Cannot open db: %v", err)
 	}
