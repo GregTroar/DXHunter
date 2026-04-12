@@ -29,7 +29,6 @@
   const dispatch = createEventDispatcher();
 
   function handleToast(event) { dispatch('toast', event.detail); }
-  function handleOpenDXInfo(event) { dispatch('openDXInfo', event.detail); }
   function handleClearLogs() { dispatch('clearLogs'); }
 </script>
 
@@ -106,7 +105,6 @@
         {contestPrefix}
         {contestCallsigns}
         on:toast={handleToast}
-        on:openDXInfo={handleOpenDXInfo}
       />
     {:else if activeTab === 'log'}
       <LogTab {recentQSOs} {logStats} {dxccProgress} />
