@@ -142,8 +142,8 @@ type FTxService struct {
 
 	// Per-period DXCC contact cache: avoids N identical SQLite queries when many
 	// callers share the same DXCC (e.g. 80 Europeans all hit dxcc="269" once).
-	cacheMu    sync.Mutex
-	cacheTime  uint32               // period this cache belongs to
+	cacheMu     sync.Mutex
+	cacheTime   uint32               // period this cache belongs to
 	cacheByDXCC map[string][]Contact // dxcc -> contacts
 }
 
@@ -215,7 +215,7 @@ func (f *FTxService) readLoop(conn *net.UDPConn) {
 			time.Sleep(time.Second)
 			continue
 		}
-		Log.Infof("FTx: received %d bytes from %s", n, src)
+		Log.Debugf("FTx: received %d bytes from %s", n, src)
 		f.mu.Lock()
 		f.sourceAddr = src
 		f.mu.Unlock()
@@ -293,9 +293,9 @@ func (f *FTxService) handleStatus(r *bytes.Reader) {
 	mode, _ := readQString(r) // field: Mode
 
 	// Read intermediate fields to reach SubMode and TRPeriod
-	readQString(r)              // DXCall
-	readQString(r)              // Report
-	readQString(r)              // TXMode
+	readQString(r) // DXCall
+	readQString(r) // Report
+	readQString(r) // TXMode
 	var boolBuf [3]bool
 	binary.Read(r, binary.BigEndian, &boolBuf[0]) // TXEnabled
 	binary.Read(r, binary.BigEndian, &boolBuf[1]) // Transmitting
@@ -303,9 +303,9 @@ func (f *FTxService) handleStatus(r *bytes.Reader) {
 	var u32 uint32
 	binary.Read(r, binary.BigEndian, &u32) // RXDF
 	binary.Read(r, binary.BigEndian, &u32) // TXDF
-	readQString(r)                          // DECall
-	readQString(r)                          // DEGrid
-	readQString(r)                          // DXGrid
+	readQString(r)                         // DECall
+	readQString(r)                         // DEGrid
+	readQString(r)                         // DXGrid
 	var watchdog bool
 	binary.Read(r, binary.BigEndian, &watchdog) // TXWatchdog
 	subMode, _ := readQString(r)                // SubMode ("4" = FT4 in WSJT-X)
@@ -313,7 +313,7 @@ func (f *FTxService) handleStatus(r *bytes.Reader) {
 	binary.Read(r, binary.BigEndian, &fastMode) // FastMode
 	var specialOp uint8
 	binary.Read(r, binary.BigEndian, &specialOp) // SpecialOp
-	binary.Read(r, binary.BigEndian, &u32)        // FreqTolerance
+	binary.Read(r, binary.BigEndian, &u32)       // FreqTolerance
 	var trPeriod uint32
 	binary.Read(r, binary.BigEndian, &trPeriod) // T/R Period in ms
 
@@ -387,7 +387,6 @@ func (f *FTxService) handleDecode(r *bytes.Reader, src *net.UDPAddr) {
 	if err := binary.Read(r, binary.BigEndian, &timeMs); err != nil {
 		return
 	}
-
 
 	var snr int32
 	if err := binary.Read(r, binary.BigEndian, &snr); err != nil {
@@ -755,12 +754,14 @@ func (f *FTxService) HighlightCallsign(clientID, callsign string, bgColor, fgCol
 }
 
 // writeQColor writes a Qt QColor in QDataStream format:
-//   uint8  colorSpec  (0=invalid, 1=RGB)
-//   uint16 alpha
-//   uint16 red
-//   uint16 green
-//   uint16 blue
-//   uint16 pad
+//
+//	uint8  colorSpec  (0=invalid, 1=RGB)
+//	uint16 alpha
+//	uint16 red
+//	uint16 green
+//	uint16 blue
+//	uint16 pad
+//
 // 8-bit component → 16-bit: multiply by 257 (0xFF * 257 = 0xFFFF).
 // Pass all-zero [4]uint8 to write an invalid color (clears highlight).
 func writeQColor(buf *bytes.Buffer, c [4]uint8) {
@@ -774,7 +775,7 @@ func writeQColor(buf *bytes.Buffer, c [4]uint8) {
 		binary.Write(buf, binary.BigEndian, uint16(0)) // pad
 		return
 	}
-	buf.WriteByte(1) // ColorSpec = RGB
+	buf.WriteByte(1)                                      // ColorSpec = RGB
 	binary.Write(buf, binary.BigEndian, uint16(c[3])*257) // alpha
 	binary.Write(buf, binary.BigEndian, uint16(c[0])*257) // red
 	binary.Write(buf, binary.BigEndian, uint16(c[1])*257) // green

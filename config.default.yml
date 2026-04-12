@@ -104,6 +104,7 @@ telnetserver: # Log4OM must be connected to this server ie: localhost:7301 if on
   port: 7301
 ftx:
   enabled: false                # Enable WSJT-X / JTDX / MSHV UDP multicast decodes
+  multicast: true               # Join multicast group (required for WSJT-X multicast mode)
   multicast_ip: "239.255.0.1"  # Multicast group IP (or leave empty for unicast/broadcast)
   port: 2237                   # UDP port (default 2237 for WSJT-X protocol)
 clublog:
