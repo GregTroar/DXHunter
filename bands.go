@@ -27,6 +27,8 @@ var AmateurBands = []BandDefinition{
 	{Name: "12M", MinFreqMHz: 24.890, MaxFreqMHz: 24.990, UseUSB: true},
 	{Name: "10M", MinFreqMHz: 28.000, MaxFreqMHz: 29.700, UseUSB: true},
 	{Name: "6M", MinFreqMHz: 50.000, MaxFreqMHz: 54.000, UseUSB: true},
+	{Name: "2M", MinFreqMHz: 144.000, MaxFreqMHz: 146.000, UseUSB: true},
+	{Name: "70CM", MinFreqMHz: 430.000, MaxFreqMHz: 440.000, UseUSB: true},
 	{Name: "QO-100", MinFreqMHz: 10489.500, MaxFreqMHz: 10490.000, UseUSB: true},
 }
 
