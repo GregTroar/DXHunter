@@ -247,12 +247,13 @@
     autoCallMissed   = 0;
   }
 
-  // Manual row click: send reply and, if auto is on, adopt clicked station as locked target
+  // Manual row click: send reply and, if auto is on, adopt clicked station as locked target.
+  // Start attempts at 1 so the handler knows the initial call was already sent.
   function handleRowClick(decode) {
     sendReply(decode);
     if (autoCallEnabled) {
       autoCallTarget       = decode;
-      autoCallAttempts     = 0;
+      autoCallAttempts     = 1;     // initial call already sent via click
       autoCallMissed       = 0;
       autoCallStopped      = false;
       autoCallManualLocked = true;  // prevent auto-picking a new candidate
@@ -268,32 +269,28 @@
     autoCallStopped      = false;
     autoCallManualLocked = false;
     _acLastPeriod        = '';
+    _acNeedRerun         = false;
   }
 
-  // Trigger: fire as soon as DB enrichment lands for the latest period.
-  // Flow: ftxBatch arrives → new period detected → start 3s fallback timer.
-  //       ftxEnrich arrives → enrichment detected → cancel timer, fire immediately.
-  // TX periods produce no decodes → reactive doesn't fire → not counted as miss (correct).
-  let _acLastPeriod  = '';
-  let _acEnrichTimer = null;
+  // Trigger strategy:
+  //  1. New period → fire immediately (handles misses + existing target tracking — no enrichment needed).
+  //  2. No candidate found (handler sets _acNeedRerun) → re-fire as soon as any decode
+  //     has a positive enrichment flag (newDXCC/newBand/newMode/newSlot = true).
+  // TX periods produce no decodes → reactive never fires → not counted as miss (correct).
+  let _acLastPeriod = '';
+  let _acNeedRerun  = false;
 
   $: if (autoCallEnabled && groupedDecodes.length > 0) {
     const g = groupedDecodes[0];
-
     if (g.time !== _acLastPeriod) {
-      // New period — schedule fallback in case enrichment is slow or absent
       _acLastPeriod = g.time;
-      if (_acEnrichTimer) { clearTimeout(_acEnrichTimer); _acEnrichTimer = null; }
-      _acEnrichTimer = setTimeout(() => {
-        _acEnrichTimer = null;
-        _handleAutoCallPeriod(g.time);
-      }, 3000);
-    } else if (_acEnrichTimer) {
-      // Same period but groupedDecodes changed → enrichment just landed
-      const hasEnrichment = g.decodes.some(d => typeof d.newDXCC !== 'undefined');
-      if (hasEnrichment) {
-        clearTimeout(_acEnrichTimer);
-        _acEnrichTimer = null;
+      _acNeedRerun  = false;
+      _handleAutoCallPeriod(g.time);
+    } else if (_acNeedRerun) {
+      // Enrichment updates groupedDecodes — re-run only if a positive flag appeared
+      const hasPositive = g.decodes.some(d => d.newDXCC || d.newBand || d.newMode || d.newSlot);
+      if (hasPositive) {
+        _acNeedRerun = false;
         _handleAutoCallPeriod(g.time);
       }
     }
@@ -317,6 +314,7 @@
 
         if (prioDecode) {
           // Station decoded this RX period
+          const wasInMiss = autoCallMissed > 0;
           autoCallMissed = 0;
           if (!isTarget) {
             // First time we see it — start calling
@@ -331,17 +329,20 @@
               (d.dxCall || '').toUpperCase() === prioUC && d.myCall
             );
             if (replied) {
-              autoCallAttempts = 0; // in QSO
+              autoCallAttempts = 0; // in QSO, MSHV handles sequencing
             } else {
+              const firstCall = autoCallAttempts === 0;
               autoCallAttempts++;
               if (autoCallAttempts >= AUTO_ATTEMPT_MAX) {
                 autoCallStopped  = true;
                 autoCallTarget   = null;
                 autoCallAttempts = 0;
                 action = { type: 'halt' };
-              } else {
+              } else if (firstCall || wasInMiss) {
+                // Only (re)send on first call or when station reappears after miss
                 action = { type: 'reply', decode: autoCallTarget };
               }
+              // else: MSHV already transmitting — do not interrupt
             }
           }
         } else if (isTarget) {
@@ -365,6 +366,7 @@
           const targetSeen  = decodes.find(d => (d.dxCall || '').toUpperCase() === targetUC);
 
           if (targetSeen) {
+            const wasInMiss = autoCallMissed > 0;
             autoCallMissed = 0;
             if (acQSOComplete(decodes, targetUC)) {
               autoCallTarget       = null;
@@ -375,8 +377,9 @@
                 (d.dxCall || '').toUpperCase() === targetUC && d.myCall
               );
               if (replied) {
-                autoCallAttempts = 0;
+                autoCallAttempts = 0; // in QSO, MSHV handles sequencing
               } else {
+                const firstCall = autoCallAttempts === 0;
                 autoCallAttempts++;
                 if (autoCallAttempts >= AUTO_ATTEMPT_MAX) {
                   autoCallTarget       = null;
@@ -384,9 +387,11 @@
                   autoCallMissed       = 0;
                   autoCallManualLocked = false;
                   action = { type: 'halt' };
-                } else {
+                } else if (firstCall || wasInMiss) {
+                  // Only (re)send on first call or when station reappears after miss
                   action = { type: 'reply', decode: autoCallTarget };
                 }
+                // else: MSHV already transmitting — do not interrupt
               }
             }
           } else {
@@ -401,13 +406,17 @@
             }
           }
         } else if (!autoCallManualLocked) {
-          // No target and not manually locked → auto-pick best candidate from this period
+          // No target → auto-pick best candidate from this period
           const candidate = acBestCandidate(decodes);
           if (candidate) {
             autoCallTarget   = candidate;
             autoCallAttempts = 0;
             autoCallMissed   = 0;
             action = { type: 'reply', decode: candidate };
+          } else {
+            // No eligible candidate yet — enrichment may not have arrived.
+            // Signal reactive to retry when a positive flag appears.
+            _acNeedRerun = true;
           }
         }
       }

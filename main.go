@@ -210,6 +210,9 @@ func main() {
 	// Start ADXO activations refresher
 	StartADXORefresher(HTTPServer.broadcast, HTTPServer.Watchlist)
 
+	// Start DX-World news refresher
+	StartDXWorldRefresher(HTTPServer.broadcast)
+
 	// Bridge telnet client commands → master cluster TCPClient
 	// Commands arriving from external telnet clients (TCPServer.CmdChan) are forwarded
 	// to the master cluster connection so they reach the DX cluster.

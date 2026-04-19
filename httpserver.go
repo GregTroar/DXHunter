@@ -291,6 +291,7 @@ func (s *HTTPServer) setupRoutes() {
 	// External data
 	api.HandleFunc("/solar", s.HandleSolarData).Methods("GET", "OPTIONS")
 	api.HandleFunc("/adxo", s.HandleADXO).Methods("GET", "OPTIONS")
+	api.HandleFunc("/dxworld", s.HandleDXWorld).Methods("GET", "OPTIONS")
 	api.HandleFunc("/cty/update", s.updateCtyPlist).Methods("POST", "OPTIONS")
 
 	// WebSocket (seul point d'entrée pour les commandes Telnet maintenant)
@@ -580,6 +581,9 @@ func (s *HTTPServer) sendInitialData(conn *websocket.Conn) {
 
 	// ADXO activations
 	s.safeWrite(conn, WSMessage{Type: "adxo", Data: adxoCache.Get()})
+
+	// DX-World news
+	s.safeWrite(conn, WSMessage{Type: "dxworld", Data: dxwCache.Get()})
 }
 
 // ============================================================================
@@ -1295,11 +1299,17 @@ func (s *HTTPServer) shutdownApp(w http.ResponseWriter, r *http.Request) {
 // ============================================================================
 
 func (s *HTTPServer) HandleADXO(w http.ResponseWriter, r *http.Request) {
-	// Si le cache est vide ou périmé, forcer un refresh
 	if adxoCache.NeedsRefresh() {
 		go refreshADXO(s.broadcast, s.Watchlist)
 	}
 	s.sendSuccess(w, adxoCache.Get(), "")
+}
+
+func (s *HTTPServer) HandleDXWorld(w http.ResponseWriter, r *http.Request) {
+	if dxwCache.NeedsRefresh() {
+		go refreshDXWorld(s.broadcast)
+	}
+	s.sendSuccess(w, dxwCache.Get(), "")
 }
 
 func (s *HTTPServer) HandleSolarData(w http.ResponseWriter, r *http.Request) {

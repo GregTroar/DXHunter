@@ -5,6 +5,8 @@
   import LogTab from './LogTab.svelte';
   import LogsTab from './LogsTab.svelte';
   import ConsoleTab from './ConsoleTab.svelte';
+  import DXWorldTab from './DXWorldTab.svelte';
+
   export let activeTab;
   export let spots;
   export let watchlist;
@@ -21,6 +23,7 @@
   export let wsStatus = 'disconnected';
   export let clusterType = 'unknown';
   export let clusters = [];
+  export let dxwNews = [];
 
   const dispatch = createEventDispatcher();
 
@@ -30,9 +33,9 @@
 
 <div class="bg-slate-800/50 backdrop-blur rounded-lg border border-slate-700/50 flex flex-col h-full" style="height: 100%; max-height: 100%;">
   <!-- Tabs Header -->
-  <div class="flex border-b border-slate-700/50 bg-slate-900/30 flex-shrink-0">
+  <div class="flex border-b border-slate-700/50 bg-slate-900/30 flex-shrink-0 overflow-x-auto">
     <button
-      class="px-4 py-2 text-sm font-semibold transition-colors {activeTab === 'activations' ? 'bg-blue-500/20 text-blue-400 border-b-2 border-blue-500' : 'text-slate-400 hover:text-slate-300'}"
+      class="px-3 py-2 text-sm font-semibold transition-colors whitespace-nowrap {activeTab === 'activations' ? 'bg-blue-500/20 text-blue-400 border-b-2 border-blue-500' : 'text-slate-400 hover:text-slate-300'}"
       on:click={() => activeTab = 'activations'}>
       <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064" />
@@ -41,7 +44,16 @@
     </button>
 
     <button
-      class="px-4 py-2 text-sm font-semibold transition-colors {activeTab === 'watchlist' ? 'bg-blue-500/20 text-blue-400 border-b-2 border-blue-500' : 'text-slate-400 hover:text-slate-300'}"
+      class="px-3 py-2 text-sm font-semibold transition-colors whitespace-nowrap {activeTab === 'dxworld' ? 'bg-sky-500/20 text-sky-400 border-b-2 border-sky-500' : 'text-slate-400 hover:text-slate-300'}"
+      on:click={() => activeTab = 'dxworld'}>
+      <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+      </svg>
+      DX-World
+    </button>
+
+    <button
+      class="px-3 py-2 text-sm font-semibold transition-colors whitespace-nowrap {activeTab === 'watchlist' ? 'bg-blue-500/20 text-blue-400 border-b-2 border-blue-500' : 'text-slate-400 hover:text-slate-300'}"
       on:click={() => activeTab = 'watchlist'}>
       <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -51,7 +63,7 @@
     </button>
 
     <button
-      class="px-4 py-2 text-sm font-semibold transition-colors {activeTab === 'log' ? 'bg-blue-500/20 text-blue-400 border-b-2 border-blue-500' : 'text-slate-400 hover:text-slate-300'}"
+      class="px-3 py-2 text-sm font-semibold transition-colors whitespace-nowrap {activeTab === 'log' ? 'bg-blue-500/20 text-blue-400 border-b-2 border-blue-500' : 'text-slate-400 hover:text-slate-300'}"
       on:click={() => activeTab = 'log'}>
       <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -60,7 +72,7 @@
     </button>
 
     <button
-      class="px-4 py-2 text-sm font-semibold transition-colors {activeTab === 'console' ? 'bg-blue-500/20 text-blue-400 border-b-2 border-blue-500' : 'text-slate-400 hover:text-slate-300'}"
+      class="px-3 py-2 text-sm font-semibold transition-colors whitespace-nowrap {activeTab === 'console' ? 'bg-blue-500/20 text-blue-400 border-b-2 border-blue-500' : 'text-slate-400 hover:text-slate-300'}"
       on:click={() => activeTab = 'console'}>
       <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
@@ -69,7 +81,7 @@
     </button>
 
     <button
-      class="px-4 py-2 text-sm font-semibold transition-colors {activeTab === 'logs' ? 'bg-blue-500/20 text-blue-400 border-b-2 border-blue-500' : 'text-slate-400 hover:text-slate-300'}"
+      class="px-3 py-2 text-sm font-semibold transition-colors whitespace-nowrap {activeTab === 'logs' ? 'bg-blue-500/20 text-blue-400 border-b-2 border-blue-500' : 'text-slate-400 hover:text-slate-300'}"
       on:click={() => activeTab = 'logs'}>
       <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
@@ -93,6 +105,8 @@
         {contestCallsigns}
         on:toast={handleToast}
       />
+    {:else if activeTab === 'dxworld'}
+      <DXWorldTab news={dxwNews} />
     {:else if activeTab === 'log'}
       <LogTab {recentQSOs} {logStats} {dxccProgress} />
     {:else if activeTab === 'console'}
@@ -105,6 +119,5 @@
     {:else if activeTab === 'logs'}
       <LogsTab {logs} on:clearLogs={handleClearLogs} />
     {/if}
-
   </div>
 </div>

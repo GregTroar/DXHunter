@@ -34,6 +34,7 @@
   
   let dxccProgress = { worked: 0, total: 340, percentage: 0 };
   let activations = [];
+  let dxwNews = [];
   let solarData = { sfi: 'N/A', sunspots: 'N/A', aIndex: 'N/A', kIndex: 'N/A' };
   
   let activeTab = 'watchlist';
@@ -511,6 +512,9 @@ function applyFilters(allSpots, filters, wl) {
           showToast(`🌍 ${activations.length} DX activations loaded (${activeCount} active)`, 'success', 4000);
         }
         break;
+      case 'dxworld':
+        dxwNews = message.data || [];
+        break;
       case 'milestone':
         const milestoneData = message.data;
         const toastType = milestoneData.type === 'qso' ? 'milestone' : 'band';
@@ -872,6 +876,7 @@ async function shutdownApp() {
         {logStats}
         {dxccProgress}
         {activations}
+        {dxwNews}
         {logs}
         {contestMode}
         {contestPrefix}
