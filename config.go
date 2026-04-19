@@ -134,6 +134,11 @@ type Config struct {
 		APIKey string `yaml:"api_key"`
 	} `yaml:"clublog"`
 
+	QRZ struct {
+		Username string `yaml:"username"`
+		Password string `yaml:"password"`
+	} `yaml:"qrz"`
+
 	Gotify struct {
 		Enable         bool   `yaml:"enable"`
 		URL            string `yaml:"url"`

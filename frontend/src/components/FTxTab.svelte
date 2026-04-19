@@ -1,4 +1,5 @@
 <script>
+  import QRZPanel from './QRZPanel.svelte';
 
   export let ftxEnabled = false;
   export let ftxDecodes = [];   // maintained by App.svelte — persists across tab switches
@@ -258,10 +259,14 @@
     autoCallMissed   = 0;
   }
 
+  // QRZ panel: auto-follows autoCallTarget, or clicked row
+  let qrzCallsign = '';
+
   // Manual row click: send reply and, if auto is on, adopt clicked station as locked target.
   // Start attempts at 1 so the handler knows the initial call was already sent.
   function handleRowClick(decode) {
     sendReply(decode);
+    qrzCallsign = decode.dxCall || '';
     if (autoCallEnabled) {
       autoCallTarget       = decode;
       autoCallAttempts     = 1;     // initial call already sent via click
@@ -330,6 +335,7 @@
           if (!isTarget) {
             // First time we see it — start calling
             autoCallTarget   = prioDecode;
+            qrzCallsign      = (prioDecode.dxCall || '').toUpperCase();
             autoCallAttempts = 0;
             action = { type: 'reply', decode: prioDecode };
           } else if (acQSOComplete(decodes, prioUC)) {
@@ -421,6 +427,7 @@
           const candidate = acBestCandidate(decodes);
           if (candidate) {
             autoCallTarget   = candidate;
+            qrzCallsign      = (candidate.dxCall || '').toUpperCase();
             autoCallAttempts = 0;
             autoCallMissed   = 0;
             action = { type: 'reply', decode: candidate };
@@ -441,7 +448,10 @@
   }
 </script>
 
-<div class="flex flex-col h-full overflow-hidden text-xs">
+<div class="flex h-full overflow-hidden text-xs">
+
+<!-- ── Left: toolbar + table ──────────────────────────────────────────────── -->
+<div class="flex flex-col flex-1 min-w-0 overflow-hidden">
 
   <!-- Toolbar -->
   <div class="flex items-center gap-2 px-2 py-1.5 bg-slate-900/50 border-b border-slate-700/50 flex-shrink-0 flex-wrap">
@@ -753,4 +763,11 @@
       {/each}
     </div>
   {/if}
+</div><!-- end left column -->
+
+<!-- ── Right: QRZ panel ───────────────────────────────────────────────────── -->
+<div class="w-72 flex-shrink-0">
+  <QRZPanel callsign={qrzCallsign} />
 </div>
+
+</div><!-- end outer flex -->

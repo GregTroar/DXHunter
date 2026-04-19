@@ -109,6 +109,9 @@ ftx:
   port: 2237                   # UDP port (default 2237 for WSJT-X protocol)
 clublog:
   api_key: ""  # Clé API ClubLog pour la détection des DXpeditions
+qrz:
+  username: ""  # QRZ.com username (XML subscription required)
+  password: ""  # QRZ.com password
 gotify:
   enable: false
   url: https://gotify.tld.com/message
