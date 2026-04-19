@@ -166,6 +166,25 @@ func (r *Log4OMContactsRepository) CountEntries() int {
 	return contacts
 }
 
+// ListAll fetches every contact from the log in one query — used to populate the in-memory cache.
+func (r *Log4OMContactsRepository) ListAll() []Contact {
+	rows, err := r.db.Query("SELECT callsign, band, mode, dxcc, stationcallsign, country FROM log")
+	if err != nil {
+		r.Log.Errorf("ListAll: query error: %v", err)
+		return nil
+	}
+	defer rows.Close()
+	var contacts []Contact
+	for rows.Next() {
+		var c Contact
+		if err := rows.Scan(&c.Callsign, &c.Band, &c.Mode, &c.DXCC, &c.StationCallsign, &c.Country); err != nil {
+			continue
+		}
+		contacts = append(contacts, c)
+	}
+	return contacts
+}
+
 // ListByCountrySync fetches all contacts for a DXCC in a single blocking call.
 func (r *Log4OMContactsRepository) ListByCountrySync(countryID string) []Contact {
 	rows, err := r.db.Query("SELECT callsign, band, mode, dxcc, stationcallsign, country FROM log WHERE dxcc = ?", countryID)

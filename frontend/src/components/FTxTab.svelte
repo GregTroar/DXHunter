@@ -142,7 +142,18 @@
   }
 
   // ── Helpers ─────────────────────────────────────────────────────────────────
+
+  // Deduplication: one Reply per (period, dxCall) regardless of how many times the
+  // handler fires (reactive re-runs, enrichment patches, etc.).
+  let _lastReplyKey = '';
+
   async function sendReply(decode) {
+    const key = `${decode.time}|${(decode.dxCall || '').toUpperCase()}`;
+    if (key === _lastReplyKey) {
+      console.debug('FTx: duplicate sendReply suppressed', key);
+      return;
+    }
+    _lastReplyKey = key;
     try {
       const res = await fetch('/api/ftx/reply', {
         method: 'POST',

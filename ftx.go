@@ -116,10 +116,48 @@ type FTxDecode struct {
 	SourceAddr    string  `json:"-"` // UDP source — used to send Reply
 }
 
+// logCache holds all log contacts in memory so enrichment never hits the DB during a FT8 period.
+type logCache struct {
+	mu      sync.RWMutex
+	byDXCC  map[string][]Contact // uppercase dxcc → contacts
+	loaded  bool
+}
+
+func (lc *logCache) load(repo *Log4OMContactsRepository) {
+	if repo == nil {
+		return
+	}
+	contacts := repo.ListAll()
+	m := make(map[string][]Contact, 512)
+	for _, c := range contacts {
+		key := strings.ToUpper(c.DXCC)
+		m[key] = append(m[key], c)
+	}
+	lc.mu.Lock()
+	lc.byDXCC = m
+	lc.loaded = true
+	lc.mu.Unlock()
+	Log.Infof("FTx logCache: loaded %d contacts into memory", len(contacts))
+}
+
+func (lc *logCache) add(c Contact) {
+	key := strings.ToUpper(c.DXCC)
+	lc.mu.Lock()
+	lc.byDXCC[key] = append(lc.byDXCC[key], c)
+	lc.mu.Unlock()
+}
+
+func (lc *logCache) byDXCCContacts(dxcc string) []Contact {
+	lc.mu.RLock()
+	defer lc.mu.RUnlock()
+	return lc.byDXCC[strings.ToUpper(dxcc)]
+}
+
 // FTxService manages the UDP listener and status state.
 type FTxService struct {
 	contactRepo *Log4OMContactsRepository
 	broadcast   chan WSMessage
+	lc          *logCache
 
 	mu         sync.RWMutex
 	dialFreq   uint64       // last known dial frequency from Status message
@@ -139,19 +177,16 @@ type FTxService struct {
 	deduMu   sync.Mutex
 	deduTime uint32
 	deduSeen map[string]struct{}
-
-	// Per-period DXCC contact cache: avoids N identical SQLite queries when many
-	// callers share the same DXCC (e.g. 80 Europeans all hit dxcc="269" once).
-	cacheMu     sync.Mutex
-	cacheTime   uint32               // period this cache belongs to
-	cacheByDXCC map[string][]Contact // dxcc -> contacts
 }
 
 func NewFTxService(contactRepo *Log4OMContactsRepository, broadcast chan WSMessage) *FTxService {
+	lc := &logCache{byDXCC: make(map[string][]Contact)}
+	go lc.load(contactRepo) // async so startup isn't blocked
 	return &FTxService{
 		contactRepo: contactRepo,
 		broadcast:   broadcast,
 		myCall:      strings.ToUpper(Cfg.General.Callsign),
+		lc:          lc,
 	}
 }
 
@@ -361,15 +396,36 @@ func skipQDateTime(r *bytes.Reader) {
 }
 
 // handleQSOLogged processes UDP message type 5 (QSO Logged).
-// It extracts the DX callsign and broadcasts ftxQSOLogged so the frontend
-// can mark existing decodes as worked and un-target auto call.
+// Extracts callsign, mode and frequency, updates the in-memory log cache immediately
+// (so the next FT8 period sees the new QSO without a DB reload), then broadcasts.
 func (f *FTxService) handleQSOLogged(r *bytes.Reader) {
-	skipQDateTime(r) // DateTimeOff
-	dxCall, err := readQString(r)
+	skipQDateTime(r)              // DateTimeOff
+	dxCall, err := readQString(r) // DX Call
 	if err != nil || dxCall == "" {
 		return
 	}
 	dxCall = strings.ToUpper(strings.TrimSpace(dxCall))
+
+	readQString(r)          // DX Grid
+	var txFreq uint64
+	binary.Read(r, binary.BigEndian, &txFreq) // TX Frequency (Hz)
+	mode, _ := readQString(r)                 // Mode
+
+	band := getBandFromHz(txFreq)
+	dxccInfo := GetDXCC(dxCall)
+
+	// Update in-memory cache immediately so the next period enrichment is correct.
+	if f.lc != nil && dxccInfo.DXCC != "" {
+		f.lc.add(Contact{
+			Callsign: dxCall,
+			Band:     band,
+			Mode:     strings.ToUpper(mode),
+			DXCC:     dxccInfo.DXCC,
+			Country:  dxccInfo.CountryName,
+		})
+		Log.Debugf("FTx: logCache updated — added %s %s %s", dxCall, band, mode)
+	}
+
 	Log.Debugf("FTx: QSO logged with %s", dxCall)
 	select {
 	case f.broadcast <- WSMessage{Type: "ftxQSOLogged", Data: map[string]string{"dxCall": dxCall}}:
@@ -598,34 +654,11 @@ func (f *FTxService) flushLocked() {
 		Log.Debugf("FTx: broadcast channel full, dropping batch")
 	}
 
-	// Invalidate the DXCC contact cache for the next period.
-	f.cacheMu.Lock()
-	f.cacheByDXCC = nil
-	f.cacheTime = 0
-	f.cacheMu.Unlock()
 }
 
-// cachedContactsByDXCC returns contacts for a DXCC, fetching from DB only once per period.
-func (f *FTxService) cachedContactsByDXCC(dxcc string) []Contact {
-	f.cacheMu.Lock()
-	defer f.cacheMu.Unlock()
-
-	if f.cacheByDXCC == nil {
-		f.cacheByDXCC = make(map[string][]Contact)
-	}
-	if contacts, ok := f.cacheByDXCC[dxcc]; ok {
-		return contacts
-	}
-	contacts := f.contactRepo.ListByCountrySync(dxcc)
-	f.cacheByDXCC[dxcc] = contacts
-	return contacts
-}
-
-// checkLogStatus fetches all contacts for this DXCC (cached per period), then
-// filters in memory. Many callers share the same DXCC so the DB is hit once per
-// unique DXCC per period instead of once per decode.
+// checkLogStatus reads the in-memory log cache — zero DB calls, microsecond latency.
 func (f *FTxService) checkLogStatus(callsign, dxcc, band, mode string) (newDXCC, newBand, newMode, newSlot, worked bool) {
-	contacts := f.cachedContactsByDXCC(dxcc)
+	contacts := f.lc.byDXCCContacts(dxcc)
 
 	modeUpper := strings.ToUpper(mode)
 	bandUpper := strings.ToUpper(band)
