@@ -7,7 +7,7 @@
     : (stats.newDXCC || 0);
 </script>
 
-<div class="grid grid-cols-[repeat(6,1fr)_auto] gap-3 mb-3 items-center">
+<div class="grid grid-cols-7 gap-3 mb-3 items-start">
   <!-- Spots Received -->
   <div class="bg-slate-800/50 backdrop-blur rounded-lg p-3 border border-slate-700/50">
     <div class="flex items-center justify-between">
@@ -77,21 +77,38 @@
   </div>
 
   <!-- Cluster Status -->
-  <div class="bg-slate-800/50 backdrop-blur rounded-lg p-3 border border-slate-700/50 h-full min-w-[160px]">
-    <p class="text-xs text-slate-400 font-semibold mb-2">Clusters</p>
-    <div class="flex flex-col gap-1.5">
-      {#each (stats.clusters || []) as c}
-        <div class="flex items-center gap-2">
-          <div class="w-2 h-2 rounded-full flex-shrink-0 {c.status === 'connected' ? 'bg-green-400 shadow-[0_0_4px_#4ade80]' : 'bg-red-500'}"></div>
-          <span class="text-xs text-slate-300 truncate flex-1">{c.name}</span>
-          {#if c.master}
-            <span class="text-[9px] font-semibold text-slate-500 bg-slate-700/60 px-1 rounded">M</span>
-          {/if}
+  {#if true}
+    {@const clusters = stats.clusters || []}
+    {@const col1 = clusters.slice(0, 3)}
+    {@const col2 = clusters.slice(3, 6)}
+    <div class="bg-slate-800/50 backdrop-blur rounded-lg p-3 border border-slate-700/50 flex items-center gap-3">
+      <!-- col 1: icon + label -->
+      <div class="flex flex-col items-center gap-1 flex-shrink-0">
+        <svg class="w-6 h-6 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" />
+        </svg>
+        <span class="text-xs text-slate-400">Clusters</span>
+      </div>
+      <!-- col 2: first 3 clusters -->
+      <div class="flex flex-col gap-0.5 flex-1 min-w-0 pl-2 border-l border-slate-700/50">
+        {#each col1 as c}
+          <div class="flex items-center gap-1 min-w-0">
+            <div class="w-1.5 h-1.5 rounded-full flex-shrink-0 {c.status === 'connected' ? 'bg-green-400 shadow-[0_0_3px_#4ade80]' : 'bg-red-500'}"></div>
+            <span class="text-[10px] text-slate-300 truncate leading-tight">{c.name}</span>
+          </div>
+        {/each}
+      </div>
+      <!-- col 3: next 3 clusters (hidden if empty) -->
+      {#if col2.length > 0}
+        <div class="flex flex-col gap-0.5 flex-1 min-w-0">
+          {#each col2 as c}
+            <div class="flex items-center gap-1 min-w-0">
+              <div class="w-1.5 h-1.5 rounded-full flex-shrink-0 {c.status === 'connected' ? 'bg-green-400 shadow-[0_0_3px_#4ade80]' : 'bg-red-500'}"></div>
+              <span class="text-[10px] text-slate-300 truncate leading-tight">{c.name}</span>
+            </div>
+          {/each}
         </div>
-      {/each}
-      {#if !stats.clusters || stats.clusters.length === 0}
-        <span class="text-xs text-slate-600">No clusters</span>
       {/if}
     </div>
-  </div>
+  {/if}
 </div>

@@ -198,6 +198,7 @@
   let autoCallBusy         = false;  // prevent concurrent handlers
   let autoCallStopped      = false;  // hit attempt/miss limit (watch call: need manual restart)
   let autoCallManualLocked = false;  // user manually clicked a row — don't auto-pick after halt
+  let autoCallQSOCooldown  = false;  // QSO just finished — wait one full period before re-picking
   let priorityCall         = '';     // watch call field — only call this station when set
 
   const AUTO_MISS_MAX    = 3;
@@ -339,8 +340,10 @@
             autoCallAttempts = 0;
             action = { type: 'reply', decode: prioDecode };
           } else if (acQSOComplete(decodes, prioUC)) {
-            autoCallTarget   = null;
-            autoCallAttempts = 0;
+            autoCallTarget      = null;
+            autoCallAttempts    = 0;
+            autoCallQSOCooldown = true;
+            setTimeout(() => { autoCallQSOCooldown = false; }, 16000);
           } else {
             const replied = decodes.some(d =>
               (d.dxCall || '').toUpperCase() === prioUC && d.myCall
@@ -386,9 +389,11 @@
             const wasInMiss = autoCallMissed > 0;
             autoCallMissed = 0;
             if (acQSOComplete(decodes, targetUC)) {
-              autoCallTarget       = null;
-              autoCallAttempts     = 0;
+              autoCallTarget      = null;
+              autoCallAttempts    = 0;
               autoCallManualLocked = false;
+              autoCallQSOCooldown  = true;
+              setTimeout(() => { autoCallQSOCooldown = false; }, 16000);
             } else {
               const replied = decodes.some(d =>
                 (d.dxCall || '').toUpperCase() === targetUC && d.myCall
@@ -422,7 +427,7 @@
               action = { type: 'halt' };
             }
           }
-        } else if (!autoCallManualLocked) {
+        } else if (!autoCallManualLocked && !autoCallQSOCooldown) {
           // No target → auto-pick best candidate from this period
           const candidate = acBestCandidate(decodes);
           if (candidate) {
