@@ -490,7 +490,7 @@
 
     <!-- Halt TX -->
     <button
-      on:click={haltTX}
+      on:click={() => { haltTX(); autoCallTarget = null; autoCallAttempts = 0; autoCallMissed = 0; autoCallStopped = false; autoCallManualLocked = false; }}
       disabled={haltBusy}
       class="px-2 py-0.5 rounded text-xs font-semibold transition-colors border {haltOk ? 'bg-green-500/20 text-green-400 border-green-500/50' : haltBusy ? 'bg-red-600/10 text-red-400/50 border-red-600/20 cursor-wait' : 'bg-red-600/20 text-red-400 border-red-600/40 hover:bg-red-600/40 hover:border-red-500'}"
       title="Stop TX immediately in WSJT-X/JTDX/MSHV">

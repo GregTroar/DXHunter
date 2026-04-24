@@ -276,6 +276,7 @@ func GetDXCC(callsign string) DXCC {
 	}
 
 	if best != nil {
+		best = applyDXCCExceptions(callsign, best, bestLen)
 		return DXCC{
 			Callsign:    callsign,
 			CountryName: best.Country,
@@ -285,6 +286,31 @@ func GetDXCC(callsign string) DXCC {
 
 	Log.Warnf("Could not find DXCC for callsign: %s", callsign)
 	return DXCC{}
+}
+
+// applyDXCCExceptions corrects prefix matches for callsigns that require
+// suffix-length disambiguation (e.g. KG4: 2-letter suffix = Guantanamo, else USA).
+func applyDXCCExceptions(callsign string, matched *CtyEntry, matchedLen int) *CtyEntry {
+	// KG4XX (exactly 2 alpha letters after KG4) = Guantanamo Bay
+	// KG4X / KG4XXX+ = USA
+	if matchedLen == 3 && len(callsign) >= 3 && callsign[:3] == "KG4" {
+		suffix := callsign[3:]
+		if len(suffix) != 2 || !isAllAlpha(suffix) {
+			if kEntry, ok := ctyDB.entries["K"]; ok {
+				return kEntry
+			}
+		}
+	}
+	return matched
+}
+
+func isAllAlpha(s string) bool {
+	for _, c := range s {
+		if c < 'A' || c > 'Z' {
+			return false
+		}
+	}
+	return true
 }
 
 // GetCtyEntry retourne l'entrée complète (avec CQZone, continent, etc.)
@@ -314,6 +340,9 @@ func GetCtyEntry(callsign string) *CtyEntry {
 			best = entry
 			bestLen = len(prefix)
 		}
+	}
+	if best != nil {
+		best = applyDXCCExceptions(callsign, best, bestLen)
 	}
 	return best
 }

@@ -7,8 +7,13 @@
   let loading      = false;
   let error        = '';
 
-  // Auto-lookup when callsign prop changes
-  $: if (callsign && callsign !== activeCall) lookup(callsign);
+  // Auto-lookup when the prop changes — tracked via _prevCallsign so that
+  // activeCall is NOT a reactive dependency (avoids re-triggering after manual search).
+  let _prevCallsign = '';
+  $: if (callsign !== _prevCallsign) {
+    _prevCallsign = callsign;
+    if (callsign) lookup(callsign);
+  }
 
   async function lookup(call) {
     call = call?.trim().toUpperCase();

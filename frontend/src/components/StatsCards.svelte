@@ -1,19 +1,10 @@
 <script>
-  import { createEventDispatcher } from 'svelte';
-  
   export let stats;
   export let spots = [];
 
-  const dispatch = createEventDispatcher();
-
-  // Same logic as FilterBar: count unique DXCCs, not spots
   $: newDXCCCount = spots.length
     ? new Set(spots.filter(s => s.NewDXCC).map(s => s.DXCC || s.CountryName)).size
     : (stats.newDXCC || 0);
-  
-  function handleFilterChange(filterName, checked) {
-    dispatch('filterChange', { name: filterName, value: checked });
-  }
 </script>
 
 <div class="grid grid-cols-[repeat(6,1fr)_auto] gap-3 mb-3 items-center">
@@ -27,7 +18,7 @@
     </div>
     <p class="text-xs text-slate-400 mt-1">Received</p>
   </div>
-  
+
   <!-- Spots Processed -->
   <div class="bg-slate-800/50 backdrop-blur rounded-lg p-3 border border-slate-700/50">
     <div class="flex items-center justify-between">
@@ -38,7 +29,7 @@
     </div>
     <p class="text-xs text-slate-400 mt-1">Processed</p>
   </div>
-  
+
   <!-- Success Rate -->
   <div class="bg-slate-800/50 backdrop-blur rounded-lg p-3 border border-slate-700/50">
     <div class="flex items-center justify-between">
@@ -51,7 +42,7 @@
     </div>
     <p class="text-xs text-slate-400 mt-1">Success Rate</p>
   </div>
-  
+
   <!-- New DXCC -->
   <div class="bg-slate-800/50 backdrop-blur rounded-lg p-3 border border-slate-700/50">
     <div class="flex items-center justify-between">
@@ -62,7 +53,7 @@
     </div>
     <p class="text-xs text-slate-400 mt-1">New DXCC</p>
   </div>
-  
+
   <!-- Telnet Clients -->
   <div class="bg-slate-800/50 backdrop-blur rounded-lg p-3 border border-slate-700/50">
     <div class="flex items-center justify-between">
@@ -73,7 +64,7 @@
     </div>
     <p class="text-xs text-slate-400 mt-1">Clients</p>
   </div>
-  
+
   <!-- Total Contacts -->
   <div class="bg-slate-800/50 backdrop-blur rounded-lg p-3 border border-slate-700/50">
     <div class="flex items-center justify-between">
@@ -84,55 +75,23 @@
     </div>
     <p class="text-xs text-slate-400 mt-1">QSOs</p>
   </div>
-  
-  <!-- Cluster Filters -->
-  <div class="bg-slate-800/50 backdrop-blur rounded-lg p-3 border border-slate-700/50 h-full">
-    <div class="flex items-center justify-center gap-4 h-full">
-      <span class="text-xs text-slate-400 font-semibold whitespace-nowrap">Cluster Filters:</span>
-      
-      <label class="flex items-center gap-1.5 cursor-pointer hover:bg-slate-700/30 px-2 py-1 rounded transition-colors">
-        <input 
-          type="checkbox" 
-          checked={stats.filters.skimmer}
-          on:change={(e) => handleFilterChange('skimmer', e.target.checked)}
-          class="sr-only peer"
-        />
-        <div class="relative w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
-        <span class="text-xs font-medium whitespace-nowrap">Skimmer</span>
-      </label>
-      
-      <label class="flex items-center gap-1.5 cursor-pointer hover:bg-slate-700/30 px-2 py-1 rounded transition-colors">
-        <input 
-          type="checkbox" 
-          checked={stats.filters.ft8}
-          on:change={(e) => handleFilterChange('ft8', e.target.checked)}
-          class="sr-only peer"
-        />
-        <div class="relative w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
-        <span class="text-xs font-medium">FT8</span>
-      </label>
-      
-      <label class="flex items-center gap-1.5 cursor-pointer hover:bg-slate-700/30 px-2 py-1 rounded transition-colors">
-        <input 
-          type="checkbox" 
-          checked={stats.filters.ft4}
-          on:change={(e) => handleFilterChange('ft4', e.target.checked)}
-          class="sr-only peer"
-        />
-        <div class="relative w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
-        <span class="text-xs font-medium">FT4</span>
-      </label>
-      
-      <label class="flex items-center gap-1.5 cursor-pointer hover:bg-slate-700/30 px-2 py-1 rounded transition-colors">
-        <input 
-          type="checkbox" 
-          checked={stats.filters.beacon}
-          on:change={(e) => handleFilterChange('beacon', e.target.checked)}
-          class="sr-only peer"
-        />
-        <div class="relative w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
-        <span class="text-xs font-medium">Beacon</span>
-      </label>
+
+  <!-- Cluster Status -->
+  <div class="bg-slate-800/50 backdrop-blur rounded-lg p-3 border border-slate-700/50 h-full min-w-[160px]">
+    <p class="text-xs text-slate-400 font-semibold mb-2">Clusters</p>
+    <div class="flex flex-col gap-1.5">
+      {#each (stats.clusters || []) as c}
+        <div class="flex items-center gap-2">
+          <div class="w-2 h-2 rounded-full flex-shrink-0 {c.status === 'connected' ? 'bg-green-400 shadow-[0_0_4px_#4ade80]' : 'bg-red-500'}"></div>
+          <span class="text-xs text-slate-300 truncate flex-1">{c.name}</span>
+          {#if c.master}
+            <span class="text-[9px] font-semibold text-slate-500 bg-slate-700/60 px-1 rounded">M</span>
+          {/if}
+        </div>
+      {/each}
+      {#if !stats.clusters || stats.clusters.length === 0}
+        <span class="text-xs text-slate-600">No clusters</span>
+      {/if}
     </div>
   </div>
 </div>
