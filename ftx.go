@@ -166,6 +166,7 @@ type FTxService struct {
 	transmitting bool         // MSHV is currently transmitting
 	txMessage    string       // current TX message text
 	sourceAddr   *net.UDPAddr // last seen sender (MSHV/WSJT-X/JTDX)
+	clientID     string       // client ID from last received Status message
 	myCall       string
 
 	// Period batching: group decodes by timeMs, flush after last UDP packet.
@@ -281,9 +282,14 @@ func (f *FTxService) handlePacket(data []byte, src *net.UDPAddr) {
 	if err := binary.Read(r, binary.BigEndian, &msgType); err != nil {
 		return
 	}
-	// Skip client ID string
+	// Read client ID and store it so we can echo it back in Configure/Reply/HaltTX.
 	clientID, _ := readQString(r)
 	Log.Debugf("FTx: msg type=%d schema=%d id=%q from %s", msgType, schema, clientID, src)
+	if clientID != "" {
+		f.mu.Lock()
+		f.clientID = clientID
+		f.mu.Unlock()
+	}
 
 	switch msgType {
 	case msgStatus:
@@ -386,17 +392,23 @@ func (f *FTxService) handleStatus(r *bytes.Reader) {
 	currentMode := f.statusMode
 	f.mu.Unlock()
 
+	f.mu.RLock()
+	currentClientID := f.clientID
+	f.mu.RUnlock()
+
 	if changed {
 		type txStatus struct {
 			Transmitting bool   `json:"transmitting"`
 			Message      string `json:"message"`
 			Mode         string `json:"mode"`
+			ClientID     string `json:"clientId"`
 		}
 		select {
 		case f.broadcast <- WSMessage{Type: "ftxTXStatus", Data: txStatus{
 			Transmitting: boolBuf[1],
 			Message:      txMsg,
 			Mode:         currentMode,
+			ClientID:     currentClientID,
 		}}:
 		default:
 		}
@@ -534,9 +546,14 @@ func (f *FTxService) handleDecode(r *bytes.Reader, src *net.UDPAddr) {
 	statusMode := f.statusMode
 	f.mu.RUnlock()
 
-	// WSJT-X sends "~" as the submode in Decode messages (means "standard FT8").
-	// Fall back to the mode from the last Status message which always has the real name.
-	if mode == "~" || mode == "" {
+	// Mode field in Decode messages varies by client:
+	//   WSJT-X: "~" = FT8 (fall back to statusMode), "+" = FT4
+	//   JTDX:   "~" = FT8 (fall back to statusMode), ":" = FT4
+	//   ""      = fall back to statusMode
+	switch mode {
+	case "+", ":":
+		mode = "FT4"
+	case "~", "":
 		if statusMode != "" {
 			mode = statusMode
 		}
@@ -848,15 +865,29 @@ func writeQColor(buf *bytes.Buffer, c [4]uint8) {
 }
 
 // SendConfigure sends a WSJT-X "Configure" message (type 15).
-// mode: new mode string (e.g. "FT4", "FT8") — empty string means no change.
-// clearDXCall: true = clear MSHV's DX call field (stops Log4OM broadcast), false = no change.
-func (f *FTxService) SendConfigure(clientID, mode string, clearDXCall bool) error {
+// targetMode: desired mode ("FT4", "FT8") — empty means no change.
+// clearDXCall: true = clear the DX call field (stops Log4OM broadcast).
+// The client ID is taken from the stored f.clientID (learned from incoming Status packets).
+func (f *FTxService) SendConfigure(targetMode string, clearDXCall bool) error {
 	f.mu.RLock()
 	src := f.sourceAddr
+	clientID := f.clientID
 	f.mu.RUnlock()
 	if src == nil {
 		return fmt.Errorf("no source address known yet")
 	}
+	if clientID == "" {
+		clientID = "MSHV"
+	}
+
+	var trPeriod uint32 = 0xFFFFFFFF // 0xFFFFFFFF = no change
+	switch strings.ToUpper(targetMode) {
+	case "FT4":
+		trPeriod = 7500
+	case "FT8":
+		trPeriod = 15000
+	}
+
 	conn, err := net.DialUDP("udp4", nil, src)
 	if err != nil {
 		return err
@@ -869,36 +900,21 @@ func (f *FTxService) SendConfigure(clientID, mode string, clearDXCall bool) erro
 	writeUint32(buf, msgConfigure)
 	writeQString(buf, clientID)
 
-	// Mode: null (0xFFFFFFFF) = no change; actual string = change mode
-	writeQString(buf, mode)
+	writeQString(buf, targetMode) // "" → null (0xFFFFFFFF) = no change; "FT4"/"FT8" = switch mode
+	writeUint32(buf, 0xFFFFFFFF)  // FrequencyTolerance: no change
+	writeQString(buf, "")         // SubMode: null = no change
+	writeBool(buf, false)         // FastMode: false for FT8 and FT4
+	writeUint32(buf, trPeriod)    // T/R period in ms; 0xFFFFFFFF = no change
+	writeUint32(buf, 0xFFFFFFFF)  // RxDF: no change
 
-	// FrequencyTolerance: 0xFFFFFFFF = no change
-	writeUint32(buf, 0xFFFFFFFF)
-
-	// Submode: null = no change
-	writeQString(buf, "")
-
-	// FastMode: false is safe for both FT8 and FT4
-	writeBool(buf, false)
-
-	// T/R Period: 0xFFFFFFFF = no change
-	writeUint32(buf, 0xFFFFFFFF)
-
-	// RxDF: 0xFFFFFFFF = no change
-	writeUint32(buf, 0xFFFFFFFF)
-
-	// DXCall: null = no change; empty string (0x00000000) = clear
 	if clearDXCall {
-		writeQStringEmpty(buf)
+		writeQStringEmpty(buf) // 0x00000000 = explicitly clear DX call
 	} else {
 		writeQString(buf, "") // null = no change
 	}
 
-	// DXGrid: null = no change
-	writeQString(buf, "")
-
-	// GenerateMessages: false = keep current messages
-	writeBool(buf, false)
+	writeQString(buf, "") // DXGrid: null = no change
+	writeBool(buf, false) // GenerateMessages: keep current
 
 	_, err = conn.Write(buf.Bytes())
 	return err

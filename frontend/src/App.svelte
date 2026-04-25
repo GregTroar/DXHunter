@@ -9,7 +9,6 @@
   import ErrorBanner from './components/ErrorBanner.svelte';
   import { spotWorker } from './lib/spotWorker.js';
   import { spotCache } from './lib/spotCache.js';
-  import LogsTab from './components/LogsTab.svelte';
   import StatsCards from './components/StatsCards.svelte';
 
   
@@ -52,7 +51,7 @@
   let mainTab = 'spots';
   let ftxEnabled = false;
   let ftxDecodes = [];
-  let ftxTXStatus = { transmitting: false, message: '', mode: '' };
+  let ftxTXStatus = { transmitting: false, message: '', mode: '', clientId: 'MSHV' };
   
   let spotFilters = {
     showAll: true,
@@ -627,9 +626,9 @@ function applyFilters(allSpots, filters, wl) {
         await fetch('/api/ftx/configure', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ clientId: 'MSHV', mode: mode.toUpperCase(), clearDXCall: false })
+          body: JSON.stringify({ mode: mode.toUpperCase() })
         });
-        showToast(`🔄 MSHV mode → ${mode.toUpperCase()}`, 'info', 3000);
+        showToast(`🔄 Mode → ${mode.toUpperCase()}`, 'info', 3000);
       } catch (e) {
         console.error('FTx configure error:', e);
       }
@@ -653,26 +652,6 @@ function applyFilters(allSpots, filters, wl) {
     }
   }
   
-  async function updateClusterFilter(filterName, value) {
-    try {
-      const response = await fetch('/api/filters', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ [filterName]: value })
-      });
-      
-      const data = await response.json();
-      if (data.success) {
-        stats = { ...stats, filters: { ...(stats.filters || {}), [filterName]: value } };
-        const filterLabel = filterName.toUpperCase();
-        const status = value ? 'ON' : 'OFF';
-        showToast(`🔧 ${filterLabel} filter ${status}`, 'success');
-      }
-    } catch (error) {
-      console.error('Error updating filter:', error);
-      showToast(`❌ Failed to update filter: ${error.message}`, 'error');
-    }
-  }
   
 async function shutdownApp() {
   try {

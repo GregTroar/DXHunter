@@ -283,7 +283,7 @@
       await fetch('/api/ftx/configure', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ clientId: 'MSHV', clearDXCall: true })
+        body: JSON.stringify({ clearDXCall: true })
       });
     } catch (err) {
       console.error('FTx configure error:', err);

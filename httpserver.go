@@ -229,7 +229,6 @@ func (s *HTTPServer) handleFTxConfigure(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	var req struct {
-		ClientID    string `json:"clientId"`
 		Mode        string `json:"mode"`
 		ClearDXCall bool   `json:"clearDXCall"`
 	}
@@ -237,10 +236,7 @@ func (s *HTTPServer) handleFTxConfigure(w http.ResponseWriter, r *http.Request) 
 		s.sendError(w, "invalid request: "+err.Error())
 		return
 	}
-	if req.ClientID == "" {
-		req.ClientID = "MSHV"
-	}
-	if err := s.FTx.SendConfigure(req.ClientID, req.Mode, req.ClearDXCall); err != nil {
+	if err := s.FTx.SendConfigure(req.Mode, req.ClearDXCall); err != nil {
 		s.sendError(w, "configure failed: "+err.Error())
 		return
 	}
