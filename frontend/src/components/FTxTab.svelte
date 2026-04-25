@@ -1,5 +1,6 @@
 <script>
   import QRZPanel from './QRZPanel.svelte';
+  import { onMount, onDestroy } from 'svelte';
 
   export let ftxEnabled = false;
   export let ftxDecodes = [];   // maintained by App.svelte — persists across tab switches
@@ -371,7 +372,7 @@
             autoCallStoppedCall = '';
             autoCallTarget      = comeback;
             qrzCallsign         = (comeback.dxCall || '').toUpperCase();
-            autoCallAttempts    = 0;
+            autoCallAttempts    = 1;
             autoCallMissed      = 0;
             action = { type: 'reply', decode: comeback };
           } else {
@@ -399,7 +400,7 @@
               if (replied) {
                 autoCallAttempts = 0; // in QSO, MSHV handles sequencing
               } else {
-                const firstCall = autoCallAttempts === 0;
+                const firstCall = autoCallAttempts === 1;
                 autoCallAttempts++;
                 const maxAttempts = isWatchlisted(targetUC) ? AUTO_WATCHLIST_ATTEMPT_MAX : AUTO_ATTEMPT_MAX;
                 if (autoCallAttempts >= maxAttempts) {
@@ -436,7 +437,7 @@
           if (bestDecode) {
             autoCallTarget   = bestDecode;
             qrzCallsign      = (bestDecode.dxCall || '').toUpperCase();
-            autoCallAttempts = 0;
+            autoCallAttempts = 1;
             autoCallMissed   = 0;
             action = { type: 'reply', decode: bestDecode };
           }
@@ -464,7 +465,7 @@
               if (replied) {
                 autoCallAttempts = 0; // in QSO, MSHV handles sequencing
               } else {
-                const firstCall = autoCallAttempts === 0;
+                const firstCall = autoCallAttempts === 1;
                 autoCallAttempts++;
                 const maxAttempts = isWatchlisted(targetUC) ? AUTO_WATCHLIST_ATTEMPT_MAX : AUTO_ATTEMPT_MAX;
                 if (autoCallAttempts >= maxAttempts) {
@@ -498,7 +499,7 @@
           if (candidate) {
             autoCallTarget   = candidate;
             qrzCallsign      = (candidate.dxCall || '').toUpperCase();
-            autoCallAttempts = 0;
+            autoCallAttempts = 1;
             autoCallMissed   = 0;
             action = { type: 'reply', decode: candidate };
           } else {
@@ -517,6 +518,31 @@
     if (action?.type === 'halt')        haltTX().catch(e => console.error('FTx halt:', e));
     if (action?.type === 'clearDXCall') clearMSHVDXCall().catch(e => console.error('FTx configure:', e));
   }
+
+  // ── Period countdown timer ───────────────────────────────────────────────────
+  let _tick = 0;
+  let _tickInterval;
+  onMount(()    => { _tickInterval = setInterval(() => _tick++, 100); });
+  onDestroy(()  => clearInterval(_tickInterval));
+
+  function getPeriodMs(mode) {
+    switch ((mode || '').toUpperCase()) {
+      case 'FT8': return 15000;
+      case 'FT4': return 7500;
+      case 'FT2': return 3250;
+      default:    return 0;
+    }
+  }
+
+  $: periodMs  = getPeriodMs(ftxTXStatus.mode);
+  $: countdown = (() => {
+    if (!periodMs || !ftxEnabled) return null;
+    void _tick;
+    const elapsed   = Date.now() % periodMs;
+    const remaining = (periodMs - elapsed) / 1000;
+    const pct       = (elapsed / periodMs) * 100;
+    return { remaining, pct };
+  })();
 </script>
 
 <div class="flex h-full overflow-hidden text-xs">
@@ -620,17 +646,30 @@
         title="Watch calls: comma or space separated — only call these stations when decoded (Auto must be ON)" />
     {/if}
 
-    <!-- TX status indicator -->
-    {#if ftxTXStatus.transmitting}
-      <span class="ml-auto flex items-center gap-1.5 px-2 py-0.5 rounded bg-red-500/15 border border-red-500/40 text-red-300 text-xs font-mono font-semibold animate-pulse">
-        <span class="w-1.5 h-1.5 rounded-full bg-red-400 inline-block"></span>
-        TX {ftxTXStatus.message}
-      </span>
-    {:else}
-      <span class="ml-auto text-slate-500">
-        Last: <span class="text-slate-400">{lastPeriodCount}</span>
-      </span>
-    {/if}
+    <!-- Right side: period countdown + TX status -->
+    <div class="ml-auto flex items-center gap-2">
+
+      {#if countdown}
+        <div class="flex items-center gap-1.5" title="{ftxTXStatus.mode} period — {ftxTXStatus.transmitting ? 'TX' : 'RX'}">
+          <span class="text-[10px] font-mono text-slate-500">{ftxTXStatus.mode}</span>
+          <div class="relative w-16 h-1.5 rounded-full bg-slate-700/80 overflow-hidden">
+            <div class="absolute inset-y-0 left-0 rounded-full"
+              style="width:{countdown.pct}%; background:{ftxTXStatus.transmitting ? '#ef4444' : '#3b82f6'}" />
+          </div>
+          <span class="text-[10px] font-mono w-7 text-right {ftxTXStatus.transmitting ? 'text-red-400' : 'text-slate-400'}">{countdown.remaining.toFixed(1)}s</span>
+        </div>
+      {/if}
+
+      {#if ftxTXStatus.transmitting}
+        <span class="flex items-center gap-1.5 px-2 py-0.5 rounded bg-red-500/15 border border-red-500/40 text-red-300 text-xs font-mono font-semibold animate-pulse">
+          <span class="w-1.5 h-1.5 rounded-full bg-red-400 inline-block"></span>
+          TX {ftxTXStatus.message}
+        </span>
+      {:else}
+        <span class="text-slate-500">Last: <span class="text-slate-400">{lastPeriodCount}</span></span>
+      {/if}
+
+    </div>
 
   </div>
 
