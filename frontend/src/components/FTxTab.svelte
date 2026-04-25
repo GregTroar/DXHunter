@@ -5,7 +5,7 @@
   export let ftxDecodes = [];   // maintained by App.svelte — persists across tab switches
   export let watchlist = [];
   export let spots = [];
-  export let ftxTXStatus = { transmitting: false, message: '' };
+  export let ftxTXStatus = { transmitting: false, message: '', mode: '', clientId: '' };
 
   let filterCQOnly = false;
   let filterMyCall = false;
@@ -508,6 +508,12 @@
       class="px-2 py-0.5 rounded text-xs font-semibold transition-colors {ftxEnabled ? 'bg-green-500/20 text-green-400 border border-green-500/40' : 'bg-slate-700 text-slate-400 border border-slate-600 hover:border-slate-500'}">
       {ftxEnabled ? '● ON' : '○ OFF'}
     </button>
+
+    {#if ftxTXStatus.clientId}
+      <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-slate-700/60 text-slate-400 border border-slate-600/60 tracking-wide">
+        {ftxTXStatus.clientId.split(' ')[0]}
+      </span>
+    {/if}
 
     <span class="text-slate-500">|</span>
 
