@@ -18,7 +18,7 @@
 
 ## Interface générale
 
-- [ ] UI de configuration : modifier `config.yml` depuis l'interface sans éditer le fichier à la main
+- [x] UI de configuration : modifier `config.yml` depuis l'interface sans éditer le fichier à la main
 - [ ] Vue carte (Leaflet) : positionner les spots sur une carte avec les grilles Maidenhead
 - [ ] Raccourcis clavier (ex : Espace = tune, H = Halt TX, etc.)
 - [ ] Thème clair / sombre commutable

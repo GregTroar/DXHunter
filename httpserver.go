@@ -98,6 +98,105 @@ type APIResponse struct {
 	Message string      `json:"message,omitempty"`
 }
 
+// ── Config API DTOs ──────────────────────────────────────────────────────────
+
+type ConfigDTO struct {
+	General  ConfigGeneralDTO   `json:"general"`
+	FTx      ConfigFTxDTO       `json:"ftx"`
+	QRZ      ConfigQRZDTO       `json:"qrz"`
+	Gotify   ConfigGotifyDTO    `json:"gotify"`
+	Flex     ConfigFlexDTO      `json:"flex"`
+	Clusters []ConfigClusterDTO `json:"clusters"`
+}
+
+type ConfigGeneralDTO struct {
+	Callsign          string `json:"callsign"`
+	Grid              string `json:"grid"`
+	LogLevel          string `json:"logLevel"`
+	SendFreqModeToLog bool   `json:"sendFreqModeToLog"`
+	FlexRadioSpot     bool   `json:"flexRadioSpot"`
+	TelnetServer      bool   `json:"telnetServer"`
+}
+
+type ConfigFTxDTO struct {
+	Enabled     bool   `json:"enabled"`
+	Multicast   bool   `json:"multicast"`
+	MulticastIP string `json:"multicastIp"`
+	Port        int    `json:"port"`
+}
+
+type ConfigQRZDTO struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+type ConfigGotifyDTO struct {
+	Enable         bool   `json:"enable"`
+	URL            string `json:"url"`
+	Token          string `json:"token"`
+	NewDXCC        bool   `json:"newDXCC"`
+	NewBand        bool   `json:"newBand"`
+	NewMode        bool   `json:"newMode"`
+	NewBandAndMode bool   `json:"newBandAndMode"`
+	WatchList      bool   `json:"watchlist"`
+	WindowsNotify  bool   `json:"windowsNotify"`
+}
+
+type ConfigFlexDTO struct {
+	IP       string `json:"ip"`
+	Discover bool   `json:"discovery"`
+	SpotLife string `json:"spotLife"`
+}
+
+type ConfigClusterDTO struct {
+	Name        string `json:"name"`
+	Server      string `json:"server"`
+	Port        string `json:"port"`
+	Login       string `json:"login"`
+	Password    string `json:"password"`
+	Enabled     bool   `json:"enabled"`
+	Master      bool   `json:"master"`
+	Skimmer     bool   `json:"skimmer"`
+	FT8         bool   `json:"ft8"`
+	FT4         bool   `json:"ft4"`
+	Beacon      bool   `json:"beacon"`
+	Command     string `json:"command"`
+	LoginPrompt string `json:"loginPrompt"`
+	Type        string `json:"clusterType"`
+}
+
+func configToDTO() ConfigDTO {
+	clusters := make([]ConfigClusterDTO, len(Cfg.Clusters))
+	for i, c := range Cfg.Clusters {
+		clusters[i] = ConfigClusterDTO{
+			Name: c.Name, Server: c.Server, Port: c.Port, Login: c.Login,
+			Password: c.Password, Enabled: c.Enabled, Master: c.Master,
+			Skimmer: c.Skimmer, FT8: c.FT8, FT4: c.FT4, Beacon: c.Beacon,
+			Command: c.Command, LoginPrompt: c.LoginPrompt, Type: c.Type,
+		}
+	}
+	return ConfigDTO{
+		General: ConfigGeneralDTO{
+			Callsign: Cfg.General.Callsign, Grid: Cfg.General.Grid,
+			LogLevel: Cfg.General.LogLevel, SendFreqModeToLog: Cfg.General.SendFreqModeToLog,
+			FlexRadioSpot: Cfg.General.FlexRadioSpot, TelnetServer: Cfg.General.TelnetServer,
+		},
+		FTx: ConfigFTxDTO{
+			Enabled: Cfg.FTx.Enabled, Multicast: Cfg.FTx.Multicast,
+			MulticastIP: Cfg.FTx.MulticastIP, Port: Cfg.FTx.Port,
+		},
+		QRZ:  ConfigQRZDTO{Username: Cfg.QRZ.Username, Password: Cfg.QRZ.Password},
+		Flex: ConfigFlexDTO{IP: Cfg.Flex.IP, Discover: Cfg.Flex.Discover, SpotLife: Cfg.Flex.SpotLife},
+		Gotify: ConfigGotifyDTO{
+			Enable: Cfg.Gotify.Enable, URL: Cfg.Gotify.URL, Token: Cfg.Gotify.Token,
+			NewDXCC: Cfg.Gotify.NewDXCC, NewBand: Cfg.Gotify.NewBand,
+			NewMode: Cfg.Gotify.NewMode, NewBandAndMode: Cfg.Gotify.NewBandAndMode,
+			WatchList: Cfg.Gotify.WatchList, WindowsNotify: Cfg.Gotify.WindowsNotify,
+		},
+		Clusters: clusters,
+	}
+}
+
 type WSMessage struct {
 	Type string      `json:"type"`
 	Data interface{} `json:"data"`
@@ -153,6 +252,7 @@ func NewHTTPServer(flexRepo *FlexDXClusterRepository, contactRepo *Log4OMContact
 		broadcast:       make(chan WSMessage, 256),
 		ConsoleChan:     consoleChan,
 		Watchlist:       NewWatchlist("watchlist.json"),
+		ConfigPath:      configPath,
 		lastQSOCount:    0,
 		lastBandOpening: make(map[string]time.Time),
 	}
@@ -271,6 +371,11 @@ func (s *HTTPServer) setupRoutes() {
 	s.Router.Use(s.corsMiddleware)
 
 	api := s.Router.PathPrefix("/api").Subrouter()
+
+	// Config
+	api.HandleFunc("/config", s.getConfigAPI).Methods("GET", "OPTIONS")
+	api.HandleFunc("/config", s.saveConfigAPI).Methods("POST", "OPTIONS")
+	api.HandleFunc("/config/test-qrz", s.testQRZConfig).Methods("POST", "OPTIONS")
 
 	// Stats & Data
 	api.HandleFunc("/stats", s.getStats).Methods("GET", "OPTIONS")
@@ -1375,6 +1480,122 @@ func (s *HTTPServer) HandleSolarData(w http.ResponseWriter, r *http.Request) {
 		"kIndex":   solarXML.Data.KIndex,
 		"updated":  solarXML.Data.Updated,
 	}, "")
+}
+
+// ============================================================================
+// CONFIG API
+// ============================================================================
+
+func (s *HTTPServer) getConfigAPI(w http.ResponseWriter, r *http.Request) {
+	s.sendSuccess(w, configToDTO(), "")
+}
+
+func (s *HTTPServer) saveConfigAPI(w http.ResponseWriter, r *http.Request) {
+	var dto ConfigDTO
+	if err := json.NewDecoder(r.Body).Decode(&dto); err != nil {
+		s.sendError(w, "invalid request: "+err.Error())
+		return
+	}
+
+	Cfg.General.Callsign = dto.General.Callsign
+	Cfg.General.Grid = dto.General.Grid
+	Cfg.General.LogLevel = dto.General.LogLevel
+	Cfg.General.SendFreqModeToLog = dto.General.SendFreqModeToLog
+	Cfg.General.FlexRadioSpot = dto.General.FlexRadioSpot
+	Cfg.General.TelnetServer = dto.General.TelnetServer
+	Cfg.FTx.Enabled = dto.FTx.Enabled
+	Cfg.FTx.Multicast = dto.FTx.Multicast
+	Cfg.FTx.MulticastIP = dto.FTx.MulticastIP
+	Cfg.FTx.Port = dto.FTx.Port
+	Cfg.QRZ.Username = dto.QRZ.Username
+	Cfg.QRZ.Password = dto.QRZ.Password
+	Cfg.Flex.IP = dto.Flex.IP
+	Cfg.Flex.Discover = dto.Flex.Discover
+	Cfg.Flex.SpotLife = dto.Flex.SpotLife
+	Cfg.Gotify.Enable = dto.Gotify.Enable
+	Cfg.Gotify.URL = dto.Gotify.URL
+	Cfg.Gotify.Token = dto.Gotify.Token
+	Cfg.Gotify.NewDXCC = dto.Gotify.NewDXCC
+	Cfg.Gotify.NewBand = dto.Gotify.NewBand
+	Cfg.Gotify.NewMode = dto.Gotify.NewMode
+	Cfg.Gotify.NewBandAndMode = dto.Gotify.NewBandAndMode
+	Cfg.Gotify.WatchList = dto.Gotify.WatchList
+	Cfg.Gotify.WindowsNotify = dto.Gotify.WindowsNotify
+
+	for i := range Cfg.Clusters {
+		for _, dc := range dto.Clusters {
+			if dc.Name == Cfg.Clusters[i].Name {
+				Cfg.Clusters[i].Server = dc.Server
+				Cfg.Clusters[i].Port = dc.Port
+				Cfg.Clusters[i].Login = dc.Login
+				Cfg.Clusters[i].Password = dc.Password
+				Cfg.Clusters[i].Enabled = dc.Enabled
+				Cfg.Clusters[i].Master = dc.Master
+				Cfg.Clusters[i].Skimmer = dc.Skimmer
+				Cfg.Clusters[i].FT8 = dc.FT8
+				Cfg.Clusters[i].FT4 = dc.FT4
+				Cfg.Clusters[i].Beacon = dc.Beacon
+				Cfg.Clusters[i].Command = dc.Command
+				break
+			}
+		}
+	}
+
+	if err := Cfg.Save(s.ConfigPath); err != nil {
+		s.sendError(w, "failed to write config: "+err.Error())
+		return
+	}
+
+	s.broadcast <- WSMessage{Type: "stats", Data: s.calculateStats()}
+	s.sendSuccess(w, configToDTO(), "Configuration saved")
+}
+
+func (s *HTTPServer) testQRZConfig(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		s.sendError(w, "invalid request: "+err.Error())
+		return
+	}
+	if req.Username == "" || req.Password == "" {
+		s.sendError(w, "username and password required")
+		return
+	}
+
+	url := fmt.Sprintf("https://xmldata.qrz.com/xml/current/?username=%s&password=%s&agent=FlexDXClusterGui",
+		req.Username, req.Password)
+
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Get(url)
+	if err != nil {
+		s.sendError(w, "QRZ unreachable: "+err.Error())
+		return
+	}
+	defer resp.Body.Close()
+
+	body, _ := io.ReadAll(resp.Body)
+	var parsed struct {
+		Session struct {
+			Key     string `xml:"Key"`
+			Error   string `xml:"Error"`
+			Message string `xml:"Message"`
+		} `xml:"Session"`
+	}
+	if err := xml.Unmarshal(body, &parsed); err != nil {
+		s.sendError(w, "QRZ response parse error: "+err.Error())
+		return
+	}
+	if parsed.Session.Error != "" {
+		s.sendError(w, "QRZ: "+parsed.Session.Error)
+		return
+	}
+	if parsed.Session.Key == "" {
+		s.sendError(w, "QRZ: no session key returned")
+		return
+	}
+	s.sendSuccess(w, map[string]string{"message": parsed.Session.Message}, "QRZ authentication successful")
 }
 
 // ============================================================================

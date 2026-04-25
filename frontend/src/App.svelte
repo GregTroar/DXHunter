@@ -10,6 +10,7 @@
   import { spotWorker } from './lib/spotWorker.js';
   import { spotCache } from './lib/spotCache.js';
   import StatsCards from './components/StatsCards.svelte';
+  import SettingsPanel from './components/SettingsPanel.svelte';
 
   
   // State
@@ -49,6 +50,7 @@
   let contestPrefix = "";
   let contestCallsigns = [];
   let mainTab = 'spots';
+  let showSettings = false;
   let ftxEnabled = false;
   let ftxDecodes = [];
   let ftxTXStatus = { transmitting: false, message: '', mode: '', clientId: 'MSHV' };
@@ -808,7 +810,12 @@ async function shutdownApp() {
     {solarData}
     {wsStatus}
     on:shutdown={shutdownApp}
+    on:settings={() => showSettings = true}
   />
+
+  {#if showSettings}
+    <SettingsPanel on:close={() => showSettings = false} on:saved={() => showSettings = false} />
+  {/if}
 
   <StatsCards
     {stats}

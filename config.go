@@ -159,6 +159,14 @@ type ConfigWatcher struct {
 	mu         sync.RWMutex
 }
 
+func (c *Config) Save(path string) error {
+	data, err := yaml.Marshal(c)
+	if err != nil {
+		return fmt.Errorf("marshal config: %w", err)
+	}
+	return os.WriteFile(path, data, 0644)
+}
+
 func NewConfig(configPath string) *Config {
 	Cfg = &Config{}
 
