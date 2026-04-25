@@ -21,7 +21,8 @@
 - [x] UI de configuration : modifier `config.yml` depuis l'interface sans éditer le fichier à la main
 - [ ] Vue carte (Leaflet) : positionner les spots sur une carte avec les grilles Maidenhead
 - [ ] Raccourcis clavier (ex : Espace = tune, H = Halt TX, etc.)
-- [ ] Thème clair / sombre commutable
+- [x] Thème clair / sombre commutable
+- [ ] Ajouter un pop up au premier demarrage pour creer le fichier config ainsi que demander les informations principales necessaires au fonctionnement du logiciel (Call, Locator, Flex, Log4OM Db etc..)
 
 ## Notifications
 

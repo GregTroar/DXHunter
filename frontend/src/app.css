@@ -36,3 +36,75 @@ body, html {
   text-shadow: 0 0 8px rgba(59, 130, 246, 0.8);
   transform: scale(1.05);
 }
+
+/* ─── Light theme overrides (html without .dark) ─────────────────────────── */
+html:not(.dark) { color-scheme: light; }
+
+/* Scrollbar */
+html:not(.dark) ::-webkit-scrollbar-track  { background: rgb(241 245 249); }
+html:not(.dark) ::-webkit-scrollbar-thumb  { background: rgb(203 213 225); border-radius: 4px; }
+html:not(.dark) ::-webkit-scrollbar-thumb:hover { background: rgb(148 163 184); }
+
+/* Solid backgrounds */
+html:not(.dark) .bg-slate-900 { background-color: rgb(248 250 252) !important; }
+html:not(.dark) .bg-slate-800 { background-color: rgb(255 255 255) !important; }
+html:not(.dark) .bg-slate-700 { background-color: rgb(241 245 249) !important; }
+html:not(.dark) .bg-slate-600 { background-color: rgb(226 232 240) !important; }
+
+/* Opacity backgrounds */
+html:not(.dark) .bg-slate-900\/20 { background-color: rgb(248 250 252 / 0.4) !important; }
+html:not(.dark) .bg-slate-900\/30 { background-color: rgb(241 245 249 / 0.7) !important; }
+html:not(.dark) .bg-slate-900\/40 { background-color: rgb(241 245 249 / 0.85) !important; }
+html:not(.dark) .bg-slate-900\/50 { background-color: rgb(241 245 249 / 0.9) !important; }
+html:not(.dark) .bg-slate-900\/60 { background-color: rgb(255 255 255 / 0.92) !important; }
+html:not(.dark) .bg-slate-900\/80 { background-color: rgb(255 255 255 / 0.97) !important; }
+html:not(.dark) .bg-slate-800\/30 { background-color: rgb(255 255 255 / 0.5) !important; }
+html:not(.dark) .bg-slate-800\/50 { background-color: rgb(255 255 255 / 0.8) !important; }
+html:not(.dark) .bg-slate-800\/60 { background-color: rgb(248 250 252 / 0.85) !important; }
+html:not(.dark) .bg-slate-800\/70 { background-color: rgb(255 255 255 / 0.92) !important; }
+html:not(.dark) .bg-slate-800\/80 { background-color: rgb(255 255 255 / 0.97) !important; }
+html:not(.dark) .bg-slate-700\/20 { background-color: rgb(241 245 249 / 0.3) !important; }
+html:not(.dark) .bg-slate-700\/30 { background-color: rgb(241 245 249 / 0.6) !important; }
+html:not(.dark) .bg-slate-700\/40 { background-color: rgb(241 245 249 / 0.75) !important; }
+html:not(.dark) .bg-slate-700\/50 { background-color: rgb(226 232 240 / 0.75) !important; }
+html:not(.dark) .bg-slate-700\/60 { background-color: rgb(226 232 240 / 0.85) !important; }
+html:not(.dark) .bg-slate-600\/60 { background-color: rgb(226 232 240 / 0.9) !important; }
+html:not(.dark) .bg-black\/60    { background-color: rgb(0 0 0 / 0.35) !important; }
+
+/* Text — only the classes that are invisible on a light background need flipping */
+html:not(.dark) .text-white   { color: rgb(15 23 42)   !important; }
+html:not(.dark) .text-slate-200 { color: rgb(30 41 59)  !important; }
+html:not(.dark) .text-slate-300 { color: rgb(51 65 85)  !important; }
+html:not(.dark) .text-slate-400 { color: rgb(71 85 105) !important; }
+
+/* Borders */
+html:not(.dark) .border-slate-700    { border-color: rgb(203 213 225)        !important; }
+html:not(.dark) .border-slate-600    { border-color: rgb(226 232 240)        !important; }
+html:not(.dark) .border-slate-500    { border-color: rgb(203 213 225)        !important; }
+html:not(.dark) .border-slate-700\/30 { border-color: rgb(203 213 225 / 0.5) !important; }
+html:not(.dark) .border-slate-700\/40 { border-color: rgb(203 213 225 / 0.65) !important; }
+html:not(.dark) .border-slate-700\/50 { border-color: rgb(203 213 225 / 0.75) !important; }
+html:not(.dark) .border-slate-700\/60 { border-color: rgb(203 213 225 / 0.85) !important; }
+html:not(.dark) .border-slate-700\/80 { border-color: rgb(203 213 225)        !important; }
+html:not(.dark) .border-slate-600\/50 { border-color: rgb(226 232 240 / 0.85) !important; }
+html:not(.dark) .border-slate-500\/40 { border-color: rgb(203 213 225 / 0.7)  !important; }
+
+/* Divide */
+html:not(.dark) .divide-slate-700    > :not([hidden]) ~ :not([hidden]) { border-color: rgb(203 213 225)        !important; }
+html:not(.dark) .divide-slate-700\/30 > :not([hidden]) ~ :not([hidden]) { border-color: rgb(203 213 225 / 0.45) !important; }
+
+/* Hover backgrounds */
+html:not(.dark) .hover\:bg-slate-900:hover { background-color: rgb(241 245 249) !important; }
+html:not(.dark) .hover\:bg-slate-800:hover { background-color: rgb(248 250 252) !important; }
+html:not(.dark) .hover\:bg-slate-700:hover { background-color: rgb(241 245 249) !important; }
+html:not(.dark) .hover\:bg-slate-600:hover { background-color: rgb(226 232 240) !important; }
+html:not(.dark) .hover\:bg-slate-700\/30:hover { background-color: rgb(241 245 249 / 0.6) !important; }
+
+/* Hover text */
+html:not(.dark) .hover\:text-white:hover   { color: rgb(15 23 42)  !important; }
+html:not(.dark) .hover\:text-slate-200:hover { color: rgb(30 41 59) !important; }
+html:not(.dark) .hover\:text-slate-300:hover { color: rgb(51 65 85) !important; }
+
+/* Hover borders */
+html:not(.dark) .hover\:border-slate-500:hover { border-color: rgb(203 213 225) !important; }
+html:not(.dark) .hover\:border-slate-600:hover { border-color: rgb(226 232 240) !important; }

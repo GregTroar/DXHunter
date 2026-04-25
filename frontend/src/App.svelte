@@ -51,6 +51,12 @@
   let contestCallsigns = [];
   let mainTab = 'spots';
   let showSettings = false;
+  let isDark = localStorage.getItem('theme') !== 'light';
+
+  $: {
+    document.documentElement.classList.toggle('dark', isDark);
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  }
   let ftxEnabled = false;
   let ftxDecodes = [];
   let ftxTXStatus = { transmitting: false, message: '', mode: '', clientId: 'MSHV' };
@@ -793,7 +799,7 @@ async function shutdownApp() {
 
 </script>
 
-<div class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white min-h-screen p-2">
+<div class="{isDark ? 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white' : 'bg-gradient-to-br from-slate-100 via-white to-slate-100 text-slate-900'} min-h-screen p-2">
   
   {#if errorMessage}
     <ErrorBanner message={errorMessage} on:close={() => errorMessage = ''} />
@@ -809,8 +815,10 @@ async function shutdownApp() {
     {stats}
     {solarData}
     {wsStatus}
+    {isDark}
     on:shutdown={shutdownApp}
     on:settings={() => showSettings = true}
+    on:themeToggle={() => isDark = !isDark}
   />
 
   {#if showSettings}
@@ -886,6 +894,7 @@ async function shutdownApp() {
         wsStatus={wsStatus}
         clusterType={stats.clusterType || 'unknown'}
         clusters={stats.clusters || []}
+        myGrid={stats.myGrid || ''}
         on:toast={(e) => showToast(e.detail.message, e.detail.type)}
         on:clearLogs={() => logs = []}
         on:sendCommand={handleSendCommand}
