@@ -6,6 +6,7 @@
   export let watchlist = [];
   export let spots = [];
   export let ftxTXStatus = { transmitting: false, message: '', mode: '', clientId: '' };
+  export let myGrid = '';
 
   let filterCQOnly = false;
   let filterMyCall = false;
@@ -199,7 +200,13 @@
   let autoCallBusy         = false;  // prevent concurrent handlers
   let autoCallStopped      = false;  // hit attempt/miss limit (watch call: need manual restart)
   let autoCallManualLocked = false;  // user manually clicked a row — don't auto-pick after halt
-  let priorityCall         = '';     // watch call field — only call this station when set
+  let priorityCall         = '';     // watch call field — comma/space separated list
+  let autoCallStoppedCall  = '';     // which call triggered the stop
+
+  $: priorityCalls = priorityCall
+    .split(/[\s,]+/)
+    .map(c => c.trim().toUpperCase())
+    .filter(Boolean);
 
   const AUTO_MISS_MAX             = 3;
   const AUTO_ATTEMPT_MAX          = 7;
@@ -269,10 +276,11 @@
 
   // Manual restart of watch call after stop
   function acRestartWatchCall() {
-    autoCallStopped  = false;
-    autoCallTarget   = null;
-    autoCallAttempts = 0;
-    autoCallMissed   = 0;
+    autoCallStopped     = false;
+    autoCallStoppedCall = '';
+    autoCallTarget      = null;
+    autoCallAttempts    = 0;
+    autoCallMissed      = 0;
   }
 
   // QRZ panel: auto-follows autoCallTarget, or clicked row
@@ -348,76 +356,92 @@
       const group   = groupedDecodes.find(g => g.time === periodTime);
       const decodes = group ? group.decodes : [];
 
-      if (priorityCall) {
-        // ── Watch call mode: only ever call this station ──────────────────────
-        const prioUC     = priorityCall.toUpperCase();
-        const prioDecode = decodes.find(d => (d.dxCall || '').toUpperCase() === prioUC);
+      if (priorityCalls.length > 0) {
+        // ── Watch call mode: only call stations from the priority list ─────────
 
         if (autoCallStopped) {
-          // Stopped after max attempts — but check if station came back to call us
-          // (e.g. from their pending list minutes later)
-          if (prioDecode?.myCall && !acQSOComplete(decodes, prioUC)) {
-            autoCallStopped  = false;
-            autoCallTarget   = prioDecode;
-            qrzCallsign      = prioUC;
-            autoCallAttempts = 0;
-            autoCallMissed   = 0;
-            action = { type: 'reply', decode: prioDecode };
+          // Check if any priority call came back to call us
+          let comeback = null;
+          for (const prioUC of priorityCalls) {
+            const d = decodes.find(dd => (dd.dxCall || '').toUpperCase() === prioUC);
+            if (d?.myCall && !acQSOComplete(decodes, prioUC)) { comeback = d; break; }
+          }
+          if (comeback) {
+            autoCallStopped     = false;
+            autoCallStoppedCall = '';
+            autoCallTarget      = comeback;
+            qrzCallsign         = (comeback.dxCall || '').toUpperCase();
+            autoCallAttempts    = 0;
+            autoCallMissed      = 0;
+            action = { type: 'reply', decode: comeback };
           } else {
             return; // still stopped, wait for manual restart or late response
           }
         }
-        const isTarget   = (autoCallTarget?.dxCall || '').toUpperCase() === prioUC;
 
-        if (prioDecode) {
-          // Station decoded this RX period
-          const wasInMiss = autoCallMissed > 0;
-          autoCallMissed = 0;
-          if (!isTarget) {
-            // First time we see it — start calling
-            autoCallTarget   = prioDecode;
-            qrzCallsign      = (prioDecode.dxCall || '').toUpperCase();
-            autoCallAttempts = 0;
-            action = { type: 'reply', decode: prioDecode };
-          } else if (acQSOComplete(decodes, prioUC)) {
-            autoCallTarget   = null;
-            autoCallAttempts = 0;
-            action = { type: 'clearDXCall' };
-          } else {
-            const replied = decodes.some(d =>
-              (d.dxCall || '').toUpperCase() === prioUC && d.myCall
-            );
-            if (replied) {
-              autoCallAttempts = 0; // in QSO, MSHV handles sequencing
+        const targetUC       = (autoCallTarget?.dxCall || '').toUpperCase();
+        const targetIsOnList = targetUC && priorityCalls.includes(targetUC);
+
+        if (autoCallTarget && targetIsOnList) {
+          // Continue with current target
+          const targetDecode = decodes.find(d => (d.dxCall || '').toUpperCase() === targetUC);
+          if (targetDecode) {
+            const wasInMiss = autoCallMissed > 0;
+            autoCallMissed = 0;
+            if (acQSOComplete(decodes, targetUC)) {
+              autoCallTarget   = null;
+              autoCallAttempts = 0;
+              action = { type: 'clearDXCall' };
             } else {
-              const firstCall = autoCallAttempts === 0;
-              autoCallAttempts++;
-              const maxAttempts = isWatchlisted(prioUC) ? AUTO_WATCHLIST_ATTEMPT_MAX : AUTO_ATTEMPT_MAX;
-              if (autoCallAttempts >= maxAttempts) {
-                autoCallStopped  = true;
-                autoCallTarget   = null;
-                autoCallAttempts = 0;
-                action = { type: 'halt' };
-              } else if (firstCall || wasInMiss) {
-                // Only (re)send on first call or when station reappears after miss
-                action = { type: 'reply', decode: autoCallTarget };
+              const replied = decodes.some(d =>
+                (d.dxCall || '').toUpperCase() === targetUC && d.myCall
+              );
+              if (replied) {
+                autoCallAttempts = 0; // in QSO, MSHV handles sequencing
+              } else {
+                const firstCall = autoCallAttempts === 0;
+                autoCallAttempts++;
+                const maxAttempts = isWatchlisted(targetUC) ? AUTO_WATCHLIST_ATTEMPT_MAX : AUTO_ATTEMPT_MAX;
+                if (autoCallAttempts >= maxAttempts) {
+                  autoCallStopped     = true;
+                  autoCallStoppedCall = targetUC;
+                  autoCallTarget      = null;
+                  autoCallAttempts    = 0;
+                  action = { type: 'halt' };
+                } else if (firstCall || wasInMiss) {
+                  action = { type: 'reply', decode: autoCallTarget };
+                }
+                // else: MSHV already transmitting — do not interrupt
               }
-              // else: MSHV already transmitting — do not interrupt
+            }
+          } else {
+            // Target not decoded this period → miss
+            autoCallMissed++;
+            if (autoCallMissed >= AUTO_MISS_MAX) {
+              autoCallStopped     = true;
+              autoCallStoppedCall = targetUC;
+              autoCallTarget      = null;
+              autoCallMissed      = 0;
+              autoCallAttempts    = 0;
+              action = { type: 'halt' };
             }
           }
-        } else if (isTarget) {
-          // Already targeting it but not decoded this RX period → miss
-          autoCallMissed++;
-          if (autoCallMissed >= AUTO_MISS_MAX) {
-            autoCallStopped  = true;
-            autoCallTarget   = null;
-            autoCallMissed   = 0;
-            autoCallAttempts = 0;
-            action = { type: 'halt' };
+        } else {
+          // No current target (or stale) — find best priority call decoded this period
+          let bestDecode = null;
+          for (const prioUC of priorityCalls) {
+            const d = decodes.find(dd => (dd.dxCall || '').toUpperCase() === prioUC);
+            if (d && (!bestDecode || d.snr > bestDecode.snr)) bestDecode = d;
           }
-          // else: MSHV keeps TX-ing automatically, wait for next period
+          if (bestDecode) {
+            autoCallTarget   = bestDecode;
+            qrzCallsign      = (bestDecode.dxCall || '').toUpperCase();
+            autoCallAttempts = 0;
+            autoCallMissed   = 0;
+            action = { type: 'reply', decode: bestDecode };
+          }
+          // Not yet decoded — wait silently
         }
-        // Not yet targeting and not decoded → wait silently
 
       } else {
         // ── Normal mode: auto-pick best candidate ─────────────────────────────
@@ -566,8 +590,8 @@
     </button>
 
     {#if autoCallEnabled}
-      {#if autoCallStopped && priorityCall}
-        <span class="text-[10px] text-red-400 font-semibold">{priorityCall} stopped</span>
+      {#if autoCallStopped && priorityCalls.length > 0}
+        <span class="text-[10px] text-red-400 font-semibold">{autoCallStoppedCall || priorityCalls[0]} stopped</span>
         <button
           on:click={acRestartWatchCall}
           class="px-2 py-0.5 rounded text-xs font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/35 transition-colors">
@@ -590,11 +614,10 @@
       <input
         type="text"
         bind:value={priorityCall}
-        placeholder="Watch call…"
-        maxlength="12"
-        on:input={(e) => { priorityCall = e.target.value.toUpperCase(); autoCallStopped = false; autoCallTarget = null; autoCallAttempts = 0; autoCallMissed = 0; }}
-        class="w-24 px-1.5 py-0.5 rounded text-xs font-mono bg-slate-800 border {priorityCall ? 'border-amber-500/60 text-amber-300' : 'border-slate-600 text-slate-400'} placeholder-slate-600 focus:outline-none focus:border-amber-500/80"
-        title="Watch call: only call this station when decoded (Auto must be ON)" />
+        placeholder="Watch calls…"
+        on:input={(e) => { priorityCall = e.target.value.toUpperCase(); autoCallStopped = false; autoCallStoppedCall = ''; autoCallTarget = null; autoCallAttempts = 0; autoCallMissed = 0; }}
+        class="w-36 px-1.5 py-0.5 rounded text-xs font-mono bg-slate-800 border {priorityCalls.length > 0 ? 'border-amber-500/60 text-amber-300' : 'border-slate-600 text-slate-400'} placeholder-slate-600 focus:outline-none focus:border-amber-500/80"
+        title="Watch calls: comma or space separated — only call these stations when decoded (Auto must be ON)" />
     {/if}
 
     <!-- TX status indicator -->
@@ -833,7 +856,7 @@
 
 <!-- ── Right: QRZ panel ───────────────────────────────────────────────────── -->
 <div class="w-72 flex-shrink-0">
-  <QRZPanel callsign={qrzCallsign} />
+  <QRZPanel callsign={qrzCallsign} {myGrid} />
 </div>
 
 </div><!-- end outer flex -->

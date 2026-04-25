@@ -60,6 +60,7 @@ type Stats struct {
 	ClusterStatus    string        `json:"clusterStatus"`
 	FlexStatus       string        `json:"flexStatus"`
 	MyCallsign       string        `json:"myCallsign"`
+	MyGrid           string        `json:"myGrid"`
 	Mode             string        `json:"mode"`
 	Filters          Filters       `json:"filters"`
 	SpotsReceived    int64         `json:"spotsReceived"`
@@ -1429,6 +1430,7 @@ func (s *HTTPServer) calculateStats() Stats {
 		Clusters:         clusterInfos,
 		FlexStatus:       flexStatus,
 		MyCallsign:       Cfg.General.Callsign,
+		MyGrid:           Cfg.General.Grid,
 		Filters: func() Filters {
 			if m := getClusterMaster(Cfg.Clusters); m != nil {
 				return Filters{Skimmer: m.Skimmer, FT8: m.FT8, FT4: m.FT4, Beacon: m.Beacon}

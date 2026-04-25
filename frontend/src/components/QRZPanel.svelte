@@ -1,5 +1,6 @@
 <script>
   export let callsign = '';   // auto-populated by parent (autoCallTarget)
+  export let myGrid   = '';   // my Maidenhead locator for distance/azimuth
 
   let manualSearch = '';
   let activeCall   = '';      // call currently displayed
@@ -50,6 +51,42 @@
   function location(i) {
     return [i.addr2, i.state, i.country].filter(Boolean).join(', ') || i.land || '—';
   }
+
+  function gridToLatLon(grid) {
+    if (!grid || grid.length < 4) return null;
+    const g = grid.toUpperCase();
+    let lon = (g.charCodeAt(0) - 65) * 20 - 180 + (g.charCodeAt(2) - 48) * 2;
+    let lat = (g.charCodeAt(1) - 65) * 10 - 90  + (g.charCodeAt(3) - 48);
+    if (grid.length >= 6) {
+      const s = grid.toLowerCase();
+      lon += (s.charCodeAt(4) - 97) * 5/60 + 2.5/60;
+      lat += (s.charCodeAt(5) - 97) * 2.5/60 + 1.25/60;
+    } else {
+      lon += 1;
+      lat += 0.5;
+    }
+    return { lat, lon };
+  }
+
+  function greatCircle(lat1, lon1, lat2, lon2) {
+    const R = 6371;
+    const r = x => x * Math.PI / 180;
+    const φ1 = r(lat1), φ2 = r(lat2), Δφ = r(lat2-lat1), Δλ = r(lon2-lon1);
+    const a = Math.sin(Δφ/2)**2 + Math.cos(φ1)*Math.cos(φ2)*Math.sin(Δλ/2)**2;
+    const dist = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const y = Math.sin(Δλ)*Math.cos(φ2);
+    const x = Math.cos(φ1)*Math.sin(φ2) - Math.sin(φ1)*Math.cos(φ2)*Math.cos(Δλ);
+    const brng = (Math.atan2(y, x) * 180/Math.PI + 360) % 360;
+    return { dist: Math.round(dist), bearing: Math.round(brng) };
+  }
+
+  $: qsoPath = (() => {
+    if (!myGrid || !info?.grid) return null;
+    const me   = gridToLatLon(myGrid);
+    const them = gridToLatLon(info.grid);
+    if (!me || !them) return null;
+    return greatCircle(me.lat, me.lon, them.lat, them.lon);
+  })();
 </script>
 
 <div class="flex flex-col h-full overflow-hidden bg-slate-900/40 border-l border-slate-700/50">
@@ -127,6 +164,17 @@
             </div>
           {/if}
         {/each}
+
+        {#if qsoPath}
+          <div class="flex gap-1.5 pt-1 border-t border-slate-700/40 mt-1">
+            <span class="text-slate-500 w-14 flex-shrink-0">Dist</span>
+            <span class="text-cyan-300 font-mono font-semibold">{qsoPath.dist.toLocaleString()} km</span>
+          </div>
+          <div class="flex gap-1.5">
+            <span class="text-slate-500 w-14 flex-shrink-0">Azimuth</span>
+            <span class="text-cyan-300 font-mono font-semibold">{qsoPath.bearing}°</span>
+          </div>
+        {/if}
 
         {#if info.url}
           <div class="flex gap-1.5">

@@ -36,6 +36,7 @@ general:
     - "YU45MJA"
   delete_log_file_at_start: true
   callsign: XXXXX # Log4OM Callsign used to check if you get spotted by someone
+  grid: "JN36dg"   # Maidenhead locator (4 or 6 chars)
   log_to_file: true
   log_level: INFO # INFO or DEBUG or WARN
   telnetserver: true # not in use for now

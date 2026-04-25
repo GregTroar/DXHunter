@@ -76,6 +76,7 @@ type Config struct {
 		DeleteLogFileAtStart       bool     `yaml:"delete_log_file_at_start"`
 		LogToFile                  bool     `yaml:"log_to_file"`
 		Callsign                   string   `yaml:"callsign"`
+		Grid                       string   `yaml:"grid"`
 		LogLevel                   string   `yaml:"log_level"`
 		TelnetServer               bool     `yaml:"telnetserver"`
 		FlexRadioSpot              bool     `yaml:"flexradiospot"`
