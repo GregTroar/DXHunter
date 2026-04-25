@@ -5,6 +5,7 @@
   export let ftxDecodes = [];   // maintained by App.svelte — persists across tab switches
   export let watchlist = [];
   export let spots = [];
+  export let ftxTXStatus = { transmitting: false, message: '' };
 
   let filterCQOnly = false;
   let filterMyCall = false;
@@ -198,11 +199,25 @@
   let autoCallBusy         = false;  // prevent concurrent handlers
   let autoCallStopped      = false;  // hit attempt/miss limit (watch call: need manual restart)
   let autoCallManualLocked = false;  // user manually clicked a row — don't auto-pick after halt
-  let autoCallQSOCooldown  = false;  // QSO just finished — wait one full period before re-picking
   let priorityCall         = '';     // watch call field — only call this station when set
 
-  const AUTO_MISS_MAX    = 3;
-  const AUTO_ATTEMPT_MAX = 7;
+  const AUTO_MISS_MAX             = 3;
+  const AUTO_ATTEMPT_MAX          = 7;
+  const AUTO_WATCHLIST_ATTEMPT_MAX = 15;
+
+  function isWatchlisted(call) {
+    if (!call || !watchlist?.length) return false;
+    const uc = call.toUpperCase();
+    return watchlist.some(w => (w.callsign || w || '').toUpperCase() === uc);
+  }
+
+  // Detect if a station is calling us directly (report/R-report) but not CQ/complete
+  function acCallerToMe(decodes) {
+    return decodes.find(d =>
+      d.myCall && d.dxCall && !d.isCQ &&
+      !acQSOComplete([d], d.dxCall)
+    ) || null;
+  }
 
   // Priority: DXCC > Band+Mode > Band > Mode > Slot > nothing > not enriched
   function acPriority(d) {
@@ -262,6 +277,18 @@
 
   // QRZ panel: auto-follows autoCallTarget, or clicked row
   let qrzCallsign = '';
+
+  async function clearMSHVDXCall() {
+    try {
+      await fetch('/api/ftx/configure', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ clientId: 'MSHV', clearDXCall: true })
+      });
+    } catch (err) {
+      console.error('FTx configure error:', err);
+    }
+  }
 
   // Manual row click: send reply and, if auto is on, adopt clicked station as locked target.
   // Start attempts at 1 so the handler knows the initial call was already sent.
@@ -323,10 +350,23 @@
 
       if (priorityCall) {
         // ── Watch call mode: only ever call this station ──────────────────────
-        if (autoCallStopped) return; // waiting for manual restart via button
-
         const prioUC     = priorityCall.toUpperCase();
         const prioDecode = decodes.find(d => (d.dxCall || '').toUpperCase() === prioUC);
+
+        if (autoCallStopped) {
+          // Stopped after max attempts — but check if station came back to call us
+          // (e.g. from their pending list minutes later)
+          if (prioDecode?.myCall && !acQSOComplete(decodes, prioUC)) {
+            autoCallStopped  = false;
+            autoCallTarget   = prioDecode;
+            qrzCallsign      = prioUC;
+            autoCallAttempts = 0;
+            autoCallMissed   = 0;
+            action = { type: 'reply', decode: prioDecode };
+          } else {
+            return; // still stopped, wait for manual restart or late response
+          }
+        }
         const isTarget   = (autoCallTarget?.dxCall || '').toUpperCase() === prioUC;
 
         if (prioDecode) {
@@ -340,10 +380,9 @@
             autoCallAttempts = 0;
             action = { type: 'reply', decode: prioDecode };
           } else if (acQSOComplete(decodes, prioUC)) {
-            autoCallTarget      = null;
-            autoCallAttempts    = 0;
-            autoCallQSOCooldown = true;
-            setTimeout(() => { autoCallQSOCooldown = false; }, 16000);
+            autoCallTarget   = null;
+            autoCallAttempts = 0;
+            action = { type: 'clearDXCall' };
           } else {
             const replied = decodes.some(d =>
               (d.dxCall || '').toUpperCase() === prioUC && d.myCall
@@ -353,7 +392,8 @@
             } else {
               const firstCall = autoCallAttempts === 0;
               autoCallAttempts++;
-              if (autoCallAttempts >= AUTO_ATTEMPT_MAX) {
+              const maxAttempts = isWatchlisted(prioUC) ? AUTO_WATCHLIST_ATTEMPT_MAX : AUTO_ATTEMPT_MAX;
+              if (autoCallAttempts >= maxAttempts) {
                 autoCallStopped  = true;
                 autoCallTarget   = null;
                 autoCallAttempts = 0;
@@ -389,11 +429,10 @@
             const wasInMiss = autoCallMissed > 0;
             autoCallMissed = 0;
             if (acQSOComplete(decodes, targetUC)) {
-              autoCallTarget      = null;
-              autoCallAttempts    = 0;
+              autoCallTarget       = null;
+              autoCallAttempts     = 0;
               autoCallManualLocked = false;
-              autoCallQSOCooldown  = true;
-              setTimeout(() => { autoCallQSOCooldown = false; }, 16000);
+              action = { type: 'clearDXCall' };
             } else {
               const replied = decodes.some(d =>
                 (d.dxCall || '').toUpperCase() === targetUC && d.myCall
@@ -403,7 +442,8 @@
               } else {
                 const firstCall = autoCallAttempts === 0;
                 autoCallAttempts++;
-                if (autoCallAttempts >= AUTO_ATTEMPT_MAX) {
+                const maxAttempts = isWatchlisted(targetUC) ? AUTO_WATCHLIST_ATTEMPT_MAX : AUTO_ATTEMPT_MAX;
+                if (autoCallAttempts >= maxAttempts) {
                   autoCallTarget       = null;
                   autoCallAttempts     = 0;
                   autoCallMissed       = 0;
@@ -427,9 +467,10 @@
               action = { type: 'halt' };
             }
           }
-        } else if (!autoCallManualLocked && !autoCallQSOCooldown) {
-          // No target → auto-pick best candidate from this period
-          const candidate = acBestCandidate(decodes);
+        } else if (!autoCallManualLocked && !ftxTXStatus.transmitting) {
+          // No target → check first if a station is calling us back (late response),
+          // then fall back to best new-DXCC/band/mode/slot candidate.
+          const candidate = acCallerToMe(decodes) || acBestCandidate(decodes);
           if (candidate) {
             autoCallTarget   = candidate;
             qrzCallsign      = (candidate.dxCall || '').toUpperCase();
@@ -448,8 +489,9 @@
     }
 
     // Network calls outside the busy lock so slow responses never block the next period
-    if (action?.type === 'reply') sendReply(action.decode).catch(e => console.error('FTx reply:', e));
-    if (action?.type === 'halt')  haltTX().catch(e => console.error('FTx halt:', e));
+    if (action?.type === 'reply')       sendReply(action.decode).catch(e => console.error('FTx reply:', e));
+    if (action?.type === 'halt')        haltTX().catch(e => console.error('FTx halt:', e));
+    if (action?.type === 'clearDXCall') clearMSHVDXCall().catch(e => console.error('FTx configure:', e));
   }
 </script>
 
@@ -524,7 +566,7 @@
         <span class="font-mono text-emerald-300 font-semibold">{autoCallTarget.dxCall}</span>
         <span class="text-[10px] text-emerald-500/80 font-semibold">{acPriorityLabel(autoCallTarget)}</span>
         {#if autoCallAttempts > 0}
-          <span class="text-[10px] text-orange-400">Call:{autoCallAttempts}/{AUTO_ATTEMPT_MAX}</span>
+          <span class="text-[10px] text-orange-400">Call:{autoCallAttempts}/{isWatchlisted(autoCallTarget?.dxCall) ? AUTO_WATCHLIST_ATTEMPT_MAX : AUTO_ATTEMPT_MAX}</span>
         {/if}
         {#if autoCallMissed > 0}
           <span class="text-[10px] text-red-400">Miss:{autoCallMissed}/{AUTO_MISS_MAX}</span>
@@ -544,9 +586,17 @@
         title="Watch call: only call this station when decoded (Auto must be ON)" />
     {/if}
 
-    <span class="ml-auto text-slate-500">
-      Last: <span class="text-slate-400">{lastPeriodCount}</span>
-    </span>
+    <!-- TX status indicator -->
+    {#if ftxTXStatus.transmitting}
+      <span class="ml-auto flex items-center gap-1.5 px-2 py-0.5 rounded bg-red-500/15 border border-red-500/40 text-red-300 text-xs font-mono font-semibold animate-pulse">
+        <span class="w-1.5 h-1.5 rounded-full bg-red-400 inline-block"></span>
+        TX {ftxTXStatus.message}
+      </span>
+    {:else}
+      <span class="ml-auto text-slate-500">
+        Last: <span class="text-slate-400">{lastPeriodCount}</span>
+      </span>
+    {/if}
 
   </div>
 

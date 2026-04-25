@@ -89,6 +89,7 @@ const (
 	msgQSOLogged uint32 = 5
 	msgHaltTX    uint32 = 8
 	msgHighlight uint32 = 13
+	msgConfigure uint32 = 15
 )
 
 // FTxDecode is one decoded line broadcast to the frontend via WebSocket.
@@ -159,11 +160,13 @@ type FTxService struct {
 	broadcast   chan WSMessage
 	lc          *logCache
 
-	mu         sync.RWMutex
-	dialFreq   uint64       // last known dial frequency from Status message
-	statusMode string       // mode from Status message (e.g. "FT8") — decode messages may send "~"
-	sourceAddr *net.UDPAddr // last seen sender (MSHV/WSJT-X/JTDX)
-	myCall     string
+	mu           sync.RWMutex
+	dialFreq     uint64       // last known dial frequency from Status message
+	statusMode   string       // mode from Status message (e.g. "FT8") — decode messages may send "~"
+	transmitting bool         // MSHV is currently transmitting
+	txMessage    string       // current TX message text
+	sourceAddr   *net.UDPAddr // last seen sender (MSHV/WSJT-X/JTDX)
+	myCall       string
 
 	// Period batching: group decodes by timeMs, flush after last UDP packet.
 	batchMu      sync.Mutex
@@ -364,12 +367,40 @@ func (f *FTxService) handleStatus(r *bytes.Reader) {
 		resolvedMode = "FT8"
 	}
 
+	// Read ConfigName then TXMessage (both may be absent in older schemas)
+	configName, _ := readQString(r)
+	_ = configName
+	txMsg, _ := readQString(r)
+
 	f.mu.Lock()
 	f.dialFreq = dialFreq
+	prevMode := f.statusMode
 	if resolvedMode != "" {
 		f.statusMode = resolvedMode
 	}
+	prevTX := f.transmitting
+	prevMsg := f.txMessage
+	f.transmitting = boolBuf[1]
+	f.txMessage = txMsg
+	changed := f.transmitting != prevTX || f.txMessage != prevMsg || f.statusMode != prevMode
+	currentMode := f.statusMode
 	f.mu.Unlock()
+
+	if changed {
+		type txStatus struct {
+			Transmitting bool   `json:"transmitting"`
+			Message      string `json:"message"`
+			Mode         string `json:"mode"`
+		}
+		select {
+		case f.broadcast <- WSMessage{Type: "ftxTXStatus", Data: txStatus{
+			Transmitting: boolBuf[1],
+			Message:      txMsg,
+			Mode:         currentMode,
+		}}:
+		default:
+		}
+	}
 }
 
 // skipQDateTime skips a Qt5 QDataStream-encoded QDateTime field.
@@ -816,6 +847,63 @@ func writeQColor(buf *bytes.Buffer, c [4]uint8) {
 	binary.Write(buf, binary.BigEndian, uint16(0))        // pad
 }
 
+// SendConfigure sends a WSJT-X "Configure" message (type 15).
+// mode: new mode string (e.g. "FT4", "FT8") — empty string means no change.
+// clearDXCall: true = clear MSHV's DX call field (stops Log4OM broadcast), false = no change.
+func (f *FTxService) SendConfigure(clientID, mode string, clearDXCall bool) error {
+	f.mu.RLock()
+	src := f.sourceAddr
+	f.mu.RUnlock()
+	if src == nil {
+		return fmt.Errorf("no source address known yet")
+	}
+	conn, err := net.DialUDP("udp4", nil, src)
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	buf := new(bytes.Buffer)
+	writeUint32(buf, wsjtxMagic)
+	writeUint32(buf, wsjtxSchema)
+	writeUint32(buf, msgConfigure)
+	writeQString(buf, clientID)
+
+	// Mode: null (0xFFFFFFFF) = no change; actual string = change mode
+	writeQString(buf, mode)
+
+	// FrequencyTolerance: 0xFFFFFFFF = no change
+	writeUint32(buf, 0xFFFFFFFF)
+
+	// Submode: null = no change
+	writeQString(buf, "")
+
+	// FastMode: false is safe for both FT8 and FT4
+	writeBool(buf, false)
+
+	// T/R Period: 0xFFFFFFFF = no change
+	writeUint32(buf, 0xFFFFFFFF)
+
+	// RxDF: 0xFFFFFFFF = no change
+	writeUint32(buf, 0xFFFFFFFF)
+
+	// DXCall: null = no change; empty string (0x00000000) = clear
+	if clearDXCall {
+		writeQStringEmpty(buf)
+	} else {
+		writeQString(buf, "") // null = no change
+	}
+
+	// DXGrid: null = no change
+	writeQString(buf, "")
+
+	// GenerateMessages: false = keep current messages
+	writeBool(buf, false)
+
+	_, err = conn.Write(buf.Bytes())
+	return err
+}
+
 // ============================================================================
 // Helpers
 // ============================================================================
@@ -843,6 +931,13 @@ func writeQString(buf *bytes.Buffer, s string) {
 	}
 	binary.Write(buf, binary.BigEndian, uint32(len(s)))
 	buf.WriteString(s)
+}
+
+// writeQStringEmpty writes a Qt empty string (length=0, no bytes) — distinct from
+// writeQString("") which writes 0xFFFFFFFF (Qt null = "no change" in Configure messages).
+// Use this to explicitly clear a field such as DX Call.
+func writeQStringEmpty(buf *bytes.Buffer) {
+	binary.Write(buf, binary.BigEndian, uint32(0))
 }
 
 func writeUint32(buf *bytes.Buffer, v uint32) { binary.Write(buf, binary.BigEndian, v) }

@@ -223,6 +223,30 @@ func (s *HTTPServer) handleFTxHaltTX(w http.ResponseWriter, r *http.Request) {
 	s.sendSuccess(w, nil, "TX halted")
 }
 
+func (s *HTTPServer) handleFTxConfigure(w http.ResponseWriter, r *http.Request) {
+	if s.FTx == nil {
+		s.sendError(w, "FTx not enabled")
+		return
+	}
+	var req struct {
+		ClientID    string `json:"clientId"`
+		Mode        string `json:"mode"`
+		ClearDXCall bool   `json:"clearDXCall"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		s.sendError(w, "invalid request: "+err.Error())
+		return
+	}
+	if req.ClientID == "" {
+		req.ClientID = "MSHV"
+	}
+	if err := s.FTx.SendConfigure(req.ClientID, req.Mode, req.ClearDXCall); err != nil {
+		s.sendError(w, "configure failed: "+err.Error())
+		return
+	}
+	s.sendSuccess(w, nil, "Configure sent")
+}
+
 func (s *HTTPServer) handleFTxHighlight(w http.ResponseWriter, r *http.Request) {
 	if s.FTx == nil {
 		s.sendError(w, "FTx not enabled")
@@ -287,6 +311,7 @@ func (s *HTTPServer) setupRoutes() {
 	api.HandleFunc("/ftx/toggle", s.handleFTxToggle).Methods("POST", "OPTIONS")
 	api.HandleFunc("/ftx/halttx", s.handleFTxHaltTX).Methods("POST", "OPTIONS")
 	api.HandleFunc("/ftx/highlight", s.handleFTxHighlight).Methods("POST", "OPTIONS")
+	api.HandleFunc("/ftx/configure", s.handleFTxConfigure).Methods("POST", "OPTIONS")
 
 	// External data
 	api.HandleFunc("/solar", s.HandleSolarData).Methods("GET", "OPTIONS")

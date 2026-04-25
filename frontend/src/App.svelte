@@ -52,6 +52,7 @@
   let mainTab = 'spots';
   let ftxEnabled = false;
   let ftxDecodes = [];
+  let ftxTXStatus = { transmitting: false, message: '', mode: '' };
   
   let spotFilters = {
     showAll: true,
@@ -549,6 +550,9 @@ function applyFilters(allSpots, filters, wl) {
       case 'ftxClear':
         ftxDecodes = [];
         break;
+      case 'ftxTXStatus':
+        ftxTXStatus = message.data;
+        break;
       case 'ftxQSOLogged': {
         // QSO just logged — mark all decodes for that callsign as worked so
         // auto call skips them and the row loses its new-DXCC/Band/Mode colour.
@@ -617,13 +621,26 @@ function applyFilters(allSpots, filters, wl) {
   }
   
   async function sendCallsign(callsign, frequency, mode) {
+    // If FTx is active and the spot mode differs from MSHV's current mode, switch it first.
+    if (ftxEnabled && mode && ftxTXStatus.mode && mode.toUpperCase() !== ftxTXStatus.mode.toUpperCase()) {
+      try {
+        await fetch('/api/ftx/configure', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ clientId: 'MSHV', mode: mode.toUpperCase(), clearDXCall: false })
+        });
+        showToast(`🔄 MSHV mode → ${mode.toUpperCase()}`, 'info', 3000);
+      } catch (e) {
+        console.error('FTx configure error:', e);
+      }
+    }
     try {
       const response = await fetch('/api/send-callsign', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ callsign, frequency, mode })
       });
-      
+
       const data = await response.json();
       if (data.success) {
         showToast(`📻 Tuned to ${callsign} • ${frequency} • ${mode}`, 'radio');
@@ -859,7 +876,7 @@ async function shutdownApp() {
           />
         </div>
         <div class="h-full" class:hidden={mainTab !== 'ftx'}>
-          <FTxTab {ftxEnabled} {ftxDecodes} {watchlist} spots={filteredSpots} />
+          <FTxTab {ftxEnabled} {ftxDecodes} {watchlist} spots={filteredSpots} {ftxTXStatus} />
         </div>
       </div>
     </div>
