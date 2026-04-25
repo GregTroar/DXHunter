@@ -880,13 +880,34 @@ func (f *FTxService) SendConfigure(targetMode string, clearDXCall bool) error {
 		clientID = "MSHV"
 	}
 
-	var trPeriod uint32 = 0xFFFFFFFF // 0xFFFFFFFF = no change
-	switch strings.ToUpper(targetMode) {
-	case "FT4":
-		trPeriod = 7500
-	case "FT8":
-		trPeriod = 15000
+	// Adapt mode/submode fields per client:
+	//   WSJT-X  → Mode="FT4" works directly
+	//   JTDX    → uses ":" internally for FT4; needs Mode="FT8" + SubMode=":"
+	//   MSHV    → Mode="FT4" (may or may not be supported)
+	isJTDX := strings.Contains(strings.ToUpper(clientID), "JTDX")
+
+	modeField := targetMode // "" = null = no change
+	subModeField := ""      // "" = null = no change
+	var trPeriod uint32 = 0xFFFFFFFF
+
+	if targetMode != "" {
+		switch strings.ToUpper(targetMode) {
+		case "FT4":
+			trPeriod = 7500
+			if isJTDX {
+				modeField = "FT8"
+				subModeField = ":"
+			}
+		case "FT8":
+			trPeriod = 15000
+			if isJTDX {
+				subModeField = "" // clear submode
+			}
+		}
 	}
+
+	Log.Infof("FTx Configure → clientID=%q mode=%q subMode=%q trPeriod=%d clearDXCall=%v",
+		clientID, modeField, subModeField, trPeriod, clearDXCall)
 
 	conn, err := net.DialUDP("udp4", nil, src)
 	if err != nil {
@@ -900,12 +921,12 @@ func (f *FTxService) SendConfigure(targetMode string, clearDXCall bool) error {
 	writeUint32(buf, msgConfigure)
 	writeQString(buf, clientID)
 
-	writeQString(buf, targetMode) // "" → null (0xFFFFFFFF) = no change; "FT4"/"FT8" = switch mode
-	writeUint32(buf, 0xFFFFFFFF)  // FrequencyTolerance: no change
-	writeQString(buf, "")         // SubMode: null = no change
-	writeBool(buf, false)         // FastMode: false for FT8 and FT4
-	writeUint32(buf, trPeriod)    // T/R period in ms; 0xFFFFFFFF = no change
-	writeUint32(buf, 0xFFFFFFFF)  // RxDF: no change
+	writeQString(buf, modeField)    // "" → null = no change; "FT4"/"FT8" = switch
+	writeUint32(buf, 0xFFFFFFFF)    // FrequencyTolerance: no change
+	writeQString(buf, subModeField) // "" → null = no change; ":" = FT4 on JTDX
+	writeBool(buf, false)           // FastMode: false for FT8 and FT4
+	writeUint32(buf, trPeriod)      // T/R period in ms; 0xFFFFFFFF = no change
+	writeUint32(buf, 0xFFFFFFFF)    // RxDF: no change
 
 	if clearDXCall {
 		writeQStringEmpty(buf) // 0x00000000 = explicitly clear DX call
