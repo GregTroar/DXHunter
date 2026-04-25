@@ -6,7 +6,7 @@
 - [ ] Log des QSO FTx effectués via autocall (callsign, bande, mode, heure) avec export ADIF
 - [ ] Mode Fox/Hound : détecter les décodes `F/H` et adapter l'autocall en conséquence
 - [ ] Alerte sonore quand une station de la watchlist est décodée
-- [ ] Statistiques autocall : taux de réussite, temps moyen par QSO
+- [x] Statistiques autocall : taux de réussite, temps moyen par QSO
 
 ## Cluster / Spots
 
