@@ -258,7 +258,7 @@ go build -ldflags="-H=windowsgui" -o FlexDXCluster.exe .
 
 ## Running
 
-Doanload the exe file in version
+Doanload the exe file in Releases
 
 ## License
 
