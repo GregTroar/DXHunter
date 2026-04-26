@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -42,6 +43,18 @@ type QSOStats struct {
 	Total     int `json:"total"`
 }
 
+type DXCCBandStatus struct {
+	Band  string   `json:"band"`
+	Modes []string `json:"modes"`
+}
+
+type DXCCHuntEntry struct {
+	DXCC    string           `json:"dxcc"`
+	Country string           `json:"country"`
+	Bands   []DXCCBandStatus `json:"bands"`
+	Total   int              `json:"total"` // total QSOs for this DXCC
+}
+
 // LogbookProvider is the interface that any logbook backend must implement.
 // Add a new file (e.g. hrd.go, wavelog.go) with a struct satisfying this interface.
 type LogbookProvider interface {
@@ -61,6 +74,7 @@ type LogbookProvider interface {
 	GetWorkedCallsignsBandModeToday(callsigns []string, band string, mode string) map[string]bool
 	GetCallsignBandModes(callsign string) CallsignBandModeInfo
 	HasWorkedCallsignBandMode(callsign, band, mode string) bool
+	GetHuntStatus() []DXCCHuntEntry
 	Close()
 }
 
@@ -452,6 +466,80 @@ func (r *Log4OMContactsRepository) GetDXCCCount() int {
 		return 0
 	}
 	return count
+}
+
+func (r *Log4OMContactsRepository) GetHuntStatus() []DXCCHuntEntry {
+	rows, err := r.db.Query(`
+		SELECT UPPER(TRIM(dxcc)), MAX(TRIM(country)), UPPER(TRIM(band)), UPPER(TRIM(mode)), COUNT(*)
+		FROM log
+		WHERE TRIM(dxcc) != '' AND dxcc IS NOT NULL AND dxcc != '0'
+		  AND TRIM(band) != '' AND band IS NOT NULL
+		  AND TRIM(mode) != '' AND mode IS NOT NULL
+		GROUP BY UPPER(TRIM(dxcc)), UPPER(TRIM(band)), UPPER(TRIM(mode))
+		ORDER BY MAX(TRIM(country)), UPPER(TRIM(band))
+	`)
+	if err != nil {
+		r.Log.Errorf("GetHuntStatus: %v", err)
+		return nil
+	}
+	defer rows.Close()
+
+	type dxccData struct {
+		country string
+		bands   map[string]map[string]bool // band → set of modes
+		total   int
+	}
+
+	entries := make(map[string]*dxccData)
+	order := []string{}
+
+	for rows.Next() {
+		var dxcc, country, band, mode string
+		var cnt int
+		if err := rows.Scan(&dxcc, &country, &band, &mode, &cnt); err != nil {
+			continue
+		}
+		if dxcc == "" || dxcc == "0" {
+			continue
+		}
+		if _, ok := entries[dxcc]; !ok {
+			entries[dxcc] = &dxccData{country: country, bands: make(map[string]map[string]bool)}
+			order = append(order, dxcc)
+		}
+		e := entries[dxcc]
+		if e.country == "" {
+			e.country = country
+		}
+		if _, ok := e.bands[band]; !ok {
+			e.bands[band] = make(map[string]bool)
+		}
+		e.bands[band][mode] = true
+		e.total += cnt
+	}
+
+	result := make([]DXCCHuntEntry, 0, len(entries))
+	for _, dxcc := range order {
+		e := entries[dxcc]
+		bandStatuses := make([]DXCCBandStatus, 0, len(e.bands))
+		for band, modes := range e.bands {
+			modeList := make([]string, 0, len(modes))
+			for m := range modes {
+				modeList = append(modeList, m)
+			}
+			sort.Strings(modeList)
+			bandStatuses = append(bandStatuses, DXCCBandStatus{Band: band, Modes: modeList})
+		}
+		sort.Slice(bandStatuses, func(i, j int) bool {
+			return bandStatuses[i].Band < bandStatuses[j].Band
+		})
+		result = append(result, DXCCHuntEntry{
+			DXCC:    dxcc,
+			Country: e.country,
+			Bands:   bandStatuses,
+			Total:   e.total,
+		})
+	}
+	return result
 }
 
 func (r *Log4OMContactsRepository) GetWorkedCallsignsBandMode(callsigns []string, band string, mode string) map[string]bool {

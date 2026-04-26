@@ -37,6 +37,7 @@
   let logStats = { today: 0, thisWeek: 0, thisMonth: 0, total: 0 };
   
   let dxccProgress = { worked: 0, total: 340, percentage: 0 };
+  let huntStatus = [];
   let activations = [];
   let dxwNews = [];
   let solarData = { sfi: 'N/A', sunspots: 'N/A', aIndex: 'N/A', kIndex: 'N/A' };
@@ -504,6 +505,9 @@ function applyFilters(allSpots, filters, wl) {
         logs = message.data || [];
         break;
       
+      case 'huntStatus':
+        huntStatus = message.data || [];
+        break;
       case 'dxccProgress':
         dxccProgress = message.data || { worked: 0, total: 340, percentage: 0 };
         break;
@@ -903,6 +907,7 @@ async function shutdownApp() {
         {recentQSOs}
         {logStats}
         {dxccProgress}
+        {huntStatus}
         {activations}
         {dxwNews}
         {logs}
