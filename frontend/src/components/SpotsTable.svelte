@@ -1,5 +1,5 @@
 <script>
-  import { createEventDispatcher, onMount, onDestroy } from 'svelte';
+  import { createEventDispatcher } from 'svelte';
   import VirtualList from 'svelte-virtual-list';
 
   export let spots;
@@ -10,25 +10,6 @@
 
   let container;
   const itemHeight = 43;
-
-  // ─── Age indicator ──────────────────────────────────────────────────────────
-  let _now = Math.floor(Date.now() / 1000);
-  let _ageTimer;
-  onMount(()   => { _ageTimer = setInterval(() => { _now = Math.floor(Date.now() / 1000); }, 30000); });
-  onDestroy(() => clearInterval(_ageTimer));
-
-  function ageBarStyle(spot) {
-    void _now; // reactive dependency
-    const max = parseInt(spot.LifeTime) || 600;
-    const age = _now - (spot.TimeStamp || 0);
-    const pct = Math.max(0, Math.min(100, (1 - age / max) * 100));
-    let color;
-    if      (age < 120) color = '#22c55e'; // green  — < 2 min
-    else if (age < 300) color = '#eab308'; // yellow — 2–5 min
-    else if (age < 480) color = '#f97316'; // orange — 5–8 min
-    else                color = '#ef4444'; // red    — > 8 min
-    return `width:${pct.toFixed(1)}%;background-color:${color};`;
-  }
 
   // ─── Tri colonnes ───────────────────────────────────────────
   let sortCol = '';   // 'DX' | 'Country' | 'Mode' | ''
@@ -159,8 +140,7 @@
   <!-- Liste virtualisée -->
   <div class="flex-1 overflow-hidden" bind:this={container}>
     <VirtualList items={sortedSpots} {itemHeight} let:item>
-      <div class="relative flex border-b border-slate-700/30 hover:bg-slate-700/30 transition-colors text-sm" style="height: {itemHeight}px;">
-        <div class="absolute bottom-0 left-0 h-[2px]" style={ageBarStyle(item)}></div>
+      <div class="flex border-b border-slate-700/30 hover:bg-slate-700/30 transition-colors text-sm" style="height: {itemHeight}px;">
         <div class="p-2 flex items-center gap-1" style="width: 10%;">
           <div class="flex-1 flex items-center gap-0.5 min-w-0">
             <button
