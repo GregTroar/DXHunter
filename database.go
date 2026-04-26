@@ -470,13 +470,13 @@ func (r *Log4OMContactsRepository) GetDXCCCount() int {
 
 func (r *Log4OMContactsRepository) GetHuntStatus() []DXCCHuntEntry {
 	rows, err := r.db.Query(`
-		SELECT UPPER(TRIM(dxcc)), MAX(TRIM(country)), UPPER(TRIM(band)), UPPER(TRIM(mode)), COUNT(*)
+		SELECT dxcc, MAX(country), band, mode, COUNT(*)
 		FROM log
-		WHERE TRIM(dxcc) != '' AND dxcc IS NOT NULL AND dxcc != '0'
-		  AND TRIM(band) != '' AND band IS NOT NULL
-		  AND TRIM(mode) != '' AND mode IS NOT NULL
-		GROUP BY UPPER(TRIM(dxcc)), UPPER(TRIM(band)), UPPER(TRIM(mode))
-		ORDER BY MAX(TRIM(country)), UPPER(TRIM(band))
+		WHERE dxcc IS NOT NULL AND dxcc != '' AND dxcc != 0
+		  AND band  IS NOT NULL AND band  != ''
+		  AND mode  IS NOT NULL AND mode  != ''
+		GROUP BY dxcc, band, mode
+		ORDER BY MAX(country), band
 	`)
 	if err != nil {
 		r.Log.Errorf("GetHuntStatus: %v", err)
@@ -499,7 +499,11 @@ func (r *Log4OMContactsRepository) GetHuntStatus() []DXCCHuntEntry {
 		if err := rows.Scan(&dxcc, &country, &band, &mode, &cnt); err != nil {
 			continue
 		}
-		if dxcc == "" || dxcc == "0" {
+		dxcc = strings.ToUpper(strings.TrimSpace(dxcc))
+		band = strings.ToUpper(strings.TrimSpace(band))
+		mode = strings.ToUpper(strings.TrimSpace(mode))
+		country = strings.TrimSpace(country)
+		if dxcc == "" || dxcc == "0" || band == "" || mode == "" {
 			continue
 		}
 		if _, ok := entries[dxcc]; !ok {
