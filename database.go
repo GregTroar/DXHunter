@@ -470,19 +470,20 @@ func (r *Log4OMContactsRepository) GetDXCCCount() int {
 
 func (r *Log4OMContactsRepository) GetHuntStatus() []DXCCHuntEntry {
 	rows, err := r.db.Query(`
-		SELECT dxcc, MAX(country), band, mode, COUNT(*)
+		SELECT dxcc, COALESCE(MAX(country), ''), band, mode, COUNT(*)
 		FROM log
-		WHERE dxcc IS NOT NULL AND dxcc != '' AND dxcc != 0
-		  AND band  IS NOT NULL AND band  != ''
-		  AND mode  IS NOT NULL AND mode  != ''
+		WHERE dxcc != 0
+		  AND band != ''
+		  AND mode != ''
 		GROUP BY dxcc, band, mode
 		ORDER BY MAX(country), band
 	`)
 	if err != nil {
-		r.Log.Errorf("GetHuntStatus: %v", err)
+		r.Log.Errorf("GetHuntStatus query error: %v", err)
 		return nil
 	}
 	defer rows.Close()
+	r.Log.Info("GetHuntStatus: query executed OK, scanning rows...")
 
 	type dxccData struct {
 		country string
@@ -493,17 +494,24 @@ func (r *Log4OMContactsRepository) GetHuntStatus() []DXCCHuntEntry {
 	entries := make(map[string]*dxccData)
 	order := []string{}
 
+	rowCount := 0
 	for rows.Next() {
-		var dxcc, country, band, mode string
+		var dxccInt int
+		var country, band, mode string
 		var cnt int
-		if err := rows.Scan(&dxcc, &country, &band, &mode, &cnt); err != nil {
+		if err := rows.Scan(&dxccInt, &country, &band, &mode, &cnt); err != nil {
+			r.Log.Errorf("GetHuntStatus scan: %v", err)
 			continue
 		}
-		dxcc = strings.ToUpper(strings.TrimSpace(dxcc))
+		if rowCount == 0 {
+			r.Log.Infof("GetHuntStatus first row: dxcc=%d country=%q band=%q mode=%q cnt=%d", dxccInt, country, band, mode, cnt)
+		}
+		rowCount++
+		dxcc := fmt.Sprintf("%d", dxccInt)
 		band = strings.ToUpper(strings.TrimSpace(band))
 		mode = strings.ToUpper(strings.TrimSpace(mode))
 		country = strings.TrimSpace(country)
-		if dxcc == "" || dxcc == "0" || band == "" || mode == "" {
+		if dxccInt == 0 || band == "" || mode == "" {
 			continue
 		}
 		if _, ok := entries[dxcc]; !ok {
@@ -521,6 +529,10 @@ func (r *Log4OMContactsRepository) GetHuntStatus() []DXCCHuntEntry {
 		e.total += cnt
 	}
 
+	if err := rows.Err(); err != nil {
+		r.Log.Errorf("GetHuntStatus rows.Err: %v", err)
+	}
+	r.Log.Infof("GetHuntStatus: scanned %d rows → %d DXCC entries", rowCount, len(entries))
 	result := make([]DXCCHuntEntry, 0, len(entries))
 	for _, dxcc := range order {
 		e := entries[dxcc]

@@ -14,6 +14,7 @@
   export let recentQSOs;
   export let logStats;
   export let dxccProgress;
+  export let huntStatus = [];
   export let activations = [];
   export let showOnlyActive = true;
   export let showOnlyNotWorked = true;
@@ -120,7 +121,7 @@
     {:else if activeTab === 'dxworld'}
       <DXWorldTab news={dxwNews} />
     {:else if activeTab === 'log'}
-      <LogTab {recentQSOs} {logStats} {dxccProgress} />
+      <LogTab {recentQSOs} {logStats} {dxccProgress} {huntStatus} />
     {:else if activeTab === 'console'}
       <ConsoleTab
         {wsStatus}
