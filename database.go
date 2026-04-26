@@ -42,6 +42,28 @@ type QSOStats struct {
 	Total     int `json:"total"`
 }
 
+// LogbookProvider is the interface that any logbook backend must implement.
+// Add a new file (e.g. hrd.go, wavelog.go) with a struct satisfying this interface.
+type LogbookProvider interface {
+	CountEntries() int
+	ListAll() []Contact
+	ListByCountrySync(countryID string) []Contact
+	ListByCountry(countryID string, contactsChan chan []Contact, wg *sync.WaitGroup)
+	ListByCountryMode(countryID string, mode string, contactsModeChan chan []Contact, wg *sync.WaitGroup)
+	ListByCountryModeBand(countryID string, band string, mode string, contactsModeBandChan chan []Contact, wg *sync.WaitGroup)
+	ListByCountryBand(countryID string, band string, contactsBandChan chan []Contact, wg *sync.WaitGroup)
+	ListByCallSign(callSign string, band string, mode string, contactsCallChan chan []Contact, wg *sync.WaitGroup)
+	GetRecentQSOs(limit string) []QSO
+	GetQSOStats() QSOStats
+	GetDXCCCount() int
+	GetWorkedCallsignsBandMode(callsigns []string, band string, mode string) map[string]bool
+	HasWorkedCallsignToday(callsign, band, mode string) bool
+	GetWorkedCallsignsBandModeToday(callsigns []string, band string, mode string) map[string]bool
+	GetCallsignBandModes(callsign string) CallsignBandModeInfo
+	HasWorkedCallsignBandMode(callsign, band, mode string) bool
+	Close()
+}
+
 type Log4OMContactsRepository struct {
 	db  *sql.DB
 	Log *log.Logger
@@ -52,7 +74,7 @@ type FlexDXClusterRepository struct {
 	Log *log.Logger
 }
 
-func NewLog4OMContactsRepository(filePath string) *Log4OMContactsRepository {
+func NewLog4OMContactsRepository(filePath string) LogbookProvider {
 
 	if Cfg.Database.MySQL {
 		db, err := sql.Open("mysql", Cfg.Database.MySQLUser+":"+Cfg.Database.MySQLPassword+"@tcp("+Cfg.Database.MySQLHost+":"+Cfg.Database.MySQLPort+")/"+Cfg.Database.MySQLDbName)
@@ -153,6 +175,12 @@ func NewFlexDXDatabase(filePath string) *FlexDXClusterRepository {
 	return &FlexDXClusterRepository{
 		db:  db,
 		Log: Log,
+	}
+}
+
+func (r *Log4OMContactsRepository) Close() {
+	if r.db != nil {
+		r.db.Close()
 	}
 }
 

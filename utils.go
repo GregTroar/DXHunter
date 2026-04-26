@@ -8,7 +8,7 @@ import (
 	"syscall"
 )
 
-func CheckSignal(tcpClients []*TCPClient, tcpServer *TCPServer, flexClient *FlexClient, flexRepo *FlexDXClusterRepository, contactRepo *Log4OMContactsRepository) {
+func CheckSignal(tcpClients []*TCPClient, tcpServer *TCPServer, flexClient *FlexClient, flexRepo *FlexDXClusterRepository, contactRepo LogbookProvider) {
 	sigchan := make(chan os.Signal, 1)
 	signal.Notify(sigchan, os.Interrupt, syscall.SIGTERM)
 

@@ -32,7 +32,7 @@ var writeMutex sync.Mutex
 type HTTPServer struct {
 	Router          *mux.Router
 	FlexRepo        *FlexDXClusterRepository
-	ContactRepo     *Log4OMContactsRepository
+	ContactRepo     LogbookProvider
 	TCPServer       *TCPServer
 	TCPClients      []*TCPClient
 	FlexClient      *FlexClient
@@ -236,7 +236,7 @@ var upgrader = websocket.Upgrader{
 // CONSTRUCTOR & SETUP
 // ============================================================================
 
-func NewHTTPServer(flexRepo *FlexDXClusterRepository, contactRepo *Log4OMContactsRepository,
+func NewHTTPServer(flexRepo *FlexDXClusterRepository, contactRepo LogbookProvider,
 	tcpServer *TCPServer, tcpClients []*TCPClient, flexClient *FlexClient, port string, configPath string, consoleChan chan string) *HTTPServer {
 
 	server := &HTTPServer{

@@ -124,7 +124,7 @@ type logCache struct {
 	loaded  bool
 }
 
-func (lc *logCache) load(repo *Log4OMContactsRepository) {
+func (lc *logCache) load(repo LogbookProvider) {
 	if repo == nil {
 		return
 	}
@@ -156,7 +156,7 @@ func (lc *logCache) byDXCCContacts(dxcc string) []Contact {
 
 // FTxService manages the UDP listener and status state.
 type FTxService struct {
-	contactRepo *Log4OMContactsRepository
+	contactRepo LogbookProvider
 	broadcast   chan WSMessage
 	lc          *logCache
 
@@ -183,7 +183,7 @@ type FTxService struct {
 	deduSeen map[string]struct{}
 }
 
-func NewFTxService(contactRepo *Log4OMContactsRepository, broadcast chan WSMessage) *FTxService {
+func NewFTxService(contactRepo LogbookProvider, broadcast chan WSMessage) *FTxService {
 	lc := &logCache{byDXCC: make(map[string][]Contact)}
 	go lc.load(contactRepo) // async so startup isn't blocked
 	return &FTxService{
@@ -743,9 +743,10 @@ func (f *FTxService) checkLogStatus(callsign, dxcc, band, mode string) (newDXCC,
 }
 
 // SendReply sends a WSJT-X "Reply" message (type 4) back to the source app.
-func (f *FTxService) SendReply(decode FTxDecode, clientID string) error {
+func (f *FTxService) SendReply(decode FTxDecode, _ string) error {
 	f.mu.RLock()
 	src := f.sourceAddr
+	id := f.clientID // always echo the ID captured from the app's own packets
 	f.mu.RUnlock()
 
 	if src == nil {
@@ -762,7 +763,7 @@ func (f *FTxService) SendReply(decode FTxDecode, clientID string) error {
 	writeUint32(buf, wsjtxMagic)
 	writeUint32(buf, wsjtxSchema)
 	writeUint32(buf, msgReply)
-	writeQString(buf, clientID)
+	writeQString(buf, id)
 
 	// Reconstruct time ms from "HHmmss"
 	writeUint32(buf, parseTimeToMs(decode.Time))
@@ -780,9 +781,10 @@ func (f *FTxService) SendReply(decode FTxDecode, clientID string) error {
 
 // HaltTX sends a WSJT-X "Halt TX" message (type 8).
 // autoOnly: true = only halt if auto-sequence is active, false = halt immediately.
-func (f *FTxService) HaltTX(clientID string, autoOnly bool) error {
+func (f *FTxService) HaltTX(_ string, autoOnly bool) error {
 	f.mu.RLock()
 	src := f.sourceAddr
+	id := f.clientID
 	f.mu.RUnlock()
 	if src == nil {
 		return fmt.Errorf("no source address known yet")
@@ -797,7 +799,7 @@ func (f *FTxService) HaltTX(clientID string, autoOnly bool) error {
 	writeUint32(buf, wsjtxMagic)
 	writeUint32(buf, wsjtxSchema)
 	writeUint32(buf, msgHaltTX)
-	writeQString(buf, clientID)
+	writeQString(buf, id)
 	writeBool(buf, autoOnly)
 
 	_, err = conn.Write(buf.Bytes())
@@ -807,9 +809,10 @@ func (f *FTxService) HaltTX(clientID string, autoOnly bool) error {
 // HighlightCallsign sends a WSJT-X "Highlight Callsign" message (type 13).
 // Passing empty colors clears the highlight. Set last = true to highlight
 // the last compound callsign only.
-func (f *FTxService) HighlightCallsign(clientID, callsign string, bgColor, fgColor [4]uint8, highlight bool) error {
+func (f *FTxService) HighlightCallsign(_, callsign string, bgColor, fgColor [4]uint8, highlight bool) error {
 	f.mu.RLock()
 	src := f.sourceAddr
+	id := f.clientID
 	f.mu.RUnlock()
 	if src == nil {
 		return fmt.Errorf("no source address known yet")
@@ -824,7 +827,7 @@ func (f *FTxService) HighlightCallsign(clientID, callsign string, bgColor, fgCol
 	writeUint32(buf, wsjtxMagic)
 	writeUint32(buf, wsjtxSchema)
 	writeUint32(buf, msgHighlight)
-	writeQString(buf, clientID)
+	writeQString(buf, id)
 	writeQString(buf, callsign)
 	writeQColor(buf, bgColor)
 	writeQColor(buf, fgColor)

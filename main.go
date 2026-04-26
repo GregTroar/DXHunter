@@ -37,7 +37,7 @@ func ParseFlags() (string, bool, error) {
 	return configPath, false, nil
 }
 
-func GracefulShutdown(tcpClients []*TCPClient, tcpServer *TCPServer, flexClient *FlexClient, flexRepo *FlexDXClusterRepository, contactRepo *Log4OMContactsRepository) {
+func GracefulShutdown(tcpClients []*TCPClient, tcpServer *TCPServer, flexClient *FlexClient, flexRepo *FlexDXClusterRepository, contactRepo LogbookProvider) {
 	Log.Info("Starting graceful shutdown...")
 
 	for _, client := range tcpClients {
@@ -51,8 +51,8 @@ func GracefulShutdown(tcpClients []*TCPClient, tcpServer *TCPServer, flexClient 
 	if flexRepo != nil && flexRepo.db != nil {
 		flexRepo.db.Close()
 	}
-	if contactRepo != nil && contactRepo.db != nil {
-		contactRepo.db.Close()
+	if contactRepo != nil {
+		contactRepo.Close()
 	}
 
 	Log.Info("Shutdown complete")
@@ -124,7 +124,7 @@ func main() {
 
 	// Database connection to Log4OM
 	cRepo := NewLog4OMContactsRepository(Cfg.SQLite.SQLitePath)
-	defer cRepo.db.Close()
+	defer cRepo.Close()
 	contacts := cRepo.CountEntries()
 	log.Infof("Log4OM Database Contains %v Contacts", contacts)
 

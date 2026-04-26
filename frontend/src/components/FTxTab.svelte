@@ -205,6 +205,10 @@
   let autoCallStoppedCall  = '';     // which call triggered the stop
   let acStats              = { attempts: 0, successes: 0, totalMs: 0 };
   let acCallStartTime      = null;   // Date.now() when current QSO call started
+  // Callsigns worked this session — excluded from auto-pick until enrichment updates.
+  // Prevents MSHV "already logged" dialog caused by re-selecting a just-worked station
+  // before Log4OM cache refreshes (typically within 30s).
+  let recentlyWorked       = new Set();
 
   $: acSuccessRate = acStats.attempts > 0 ? Math.round(acStats.successes / acStats.attempts * 100) : null;
   $: acAvgSeconds  = acStats.successes  > 0 ? Math.round(acStats.totalMs  / acStats.successes  / 1000) : null;
@@ -228,6 +232,7 @@
   function acCallerToMe(decodes) {
     return decodes.find(d =>
       d.myCall && d.dxCall && !d.isCQ &&
+      !recentlyWorked.has((d.dxCall || '').toUpperCase()) &&
       !acQSOComplete([d], d.dxCall)
     ) || null;
   }
@@ -257,7 +262,7 @@
   // Best candidate: highest priority → watchlist first → highest SNR
   function acBestCandidate(decodes) {
     const wlUC = new Set(watchlist.map(w => w.callsign?.toUpperCase()).filter(Boolean));
-    const eligible = decodes.filter(d => acPriority(d) > 0);
+    const eligible = decodes.filter(d => acPriority(d) > 0 && !recentlyWorked.has((d.dxCall || '').toUpperCase()));
     if (!eligible.length) return null;
     eligible.sort((a, b) => {
       const pd = acPriority(b) - acPriority(a);
@@ -332,6 +337,7 @@
     _acNeedRerun         = false;
     acStats              = { attempts: 0, successes: 0, totalMs: 0 };
     acCallStartTime      = null;
+    recentlyWorked       = new Set();
   }
 
   // Trigger strategy:
@@ -401,6 +407,7 @@
             const wasInMiss = autoCallMissed > 0;
             autoCallMissed = 0;
             if (acQSOComplete(decodes, targetUC)) {
+              recentlyWorked.add(targetUC);
               autoCallTarget   = null;
               autoCallAttempts = 0;
               action = { type: 'clearDXCall' };
@@ -466,6 +473,7 @@
             const wasInMiss = autoCallMissed > 0;
             autoCallMissed = 0;
             if (acQSOComplete(decodes, targetUC)) {
+              recentlyWorked.add(targetUC);
               autoCallTarget       = null;
               autoCallAttempts     = 0;
               autoCallManualLocked = false;

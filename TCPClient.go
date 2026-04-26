@@ -61,7 +61,7 @@ type TCPClient struct {
 	LoginRe              *regexp.Regexp
 	PasswordRe           *regexp.Regexp
 	ClusterType          string
-	ContactRepo          *Log4OMContactsRepository
+	ContactRepo          LogbookProvider
 	ctx                  context.Context
 	cancel               context.CancelFunc
 	reconnectAttempts    int
@@ -70,7 +70,7 @@ type TCPClient struct {
 	maxReconnectDelay    time.Duration
 }
 
-func NewTCPClient(TCPServer *TCPServer, clusterCfg ClusterConfig, contactRepo *Log4OMContactsRepository, spotChanToHTTPServer chan TelnetSpot, consoleChan chan string) *TCPClient {
+func NewTCPClient(TCPServer *TCPServer, clusterCfg ClusterConfig, contactRepo LogbookProvider, spotChanToHTTPServer chan TelnetSpot, consoleChan chan string) *TCPClient {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	return &TCPClient{

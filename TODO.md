@@ -22,7 +22,7 @@
 - [ ] Vue carte (Leaflet) : positionner les spots sur une carte avec les grilles Maidenhead
 - [ ] Raccourcis clavier (ex : Espace = tune, H = Halt TX, etc.)
 - [x] Thème clair / sombre commutable
-- [ ] Ajouter un pop up au premier demarrage pour creer le fichier config ainsi que demander les informations principales necessaires au fonctionnement du logiciel (Call, Locator, Flex, Log4OM Db etc..),par defaut 2 clusters: f4bpo.cluster.com 7300 (Master) et le pota-cluster.iz2lsc.eu 7373, bien sur si config non detecte ne rien lancer (flex, log4om, cluster etc..)
+- [x] Ajouter un pop up au premier demarrage pour creer le fichier config ainsi que demander les informations principales necessaires au fonctionnement du logiciel (Call, Locator, Flex, Log4OM Db etc..),par defaut 2 clusters: f4bpo.cluster.com 7300 (Master) et le pota-cluster.iz2lsc.eu 7373, bien sur si config non detecte ne rien lancer (flex, log4om, cluster etc..)
 
 ## Notifications
 
