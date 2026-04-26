@@ -372,6 +372,9 @@ func (s *HTTPServer) setupRoutes() {
 
 	api := s.Router.PathPrefix("/api").Subrouter()
 
+	// Setup
+	api.HandleFunc("/setup-required", s.handleSetupRequired).Methods("GET", "OPTIONS")
+
 	// Config
 	api.HandleFunc("/config", s.getConfigAPI).Methods("GET", "OPTIONS")
 	api.HandleFunc("/config", s.saveConfigAPI).Methods("POST", "OPTIONS")
@@ -450,6 +453,11 @@ func (s *HTTPServer) sendSuccess(w http.ResponseWriter, data interface{}, messag
 func (s *HTTPServer) sendJSON(w http.ResponseWriter, data interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(data)
+}
+
+func (s *HTTPServer) handleSetupRequired(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]bool{"required": false})
 }
 
 // isClusterConnected vérifie si le client TCP est connecté

@@ -13,7 +13,7 @@
 - [ ] Filtre bande dans la table des spots (clic sur 20m pour n'afficher que 20m)
 - [ ] Indicateur d'âge visuel des spots (barre ou couleur qui s'estompe avec le temps)
 - [ ] Données de propagation en temps réel dans la sidebar : SFI, A-index, K-index (API DXHeat ou HamQTH)
-- [ ] Greyline indicator — visualiser si une bande est ouverte vers une direction donnée
+- [x] Greyline indicator — visualiser si une bande est ouverte vers une direction donnée
 - [ ] Poster un spot manuellement (formulaire DX / fréquence / mode / commentaire)
 
 ## Interface générale

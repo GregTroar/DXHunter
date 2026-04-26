@@ -11,8 +11,12 @@
   import { spotCache } from './lib/spotCache.js';
   import StatsCards from './components/StatsCards.svelte';
   import SettingsPanel from './components/SettingsPanel.svelte';
+  import SetupWizard from './components/SetupWizard.svelte';
 
   
+  // Setup wizard
+  let setupRequired = false;
+
   // State
   let spots = [];
   let filteredSpots = [];
@@ -707,6 +711,24 @@ async function shutdownApp() {
 }
   
   onMount(async () => {
+    // Check if first-run setup is required
+    try {
+      console.log('[setup] fetching /api/setup-required...');
+      const r = await fetch('/api/setup-required');
+      console.log('[setup] status:', r.status, r.headers.get('content-type'));
+      const text = await r.text();
+      console.log('[setup] body:', text);
+      const d = JSON.parse(text);
+      if (d.required) {
+        console.log('[setup] required=true, showing wizard');
+        setupRequired = true;
+        return;
+      }
+      console.log('[setup] required=false, normal mode');
+    } catch (e) {
+      console.error('[setup] fetch failed:', e);
+    }
+
     // ✅ Initialiser IndexedDB
     try {
       await spotCache.init();
@@ -794,7 +816,11 @@ async function shutdownApp() {
 </script>
 
 <div class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white min-h-screen p-2">
-  
+
+  {#if setupRequired}
+    <SetupWizard />
+  {/if}
+
   {#if errorMessage}
     <ErrorBanner message={errorMessage} on:close={() => errorMessage = ''} />
   {/if}
@@ -893,4 +919,5 @@ async function shutdownApp() {
       />
     </div>
   </div>
+
 </div>

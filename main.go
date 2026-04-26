@@ -10,7 +10,7 @@ import (
 
 var Mutex sync.Mutex
 
-func ParseFlags() (string, error) {
+func ParseFlags() (string, bool, error) {
 	// String that contains the configured configuration path
 	var configPath string
 
@@ -24,13 +24,17 @@ func ParseFlags() (string, error) {
 	// Actually parse the flags
 	flag.Parse()
 
-	// Validate the path first
+	// Check if config exists — missing config triggers first-run setup wizard
 	if err := ValidateConfigPath(configPath); err != nil {
-		return "", err
+		// File doesn't exist: setup required (not a fatal error)
+		if os.IsNotExist(err) {
+			return configPath, true, nil
+		}
+		return "", false, err
 	}
 
 	// Return the configuration path
-	return configPath, nil
+	return configPath, false, nil
 }
 
 func GracefulShutdown(tcpClients []*TCPClient, tcpServer *TCPServer, flexClient *FlexClient, flexRepo *FlexDXClusterRepository, contactRepo *Log4OMContactsRepository) {
@@ -59,9 +63,13 @@ func main() {
 
 	// Generate our config based on the config supplied
 	// by the user in the flags
-	cfgPath, err := ParseFlags()
+	cfgPath, setupRequired, err := ParseFlags()
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	if setupRequired {
+		runSetupMode(cfgPath)
 	}
 
 	NewConfig(cfgPath)
