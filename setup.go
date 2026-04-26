@@ -13,11 +13,12 @@ import (
 )
 
 type SetupRequest struct {
-	Callsign   string            `json:"callsign"`
-	Grid       string            `json:"grid"`
-	FlexIP     string            `json:"flexIP"`
-	SQLitePath string            `json:"sqlitePath"`
-	Clusters   []SetupClusterDTO `json:"clusters"`
+	Callsign    string            `json:"callsign"`
+	Grid        string            `json:"grid"`
+	FlexIP      string            `json:"flexIP"`
+	SQLitePath  string            `json:"sqlitePath"`
+	LogbookType string            `json:"logbookType"`
+	Clusters    []SetupClusterDTO `json:"clusters"`
 }
 
 type SetupClusterDTO struct {
@@ -113,6 +114,7 @@ func (s *SetupServer) handleSetup(w http.ResponseWriter, r *http.Request) {
 	cfg.Flex.IP = strings.TrimSpace(req.FlexIP)
 	cfg.Flex.Discover = req.FlexIP == ""
 	cfg.Database.SQLite = true
+	cfg.Database.LogbookType = req.LogbookType
 	cfg.SQLite.SQLitePath = strings.TrimSpace(req.SQLitePath)
 	cfg.TelnetServer.Host = "0.0.0.0"
 	cfg.TelnetServer.Port = "7300"

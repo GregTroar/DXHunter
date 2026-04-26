@@ -6,6 +6,7 @@
   let grid = '';
   let flexIP = '';
   let sqlitePath = '';
+  let logbookType = 'log4om';
 
   let clusters = [
     { name: 'F4BPO Cluster', server: 'cluster.f4bpo.com', port: '7300', enabled: true, master: true },
@@ -48,6 +49,7 @@
           grid: grid.toUpperCase().trim(),
           flexIP: flexIP.trim(),
           sqlitePath: sqlitePath.trim(),
+          logbookType: logbookType,
           clusters: clusters
             .filter(c => c.server.trim() !== '')
             .map(c => ({ ...c, server: c.server.trim(), port: c.port.trim() || '7300' })),
@@ -187,19 +189,33 @@
         </div>
 
       {:else if step === 3}
-        <h3 class="text-sm font-semibold text-slate-200 mb-4">Log4OM Database</h3>
+        <h3 class="text-sm font-semibold text-slate-200 mb-4">Logbook Database</h3>
         <div class="space-y-4">
           <div>
-            <label for="setup-sqlite" class="block text-xs text-slate-400 mb-1">Log4OM SQLite Database Path</label>
+            <label for="setup-logbook-type" class="block text-xs text-slate-400 mb-1">Logbook Software</label>
+            <select
+              id="setup-logbook-type"
+              bind:value={logbookType}
+              class="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+              <option value="log4om">Log4OM 2</option>
+              <option value="hrd">Ham Radio Deluxe Logbook</option>
+            </select>
+          </div>
+          <div>
+            <label for="setup-sqlite" class="block text-xs text-slate-400 mb-1">
+              {logbookType === 'hrd' ? 'HRD SQLite Database Path (.hrdsql)' : 'Log4OM SQLite Database Path'}
+            </label>
             <input
               id="setup-sqlite"
               type="text"
-              placeholder="e.g. C:\Users\You\Documents\Log4OM2\Log4OM2.sqlite"
+              placeholder={logbookType === 'hrd'
+                ? 'e.g. C:\\Users\\You\\Documents\\HRD Logbook\\logbook.hrdsql'
+                : 'e.g. C:\\Users\\You\\Documents\\Log4OM2\\Log4OM2.sqlite'}
               bind:value={sqlitePath}
               class="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
             />
             <p class="text-xs text-slate-500 mt-1">
-              Leave empty if you don't use Log4OM. Can be configured later in Settings.
+              Leave empty to skip logbook integration. Can be configured later in config.yml.
             </p>
           </div>
         </div>

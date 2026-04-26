@@ -39,6 +39,7 @@
   
   let dxccProgress = { worked: 0, total: 340, percentage: 0 };
   let huntStatus = [];
+  let logbookType = '';
   let activations = [];
   let dxwNews = [];
   let solarData = { sfi: 'N/A', sunspots: 'N/A', aIndex: 'N/A', kIndex: 'N/A' };
@@ -509,6 +510,9 @@ function applyFilters(allSpots, filters, wl) {
       case 'huntStatus':
         huntStatus = message.data || [];
         break;
+      case 'logbookType':
+        logbookType = message.data || '';
+        break;
       case 'dxccProgress':
         dxccProgress = message.data || { worked: 0, total: 340, percentage: 0 };
         break;
@@ -917,6 +921,7 @@ async function shutdownApp() {
         {logStats}
         {dxccProgress}
         {huntStatus}
+        {logbookType}
         {activations}
         {dxwNews}
         {logs}

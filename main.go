@@ -122,11 +122,16 @@ func main() {
 		log.Infof("POTA cache initialized at %s", potaCachePath)
 	}
 
-	// Database connection to Log4OM
-	cRepo := NewLog4OMContactsRepository(Cfg.SQLite.SQLitePath)
-	defer cRepo.Close()
-	contacts := cRepo.CountEntries()
-	log.Infof("Log4OM Database Contains %v Contacts", contacts)
+	// Logbook database connection (Log4OM SQLite, HRD SQLite, or MySQL)
+	var cRepo LogbookProvider
+	if Cfg.Database.LogbookType == "hrd" {
+		cRepo = NewHRDContactsRepository(Cfg.SQLite.SQLitePath)
+	} else {
+		cRepo = NewLog4OMContactsRepository(Cfg.SQLite.SQLitePath)
+	}
+	if cRepo != nil {
+		defer cRepo.Close()
+	}
 
 	// ✅ Créer le canal pour le traitement centralisé des spots
 	SpotChanToHTTPServer := make(chan TelnetSpot, 100)
@@ -161,6 +166,15 @@ func main() {
 	HTTPServer := NewHTTPServer(fRepo, cRepo, TCPServer, TCPClients, FlexClient, "8080", cfgPath, consoleChan)
 	InitLogHook()
 	log.Info("Running FlexDXCluster version 2.1")
+	if cRepo != nil {
+		if Cfg.Database.LogbookType == "hrd" {
+			log.Infof("Logbook: Ham Radio Deluxe — %d contacts", cRepo.CountEntries())
+		} else {
+			log.Infof("Logbook: Log4OM — %d contacts", cRepo.CountEntries())
+		}
+	} else {
+		log.Warn("Logbook: not connected — check sqlite_path in config.yml")
+	}
 
 	// Download LoTW user list in background
 	go LoadLoTWUsers()

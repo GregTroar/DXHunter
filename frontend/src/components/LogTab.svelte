@@ -2,11 +2,26 @@
   export let recentQSOs;
   export let logStats;
   export let dxccProgress;
+  export let logbookType = '';
 </script>
 
 <div class="h-full flex flex-col overflow-hidden">
   <div class="p-3 border-b border-slate-700/50 flex-shrink-0">
-    <h2 class="text-lg font-bold mb-3">Station Log</h2>
+    <div class="mb-3">
+      {#if logbookType === 'hrd'}
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30">
+          <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><circle cx="10" cy="10" r="10"/></svg>
+          Ham Radio Deluxe
+        </span>
+      {:else if logbookType === 'log4om'}
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-green-500/20 text-green-300 border border-green-500/30">
+          <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><circle cx="10" cy="10" r="10"/></svg>
+          Log4OM
+        </span>
+      {:else}
+        <h2 class="text-lg font-bold">Station Log</h2>
+      {/if}
+    </div>
 
     <div class="grid grid-cols-4 gap-2 mb-3">
       <div class="bg-slate-900/50 rounded p-2">
@@ -70,8 +85,9 @@
           </thead>
           <tbody>
             {#each recentQSOs as qso}
-              {@const date = qso.date ? new Date(qso.date.replace(' ', 'T')) : null}
-              {@const qsoDate = date ? date.toISOString().split('T')[0] : 'N/A'}
+              {@const _d = qso.date ? new Date(qso.date.replace(' ', 'T')) : null}
+              {@const date = _d && !isNaN(_d.getTime()) ? _d : null}
+              {@const qsoDate = date ? date.toISOString().split('T')[0] : (qso.date ? qso.date.slice(0,10) : 'N/A')}
               {@const qsoTime = date ? date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : 'N/A'}
 
               <tr class="border-b border-slate-700/30 hover:bg-slate-700/30 transition-colors">

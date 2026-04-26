@@ -100,6 +100,7 @@ type Config struct {
 	Database struct {
 		MySQL         bool   `yaml:"mysql"`
 		SQLite        bool   `yaml:"sqlite"`
+		LogbookType   string `yaml:"logbook_type"` // "log4om" (default) or "hrd"
 		MySQLUser     string `yaml:"mysql_db_user"`
 		MySQLPassword string `yaml:"mysql_db_password"`
 		MySQLDbName   string `yaml:"mysql_db_name"`

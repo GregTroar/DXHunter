@@ -693,26 +693,29 @@ func (s *HTTPServer) sendInitialData(conn *websocket.Conn) {
 	// Stats
 	s.safeWrite(conn, WSMessage{Type: "stats", Data: s.calculateStats()})
 
+	// Logbook type (so the UI can show the correct badge)
+	s.safeWrite(conn, WSMessage{Type: "logbookType", Data: Cfg.Database.LogbookType})
+
 	// Spots
 	s.safeWrite(conn, WSMessage{Type: "spots", Data: s.FlexRepo.GetAllSpots("0")})
 
 	// Watchlist
 	s.safeWrite(conn, WSMessage{Type: "watchlist", Data: s.Watchlist.GetAll()})
 
-	// Log data
-	s.safeWrite(conn, WSMessage{Type: "log", Data: s.ContactRepo.GetRecentQSOs("19")})
-	s.safeWrite(conn, WSMessage{Type: "logStats", Data: s.ContactRepo.GetQSOStats()})
+	// Log data (guarded — ContactRepo may be nil if no logbook is configured)
+	if s.ContactRepo != nil {
+		s.safeWrite(conn, WSMessage{Type: "log", Data: s.ContactRepo.GetRecentQSOs("19")})
+		s.safeWrite(conn, WSMessage{Type: "logStats", Data: s.ContactRepo.GetQSOStats()})
 
-	// DXCC Progress
-	dxccCount := s.ContactRepo.GetDXCCCount()
-	s.safeWrite(conn, WSMessage{Type: "dxccProgress", Data: map[string]interface{}{
-		"worked":     dxccCount,
-		"total":      340,
-		"percentage": float64(dxccCount) / 340.0 * 100.0,
-	}})
+		dxccCount := s.ContactRepo.GetDXCCCount()
+		s.safeWrite(conn, WSMessage{Type: "dxccProgress", Data: map[string]interface{}{
+			"worked":     dxccCount,
+			"total":      340,
+			"percentage": float64(dxccCount) / 340.0 * 100.0,
+		}})
 
-	// Hunt status
-	s.safeWrite(conn, WSMessage{Type: "huntStatus", Data: s.ContactRepo.GetHuntStatus()})
+		s.safeWrite(conn, WSMessage{Type: "huntStatus", Data: s.ContactRepo.GetHuntStatus()})
+	}
 
 	// App logs
 	if logBuffer != nil {
@@ -765,6 +768,13 @@ func (s *HTTPServer) enrichedSpots() []FlexSpot {
 }
 
 func (s *HTTPServer) broadcastUpdates() {
+	defer func() {
+		if r := recover(); r != nil {
+			s.Log.Errorf("PANIC in broadcastUpdates (restarting): %v", r)
+			go s.broadcastUpdates()
+		}
+	}()
+
 	statsTicker := time.NewTicker(1 * time.Second)
 	logTicker := time.NewTicker(5 * time.Second)
 	huntTicker := time.NewTicker(30 * time.Second)
@@ -828,36 +838,31 @@ func (s *HTTPServer) broadcastUpdates() {
 			}
 
 		case <-logTicker.C:
-			if s.clientCount() == 0 {
+			if s.clientCount() == 0 || s.ContactRepo == nil {
 				continue
 			}
 
-			// ✅ Logs récents avec timeout
 			qsos := s.ContactRepo.GetRecentQSOs("19")
 			if len(qsos) > 0 {
 				qsosMsg := WSMessage{Type: "log", Data: qsos}
 				select {
 				case s.broadcast <- qsosMsg:
-					// Envoyé avec succès
 				case <-time.After(50 * time.Millisecond):
 					s.Log.Debug("Broadcast channel busy, dropping QSOs update")
 				}
 			}
 
-			// ✅ Stats de log avec timeout
 			stats := s.ContactRepo.GetQSOStats()
 			if stats.Today > 0 {
 				s.checkQSOMilestones(stats.Today)
 				logStatsMsg := WSMessage{Type: "logStats", Data: stats}
 				select {
 				case s.broadcast <- logStatsMsg:
-					// Envoyé avec succès
 				case <-time.After(50 * time.Millisecond):
 					s.Log.Debug("Broadcast channel busy, dropping log stats update")
 				}
 			}
 
-			// ✅ Progression DXCC avec timeout
 			dxccCount := s.ContactRepo.GetDXCCCount()
 			dxccMsg := WSMessage{Type: "dxccProgress", Data: map[string]interface{}{
 				"worked":     dxccCount,
@@ -870,9 +875,8 @@ func (s *HTTPServer) broadcastUpdates() {
 				s.Log.Debug("Broadcast channel busy, dropping DXCC update")
 			}
 
-
 		case <-huntTicker.C:
-			if s.clientCount() == 0 {
+			if s.clientCount() == 0 || s.ContactRepo == nil {
 				continue
 			}
 			huntMsg := WSMessage{Type: "huntStatus", Data: s.ContactRepo.GetHuntStatus()}

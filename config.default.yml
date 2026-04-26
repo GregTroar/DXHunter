@@ -58,15 +58,17 @@ general:
   spot_color_worked: "#ffffffff"             # white text
   background_color_worked: "#ff00c0c0"       # cyan bg
 database:
+  mysql: false # Only for Log4OM
+  sqlite: true # hrd or log4om
+  logbook_type: hrd        # hrd or log4om
+  mysql_db_user: xxxxxxxx # Only for Log4OM
+  mysql_db_password: xxxxxxxx # Only for Log4OM
+  mysql_db_name: xxxxxxxx # Only for Log4OM
+  mysql_host: 10.10.10.1 # Only for Log4OM
+  mysql_port: "3306" # Only for Log4OM
   mysql: false #only one of the two can be true
-  sqlite: true
-  mysql_db_user: xxxx
-  mysql_db_password: xxxxxxxx
-  mysql_db_name: xxxxxxx
-  mysql_host: 10.10.10.1
-  mysql_port: 3306
 sqlite:
-  sqlite_path: 'C:\Perso\Seafile\Radio\Logs\Log4OM\F4BPO.SQLite' # SQLite Db path of Log4OM
+  sqlite_path: 'C:\Perso\Seafile\Radio\Logs\Log4OM\F4BPO.SQLite' # SQLite Db path of Log4OM or HRD
 clusters:
   - name: "EU Cluster"
     server: cluster.f4bpo.com
