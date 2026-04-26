@@ -258,44 +258,7 @@ go build -ldflags="-H=windowsgui" -o FlexDXCluster.exe .
 
 ## Running
 
-```bash
-FlexDXCluster.exe
-# or with explicit config path:
-FlexDXCluster.exe --config C:\path\to\config.yml
-```
-
-Open `http://localhost:8080` in a browser (or any browser on the network).
-
----
-
-## Architecture
-
-```
-DX Cluster servers ──TCP──► tcpclient.go
-WSJT-X / MSHV ─────UDP──► ftx.go
-FlexRadio SmartSDR ─TCP──► flexclient.go
-Log4OM DB ─────────────► database.go
-
-                    ┌──────────────────────┐
-                    │  Go backend          │
-                    │  spotprocessor.go    │  dedup, TTL, enrich
-                    │  httpserver.go       │  HTTP + WebSocket
-                    │  watchlist.go        │  watchlist engine
-                    │  pota.go             │  POTA/SOTA cache
-                    │  dxcc.go             │  DXCC lookup (cty.plist)
-                    │  lotw.go             │  LoTW user list
-                    │  setup.go            │  first-run wizard
-                    └──────────┬───────────┘
-                               │ WebSocket
-                    ┌──────────▼───────────┐
-                    │  Svelte frontend     │
-                    │  (embedded, :8080)   │
-                    └──────────────────────┘
-                               │ Telnet
-                    Log4OM ────┘  (:7300)
-```
-
----
+Doanload the exe file in version
 
 ## License
 
