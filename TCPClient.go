@@ -419,7 +419,8 @@ func (c *TCPClient) ReadLine() {
 
 					if !skip {
 						IncrementSpotsReceived()
-						ProcessTelnetSpot(spotRe, spotReShort, messageString, c.SpotChanToFlex, c.SpotChanToHTTPServer, c.ContactRepo, c.ClusterCfg.Name)
+						raw := messageString
+						go ProcessTelnetSpot(spotRe, spotReShort, raw, c.SpotChanToFlex, c.SpotChanToHTTPServer, c.ContactRepo, c.ClusterCfg.Name)
 					}
 				}
 
