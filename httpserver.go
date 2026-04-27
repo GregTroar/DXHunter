@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"net"
 	"net/http"
 	"os"
 	"regexp"
@@ -379,6 +380,7 @@ func (s *HTTPServer) setupRoutes() {
 	api.HandleFunc("/config", s.getConfigAPI).Methods("GET", "OPTIONS")
 	api.HandleFunc("/config", s.saveConfigAPI).Methods("POST", "OPTIONS")
 	api.HandleFunc("/config/test-qrz", s.testQRZConfig).Methods("POST", "OPTIONS")
+	api.HandleFunc("/config/test-cluster", s.testClusterConnection).Methods("POST", "OPTIONS")
 
 	// Stats & Data
 	api.HandleFunc("/stats", s.getStats).Methods("GET", "OPTIONS")
@@ -1610,6 +1612,30 @@ func (s *HTTPServer) testQRZConfig(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	s.sendSuccess(w, map[string]string{"message": parsed.Session.Message}, "QRZ authentication successful")
+}
+
+func (s *HTTPServer) testClusterConnection(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Server string `json:"server"`
+		Port   string `json:"port"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		s.sendError(w, "invalid request: "+err.Error())
+		return
+	}
+	if req.Server == "" || req.Port == "" {
+		s.sendError(w, "server and port are required")
+		return
+	}
+
+	addr := req.Server + ":" + req.Port
+	conn, err := net.DialTimeout("tcp", addr, 5*time.Second)
+	if err != nil {
+		s.sendError(w, "Cannot reach "+addr+": "+err.Error())
+		return
+	}
+	conn.Close()
+	s.sendSuccess(w, nil, addr+" is reachable")
 }
 
 // ============================================================================

@@ -55,6 +55,33 @@
   let qrzTesting = false;
   let qrzTestResult = null; // null | { ok: bool, msg: string }
 
+  // ── Cluster test ──────────────────────────────────────────────────────────────
+  let clusterTesting = [];   // bool per index
+  let clusterTestResult = []; // null | { ok: bool, msg: string } per index
+
+  async function testCluster(i) {
+    clusterTesting[i]    = true;
+    clusterTestResult[i] = null;
+    clusterTesting = [...clusterTesting];
+    clusterTestResult = [...clusterTestResult];
+    try {
+      const cl = cfg.clusters[i];
+      const res = await fetch('/api/config/test-cluster', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ server: cl.server, port: cl.port }),
+      });
+      const data = await res.json();
+      clusterTestResult[i] = { ok: data.success, msg: data.success ? data.message : (data.error || 'Failed') };
+    } catch (e) {
+      clusterTestResult[i] = { ok: false, msg: e.message };
+    } finally {
+      clusterTesting[i] = false;
+      clusterTesting = [...clusterTesting];
+      clusterTestResult = [...clusterTestResult];
+    }
+  }
+
   async function testQRZ() {
     qrzTesting    = true;
     qrzTestResult = null;
@@ -289,7 +316,7 @@
           </button>
           {#if openSection === 'clusters'}
             <div class="bg-slate-900/40 divide-y divide-slate-700/30">
-              {#each cfg.clusters as cl}
+              {#each cfg.clusters as cl, i}
                 <div class="px-3 py-2.5 space-y-2">
                   <div class="flex items-center gap-3">
                     <span class="font-mono font-semibold text-slate-300 flex-1">{cl.name}</span>
@@ -336,6 +363,19 @@
                         <span class="text-slate-500">{f.label}</span>
                       </label>
                     {/each}
+                  </div>
+                  <div class="flex items-center gap-3 pt-1 border-t border-slate-700/30">
+                    <button on:click={() => testCluster(i)} disabled={clusterTesting[i] || !cl.server}
+                      class="px-3 py-1 rounded text-xs font-semibold border transition-colors
+                        {clusterTesting[i] ? 'bg-slate-700 text-slate-400 border-slate-600 cursor-wait'
+                                           : 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40 hover:bg-cyan-500/35 disabled:opacity-40'}">
+                      {clusterTesting[i] ? 'Testing…' : 'Test Connection'}
+                    </button>
+                    {#if clusterTestResult[i]}
+                      <span class="text-xs font-semibold {clusterTestResult[i].ok ? 'text-green-400' : 'text-red-400'}">
+                        {clusterTestResult[i].ok ? '✓' : '✗'} {clusterTestResult[i].msg}
+                      </span>
+                    {/if}
                   </div>
                 </div>
               {/each}
