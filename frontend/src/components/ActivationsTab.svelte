@@ -69,8 +69,7 @@
         });
         const data = await response.json();
         if (response.ok) {
-          localAdded.add(call);
-          localAdded = localAdded; // force Svelte reactivity
+          localAdded = new Set([...localAdded, call]);
           added++;
         } else {
           dispatch('toast', { message: data.error || `Failed to add ${call}`, type: 'error' });

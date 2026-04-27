@@ -423,21 +423,26 @@ func (c *TCPClient) ReadLine() {
 					}
 				}
 
-				// Envoyer à la console (To ALL prefixed pour toast frontend)
-				consoleMsg := messageString
-				if strings.HasPrefix(strings.TrimSpace(messageString), "To ALL de ") {
-					consoleMsg = "TO_ALL:" + strings.TrimSpace(messageString)
-				}
-				select {
-				case c.ConsoleChan <- consoleMsg:
-				default:
+				// Envoyer à la console uniquement les messages non-spot.
+				// Les spots remplissaient le buffer (100 items) et faisaient dropper
+				// les réponses aux commandes tapées par l'utilisateur.
+				if !isDXSpot {
+					consoleMsg := messageString
+					if strings.HasPrefix(strings.TrimSpace(messageString), "To ALL de ") {
+						consoleMsg = "TO_ALL:" + strings.TrimSpace(messageString)
+					}
+					select {
+					case c.ConsoleChan <- consoleMsg:
+					default:
+					}
 				}
 
-				// Send to TCP server
+				// Send to TCP server (non-blocking: never stall the TCP reader)
 				select {
 				case c.MsgChan <- messageString:
 				case <-c.ctx.Done():
 					return
+				default:
 				}
 			}
 		}

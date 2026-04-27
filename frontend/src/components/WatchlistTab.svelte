@@ -633,14 +633,16 @@ function getDisplayList(wl, wlSpots, activeOnly, onlyNotWorked, modeFilter) {
                   </a>
                 {/if}
                 
-                  {#if neededCount > 0}
-                    <span class="px-1.5 py-0.5 bg-orange-500/20 text-orange-400 rounded text-xs font-semibold">
-                      {isContest ? `${neededCount} today` : `${neededCount} needed`}
-                    </span>
-                  {:else}
-                    <span class="px-1.5 py-0.5 bg-green-500/20 text-green-400 rounded text-xs font-semibold">
-                      {isContest ? 'Worked today' : 'All worked'}
-                    </span>
+                  {#if count > 0}
+                    {#if neededCount > 0}
+                      <span class="px-1.5 py-0.5 bg-orange-500/20 text-orange-400 rounded text-xs font-semibold">
+                        {isContest ? `${neededCount} today` : `${neededCount} needed`}
+                      </span>
+                    {:else}
+                      <span class="px-1.5 py-0.5 bg-green-500/20 text-green-400 rounded text-xs font-semibold">
+                        {isContest ? 'Worked today' : 'All worked'}
+                      </span>
+                    {/if}
                   {/if}
                 
                 {#if entry.lastSeenStr && entry.lastSeenStr !== 'Never'}

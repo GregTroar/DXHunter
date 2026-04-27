@@ -134,10 +134,11 @@ func main() {
 	}
 
 	// ✅ Créer le canal pour le traitement centralisé des spots
-	SpotChanToHTTPServer := make(chan TelnetSpot, 100)
+	SpotChanToHTTPServer := make(chan TelnetSpot, 500)
 
 	// Créer le canal console (partagé entre TCPClient et HTTPServer)
-	consoleChan := make(chan string, 100)
+	// Buffer large : seuls les messages non-spot passent ici, mais on garde de la marge
+	consoleChan := make(chan string, 500)
 
 	// Initialize servers and clients
 	TCPServer := NewTCPServer(Cfg.TelnetServer.Host, Cfg.TelnetServer.Port)
