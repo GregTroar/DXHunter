@@ -36,6 +36,7 @@ type HTTPServer struct {
 	ContactRepo     LogbookProvider
 	TCPServer       *TCPServer
 	TCPClients      []*TCPClient
+	clientsMu       sync.RWMutex
 	FlexClient      *FlexClient
 	Port            string
 	Log             *log.Logger
@@ -50,6 +51,7 @@ type HTTPServer struct {
 	Watchlist       *Watchlist
 	ConfigPath      string
 	ConsoleChan     chan string
+	SpotChan        chan TelnetSpot
 	FTx             *FTxService
 }
 
@@ -238,7 +240,7 @@ var upgrader = websocket.Upgrader{
 // ============================================================================
 
 func NewHTTPServer(flexRepo *FlexDXClusterRepository, contactRepo LogbookProvider,
-	tcpServer *TCPServer, tcpClients []*TCPClient, flexClient *FlexClient, port string, configPath string, consoleChan chan string) *HTTPServer {
+	tcpServer *TCPServer, tcpClients []*TCPClient, flexClient *FlexClient, port string, configPath string, consoleChan chan string, spotChan chan TelnetSpot) *HTTPServer {
 
 	server := &HTTPServer{
 		Router:          mux.NewRouter(),
@@ -252,6 +254,7 @@ func NewHTTPServer(flexRepo *FlexDXClusterRepository, contactRepo LogbookProvide
 		wsClients:       make(map[*websocket.Conn]bool),
 		broadcast:       make(chan WSMessage, 256),
 		ConsoleChan:     consoleChan,
+		SpotChan:        spotChan,
 		Watchlist:       NewWatchlist("watchlist.json"),
 		ConfigPath:      configPath,
 		lastQSOCount:    0,
@@ -465,6 +468,8 @@ func (s *HTTPServer) handleSetupRequired(w http.ResponseWriter, r *http.Request)
 // isClusterConnected vérifie si le client TCP est connecté
 // MasterClient retourne le TCPClient maître (master:true ou le premier de la liste)
 func (s *HTTPServer) MasterClient() *TCPClient {
+	s.clientsMu.RLock()
+	defer s.clientsMu.RUnlock()
 	for _, c := range s.TCPClients {
 		if c.ClusterCfg.Master {
 			return c
@@ -1513,6 +1518,14 @@ func (s *HTTPServer) saveConfigAPI(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Snapshot before modifying — the ConfigWatcher fires after Save() and would
+	// see oldCfg == newCfg if we mutated Cfg first, so we do change detection here.
+	oldLogLevel := Cfg.General.LogLevel
+	oldSQLitePath := Cfg.SQLite.SQLitePath
+	oldLogbookType := Cfg.Database.LogbookType
+	oldClusters := make([]ClusterConfig, len(Cfg.Clusters))
+	copy(oldClusters, Cfg.Clusters)
+
 	Cfg.General.Callsign = dto.General.Callsign
 	Cfg.General.Grid = dto.General.Grid
 	Cfg.General.LogLevel = dto.General.LogLevel
@@ -1538,28 +1551,64 @@ func (s *HTTPServer) saveConfigAPI(w http.ResponseWriter, r *http.Request) {
 	Cfg.Gotify.WatchList = dto.Gotify.WatchList
 	Cfg.Gotify.WindowsNotify = dto.Gotify.WindowsNotify
 
-	for i := range Cfg.Clusters {
-		for _, dc := range dto.Clusters {
-			if dc.Name == Cfg.Clusters[i].Name {
-				Cfg.Clusters[i].Server = dc.Server
-				Cfg.Clusters[i].Port = dc.Port
-				Cfg.Clusters[i].Login = dc.Login
-				Cfg.Clusters[i].Password = dc.Password
-				Cfg.Clusters[i].Enabled = dc.Enabled
-				Cfg.Clusters[i].Master = dc.Master
-				Cfg.Clusters[i].Skimmer = dc.Skimmer
-				Cfg.Clusters[i].FT8 = dc.FT8
-				Cfg.Clusters[i].FT4 = dc.FT4
-				Cfg.Clusters[i].Beacon = dc.Beacon
-				Cfg.Clusters[i].Command = dc.Command
+	// Replace the full cluster list from the DTO (handles add/remove correctly).
+	newClusters := make([]ClusterConfig, 0, len(dto.Clusters))
+	for _, dc := range dto.Clusters {
+		// Preserve fields not exposed in the UI (LoginPrompt, Type) from the old entry.
+		existing := ClusterConfig{
+			LoginPrompt: "login:",
+		}
+		for _, old := range oldClusters {
+			if old.Name == dc.Name || (old.Server == dc.Server && old.Port == dc.Port) {
+				existing = old
 				break
 			}
 		}
+		existing.Name = dc.Name
+		existing.Server = dc.Server
+		existing.Port = dc.Port
+		existing.Login = dc.Login
+		existing.Password = dc.Password
+		existing.Enabled = dc.Enabled
+		existing.Master = dc.Master
+		existing.Skimmer = dc.Skimmer
+		existing.FT8 = dc.FT8
+		existing.FT4 = dc.FT4
+		existing.Beacon = dc.Beacon
+		existing.Command = dc.Command
+		newClusters = append(newClusters, existing)
 	}
+	Cfg.Clusters = newClusters
 
 	if err := Cfg.Save(s.ConfigPath); err != nil {
 		s.sendError(w, "failed to write config: "+err.Error())
 		return
+	}
+
+	// Apply live changes immediately (ConfigWatcher would miss them since Cfg
+	// was already mutated before the file-write event fires).
+	if oldLogLevel != Cfg.General.LogLevel {
+		applyLogLevel(Cfg.General.LogLevel)
+	}
+
+	if clusterTopologyChanged(oldClusters, Cfg.Clusters) {
+		if active := Cfg.GetActiveClusters(); len(active) > 0 {
+			go s.ReloadClusters(active)
+		}
+	} else {
+		oldMaster := getClusterMaster(oldClusters)
+		newMaster := getClusterMaster(Cfg.Clusters)
+		if oldMaster != nil && newMaster != nil &&
+			(oldMaster.FT8 != newMaster.FT8 || oldMaster.FT4 != newMaster.FT4 ||
+				oldMaster.Skimmer != newMaster.Skimmer || oldMaster.Beacon != newMaster.Beacon) {
+			if mc := s.MasterClient(); mc != nil {
+				mc.ReloadFilters()
+			}
+		}
+	}
+
+	if oldSQLitePath != Cfg.SQLite.SQLitePath || oldLogbookType != Cfg.Database.LogbookType {
+		go s.ReloadLogbook()
 	}
 
 	s.broadcast <- WSMessage{Type: "stats", Data: s.calculateStats()}
@@ -1639,6 +1688,87 @@ func (s *HTTPServer) testClusterConnection(w http.ResponseWriter, r *http.Reques
 }
 
 // ============================================================================
+// LIVE RELOAD — clusters & logbook without restart
+// ============================================================================
+
+func (s *HTTPServer) ReloadClusters(clusters []ClusterConfig) {
+	s.Log.Info("Reloading cluster connections...")
+
+	s.clientsMu.RLock()
+	old := make([]*TCPClient, len(s.TCPClients))
+	copy(old, s.TCPClients)
+	s.clientsMu.RUnlock()
+
+	for _, c := range old {
+		c.Close()
+	}
+
+	var newClients []*TCPClient
+	for _, cfg := range clusters {
+		name := cfg.Name
+		if name == "" {
+			name = cfg.Server
+		}
+		client := NewTCPClient(s.TCPServer, cfg, s.ContactRepo, s.SpotChan, s.ConsoleChan)
+		newClients = append(newClients, client)
+		s.Log.Infof("Cluster configured: %s (%s:%s)", name, cfg.Server, cfg.Port)
+	}
+
+	s.clientsMu.Lock()
+	s.TCPClients = newClients
+	s.clientsMu.Unlock()
+
+	for _, c := range newClients {
+		go c.StartClient()
+	}
+
+	s.Log.Infof("Cluster reload complete: %d client(s)", len(newClients))
+	select {
+	case s.broadcast <- WSMessage{Type: "stats", Data: s.calculateStats()}:
+	default:
+	}
+}
+
+func (s *HTTPServer) ReloadLogbook() {
+	s.Log.Info("Reloading logbook connection...")
+
+	var newRepo LogbookProvider
+	if Cfg.Database.LogbookType == "hrd" {
+		newRepo = NewHRDContactsRepository(Cfg.SQLite.SQLitePath)
+	} else {
+		newRepo = NewLog4OMContactsRepository(Cfg.SQLite.SQLitePath)
+	}
+
+	old := s.ContactRepo
+	s.ContactRepo = newRepo
+
+	s.clientsMu.RLock()
+	for _, c := range s.TCPClients {
+		c.ContactRepo = newRepo
+	}
+	s.clientsMu.RUnlock()
+
+	if old != nil {
+		old.Close()
+	}
+
+	if newRepo != nil {
+		if Cfg.Database.LogbookType == "hrd" {
+			s.Log.Infof("Logbook reloaded: Ham Radio Deluxe — %d contacts", newRepo.CountEntries())
+		} else {
+			s.Log.Infof("Logbook reloaded: Log4OM — %d contacts", newRepo.CountEntries())
+		}
+	} else {
+		s.Log.Warn("Logbook reload: not connected — check sqlite_path in config.yml")
+	}
+
+	select {
+	case s.broadcast <- WSMessage{Type: "logbookType", Data: Cfg.Database.LogbookType}:
+	default:
+	}
+}
+
+// ============================================================================
 // STATS & MILESTONES
 // ============================================================================
 
@@ -1685,7 +1815,12 @@ func (s *HTTPServer) calculateStats() Stats {
 		TotalSpots:       len(allSpots),
 		NewDXCC:          newDXCCCount,
 		ConnectedClients: len(s.TCPServer.Clients),
-		TotalContacts:    s.ContactRepo.CountEntries(),
+		TotalContacts: func() int {
+			if s.ContactRepo == nil {
+				return 0
+			}
+			return s.ContactRepo.CountEntries()
+		}(),
 		ClusterStatus:    clusterStatus,
 		ClusterType:      clusterType,
 		Clusters:         clusterInfos,
