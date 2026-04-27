@@ -550,23 +550,29 @@ func (s *HTTPServer) handleConsoleMessages() {
 				continue
 			}
 			toAllSeen[toAllMsg] = now
-			s.broadcast <- WSMessage{
+			select {
+			case s.broadcast <- WSMessage{
 				Type: "toAll",
 				Data: map[string]interface{}{
 					"message":   toAllMsg,
 					"timestamp": time.Now().Format("15:04:05"),
 				},
+			}:
+			case <-time.After(200 * time.Millisecond):
 			}
 			continue
 		}
 
 		// Broadcaster les réponses non-spot
-		s.broadcast <- WSMessage{
+		select {
+		case s.broadcast <- WSMessage{
 			Type: "telnetResponse",
 			Data: map[string]interface{}{
 				"message":   cleanMsg,
 				"timestamp": time.Now().Format("15:04:05"),
 			},
+		}:
+		case <-time.After(200 * time.Millisecond):
 		}
 	}
 }
@@ -692,7 +698,10 @@ func (s *HTTPServer) handleWSTelnetCommand(conn *websocket.Conn, data map[string
 func (s *HTTPServer) safeWrite(conn *websocket.Conn, msg WSMessage) error {
 	writeMutex.Lock()
 	defer writeMutex.Unlock()
-	return conn.WriteJSON(msg)
+	conn.SetWriteDeadline(time.Now().Add(3 * time.Second))
+	err := conn.WriteJSON(msg)
+	conn.SetWriteDeadline(time.Time{})
+	return err
 }
 
 func (s *HTTPServer) sendInitialData(conn *websocket.Conn) {
