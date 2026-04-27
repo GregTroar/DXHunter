@@ -43,7 +43,7 @@
     }
   }
 
-  const cols = '50px 34px 36px 52px 48px 36px minmax(0,2fr) minmax(0,1.5fr) 130px';
+  const cols = '50px 34px 36px 52px 48px 36px minmax(0,1.6fr) minmax(0,1fr) minmax(170px,1.4fr)';
 
   const SIG_WIDTH = 60;  // Hz — practical FT8 signal width
 

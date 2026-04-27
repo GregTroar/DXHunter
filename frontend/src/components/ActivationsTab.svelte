@@ -41,17 +41,6 @@
       .filter(c => c && !watchlistCallsigns.has(c));
   }
 
-  function isInWatchlist(callsign) {
-    return callsign.split(',').map(c => c.trim().toUpperCase())
-      .every(c => watchlistCallsigns.has(c));
-  }
-
-  function isPartiallyInWatchlist(callsign) {
-    const calls = callsign.split(',').map(c => c.trim().toUpperCase());
-    const inWl = calls.filter(c => watchlistCallsigns.has(c));
-    return inWl.length > 0 && inWl.length < calls.length;
-  }
-
   async function addToWatchlist(callsign) {
     const toAdd = getCallsignsToAdd(callsign);
     if (toAdd.length === 0) {
@@ -117,6 +106,9 @@
       <div class="flex items-center justify-center h-20 text-slate-500 text-xs">No activations</div>
     {:else}
       {#each filtered as a}
+        {@const _calls = a.callsign.split(',').map(c => c.trim().toUpperCase())}
+        {@const _inWL = _calls.every(c => watchlistCallsigns.has(c))}
+        {@const _partialWL = !_inWL && _calls.some(c => watchlistCallsigns.has(c))}
         <div class="rounded-lg overflow-hidden border border-slate-700/50
           {a.status === 'active' ? 'border-l-2 border-l-green-500/60' : 'border-l-2 border-l-yellow-500/40'}">
 
@@ -143,11 +135,11 @@
             <span class="text-white font-medium truncate flex-1 min-w-0">{a.dxcc}</span>
 
             <!-- Bouton watchlist -->
-            {#if isInWatchlist(a.callsign)}
+            {#if _inWL}
               <span class="flex-shrink-0 px-1.5 py-0.5 rounded text-xs bg-pink-500/20 text-pink-400 border border-pink-500/30" title="In watchlist">
                 ★
               </span>
-            {:else if isPartiallyInWatchlist(a.callsign)}
+            {:else if _partialWL}
               <button
                 on:click={() => addToWatchlist(a.callsign)}
                 class="flex-shrink-0 px-1.5 py-0.5 rounded text-xs bg-pink-500/10 text-pink-300 border border-pink-500/20 hover:bg-pink-500/20 transition-colors"
