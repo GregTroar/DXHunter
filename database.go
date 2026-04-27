@@ -98,9 +98,9 @@ func NewLog4OMContactsRepository(filePath string) LogbookProvider {
 			return nil
 		}
 
-		// SQLite works best with a single connection for reads alongside Log4OM
-		db.SetMaxOpenConns(1)
-		db.SetMaxIdleConns(1)
+		// WAL mode allows concurrent readers — 5 connections match the 5 parallel spot queries.
+		db.SetMaxOpenConns(5)
+		db.SetMaxIdleConns(5)
 
 		// Log4OM uses WAL mode while running — we must match it to read live data.
 		// If Log4OM holds an exclusive lock at this instant the pragma may fail;

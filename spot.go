@@ -92,31 +92,28 @@ func ProcessTelnetSpot(re *regexp.Regexp, reShort *regexp.Regexp, spotRaw string
 	spot.NewDXCC = false
 	spot.NewSlot = false
 
-	contactsChan := make(chan []Contact)
-	contactsModeChan := make(chan []Contact)
-	contactsModeBandChan := make(chan []Contact)
-	contactsBandChan := make(chan []Contact)
-	contactsCallChan := make(chan []Contact)
+	contactsChan := make(chan []Contact, 1)
+	contactsModeChan := make(chan []Contact, 1)
+	contactsModeBandChan := make(chan []Contact, 1)
+	contactsBandChan := make(chan []Contact, 1)
+	contactsCallChan := make(chan []Contact, 1)
 
 	wg := new(sync.WaitGroup)
 	wg.Add(5)
 
 	go contactRepo.ListByCountry(spot.DXCC, contactsChan, wg)
-	contacts := <-contactsChan
-
 	go contactRepo.ListByCountryMode(spot.DXCC, spot.Mode, contactsModeChan, wg)
-	contactsMode := <-contactsModeChan
-
 	go contactRepo.ListByCountryBand(spot.DXCC, spot.Band, contactsBandChan, wg)
-	contactsBand := <-contactsBandChan
-
 	go contactRepo.ListByCallSign(spot.DX, spot.Band, spot.Mode, contactsCallChan, wg)
-	contactsCall := <-contactsCallChan
-
 	go contactRepo.ListByCountryModeBand(spot.DXCC, spot.Band, spot.Mode, contactsModeBandChan, wg)
-	contactsModeBand := <-contactsModeBandChan
 
 	wg.Wait()
+
+	contacts := <-contactsChan
+	contactsMode := <-contactsModeChan
+	contactsBand := <-contactsBandChan
+	contactsCall := <-contactsCallChan
+	contactsModeBand := <-contactsModeBandChan
 
 	// ✅ Déterminer le statut
 	if len(contacts) == 0 {

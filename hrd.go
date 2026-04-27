@@ -29,8 +29,9 @@ func NewHRDContactsRepository(filePath string) LogbookProvider {
 		Log.Errorf("Cannot open HRD SQLite database: %v", err)
 		return nil
 	}
-	db.SetMaxOpenConns(1)
-	db.SetMaxIdleConns(1)
+	// WAL mode allows concurrent readers — 5 connections match the 5 parallel spot queries.
+	db.SetMaxOpenConns(5)
+	db.SetMaxIdleConns(5)
 	if _, err = db.Exec("PRAGMA journal_mode=WAL"); err != nil {
 		Log.Warnf("Could not set WAL mode on HRD database (non-fatal): %v", err)
 	}
