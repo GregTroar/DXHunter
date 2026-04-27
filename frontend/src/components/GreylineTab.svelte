@@ -59,8 +59,15 @@
   }
 
   function calcSunriseSunset(lat, lon, date) {
-    const JD = date.getTime() / 86400000 + 2440587.5;
-    const n  = JD - 2451545.0;
+    const JD  = date.getTime() / 86400000 + 2440587.5;
+    const n   = JD - 2451545.0;
+
+    // GMST must be evaluated at midnight UTC (0h UT) so the result is an
+    // absolute transit time in UTC hours, not a relative offset from now.
+    const midnight = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+    const JD0  = midnight.getTime() / 86400000 + 2440587.5;
+    const n0   = JD0 - 2451545.0;
+
     const sun = getSunSubsolar(date);
     const decR = sun.lat * Math.PI / 180, latR = lat * Math.PI / 180;
     const cosH = (Math.sin(-0.8333 * Math.PI / 180) - Math.sin(latR) * Math.sin(decR))
@@ -75,7 +82,7 @@
     const sl  = (L + C) * Math.PI / 180;
     const e   = (23.439 - 0.0000004 * n) * Math.PI / 180;
     const RA  = Math.atan2(Math.cos(e) * Math.sin(sl), Math.cos(sl)) * 180 / Math.PI;
-    const GMST = ((280.46061837 + 360.98564736629 * (JD - 2451545.0)) % 360 + 360) % 360;
+    const GMST = ((280.46061837 + 360.98564736629 * n0) % 360 + 360) % 360;
     let noon = (((RA - GMST - lon) % 360) + 360) % 360 / 15;
     noon = ((noon % 24) + 24) % 24;
     return {
