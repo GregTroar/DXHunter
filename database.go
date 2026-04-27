@@ -98,9 +98,13 @@ func NewLog4OMContactsRepository(filePath string) LogbookProvider {
 			return nil
 		}
 
-		// WAL mode allows concurrent readers — 5 connections match the 5 parallel spot queries.
-		db.SetMaxOpenConns(5)
-		db.SetMaxIdleConns(5)
+		// 5 parallel queries per cluster × number of active clusters.
+		sqliteConns := len(Cfg.GetActiveClusters()) * 5
+		if sqliteConns < 5 {
+			sqliteConns = 5
+		}
+		db.SetMaxOpenConns(sqliteConns)
+		db.SetMaxIdleConns(sqliteConns)
 
 		// Log4OM uses WAL mode while running — we must match it to read live data.
 		// If Log4OM holds an exclusive lock at this instant the pragma may fail;
