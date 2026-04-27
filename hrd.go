@@ -3,7 +3,6 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"sort"
 	"strings"
 	"sync"
 
@@ -335,78 +334,3 @@ func (r *HRDContactsRepository) HasWorkedCallsignBandMode(callsign, band, mode s
 	return r.GetWorkedCallsignsBandMode([]string{callsign}, band, mode)[callsign]
 }
 
-func (r *HRDContactsRepository) GetHuntStatus() []DXCCHuntEntry {
-	rows, err := r.db.Query(`
-		SELECT CAST(COL_DXCC AS TEXT), COALESCE(MAX(COL_COUNTRY),''), COL_BAND, COL_MODE, COUNT(*)
-		FROM ` + hrdTable + `
-		WHERE COL_DXCC IS NOT NULL AND COL_DXCC != 0
-		  AND COL_BAND IS NOT NULL AND COL_BAND != ''
-		  AND COL_MODE IS NOT NULL AND COL_MODE != ''
-		GROUP BY COL_DXCC, COL_BAND, COL_MODE
-		ORDER BY MAX(COL_COUNTRY), COL_BAND
-	`)
-	if err != nil {
-		r.Log.Errorf("HRD GetHuntStatus: %v", err)
-		return nil
-	}
-	defer rows.Close()
-
-	type dxccData struct {
-		country string
-		bands   map[string]map[string]bool
-		total   int
-	}
-	entries := make(map[string]*dxccData)
-	order := []string{}
-
-	for rows.Next() {
-		var dxcc, country, band, mode string
-		var cnt int
-		if err := rows.Scan(&dxcc, &country, &band, &mode, &cnt); err != nil {
-			continue
-		}
-		dxcc = strings.TrimSpace(dxcc)
-		band = strings.ToUpper(strings.TrimSpace(band))
-		mode = strings.ToUpper(strings.TrimSpace(mode))
-		if dxcc == "" || dxcc == "0" || band == "" || mode == "" {
-			continue
-		}
-		if _, ok := entries[dxcc]; !ok {
-			entries[dxcc] = &dxccData{country: country, bands: make(map[string]map[string]bool)}
-			order = append(order, dxcc)
-		}
-		e := entries[dxcc]
-		if e.country == "" {
-			e.country = country
-		}
-		if _, ok := e.bands[band]; !ok {
-			e.bands[band] = make(map[string]bool)
-		}
-		e.bands[band][mode] = true
-		e.total += cnt
-	}
-
-	result := make([]DXCCHuntEntry, 0, len(entries))
-	for _, dxcc := range order {
-		e := entries[dxcc]
-		bandStatuses := make([]DXCCBandStatus, 0, len(e.bands))
-		for band, modes := range e.bands {
-			modeList := make([]string, 0, len(modes))
-			for m := range modes {
-				modeList = append(modeList, m)
-			}
-			sort.Strings(modeList)
-			bandStatuses = append(bandStatuses, DXCCBandStatus{Band: band, Modes: modeList})
-		}
-		sort.Slice(bandStatuses, func(i, j int) bool {
-			return bandStatuses[i].Band < bandStatuses[j].Band
-		})
-		result = append(result, DXCCHuntEntry{
-			DXCC:    dxcc,
-			Country: e.country,
-			Bands:   bandStatuses,
-			Total:   e.total,
-		})
-	}
-	return result
-}

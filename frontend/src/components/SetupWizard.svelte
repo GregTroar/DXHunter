@@ -9,8 +9,8 @@
   let logbookType = 'log4om';
 
   let clusters = [
-    { name: 'F4BPO Cluster', server: 'cluster.f4bpo.com', port: '7300', enabled: true, master: true },
-    { name: 'POTA Cluster', server: 'pota-cluster.iz2lsc.eu', port: '7373', enabled: true, master: false },
+    { name: 'F4BPO Cluster', server: 'cluster.f4bpo.com', port: '7300', password: '', enabled: true, master: true },
+    { name: 'POTA Cluster', server: 'pota-cluster.iz2lsc.eu', port: '7373', password: '', enabled: true, master: false },
   ];
 
   let saving = false;
@@ -26,7 +26,7 @@
   }
 
   function addCluster() {
-    clusters = [...clusters, { name: '', server: '', port: '7300', enabled: true, master: false }];
+    clusters = [...clusters, { name: '', server: '', port: '7300', password: '', enabled: true, master: false }];
   }
 
   function removeCluster(i) {
@@ -52,7 +52,7 @@
           logbookType: logbookType,
           clusters: clusters
             .filter(c => c.server.trim() !== '')
-            .map(c => ({ ...c, server: c.server.trim(), port: c.port.trim() || '7300' })),
+            .map(c => ({ ...c, server: c.server.trim(), port: c.port.trim() || '7300', password: c.password || '' })),
         }),
       });
       const data = await resp.json();
@@ -239,12 +239,21 @@
                   class="bg-slate-600 border border-slate-500 rounded px-2 py-1 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
                 />
               </div>
-              <input
-                type="text"
-                placeholder="Display name (optional)"
-                bind:value={cl.name}
-                class="w-full bg-slate-600 border border-slate-500 rounded px-2 py-1 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-blue-500 mb-2"
-              />
+              <div class="grid grid-cols-2 gap-2 mb-2">
+                <input
+                  type="text"
+                  placeholder="Display name (optional)"
+                  bind:value={cl.name}
+                  class="bg-slate-600 border border-slate-500 rounded px-2 py-1 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
+                />
+                <input
+                  type="password"
+                  placeholder="Password (leave empty if none)"
+                  bind:value={cl.password}
+                  autocomplete="new-password"
+                  class="bg-slate-600 border border-slate-500 rounded px-2 py-1 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
+                />
+              </div>
               <div class="flex items-center justify-between">
                 <div class="flex gap-3">
                   <label class="flex items-center gap-1 text-xs text-slate-400 cursor-pointer">

@@ -4,7 +4,6 @@
   import FilterBar from './components/FilterBar.svelte';
   import SpotsTable from './components/SpotsTable.svelte';
   import FTxTab from './components/FTxTab.svelte';
-  import HuntTab from './components/HuntTab.svelte';
   import Sidebar from './components/Sidebar.svelte';
   import Toast from './components/Toast.svelte';
   import ErrorBanner from './components/ErrorBanner.svelte';
@@ -38,7 +37,6 @@
   let logStats = { today: 0, thisWeek: 0, thisMonth: 0, total: 0 };
   
   let dxccProgress = { worked: 0, total: 340, percentage: 0 };
-  let huntStatus = [];
   let logbookType = '';
   let activations = [];
   let dxwNews = [];
@@ -507,9 +505,6 @@ function applyFilters(allSpots, filters, wl) {
         logs = message.data || [];
         break;
       
-      case 'huntStatus':
-        huntStatus = message.data || [];
-        break;
       case 'logbookType':
         logbookType = message.data || '';
         break;
@@ -885,11 +880,6 @@ async function shutdownApp() {
           </svg>
           FTx
         </button>
-        <button
-          class="px-4 py-2 text-sm font-semibold transition-colors {mainTab === 'hunt' ? 'bg-amber-500/20 text-amber-400 border-b-2 border-amber-500' : 'text-slate-400 hover:text-slate-300'}"
-          on:click={() => mainTab = 'hunt'}>
-          🏆 Hunt
-        </button>
       </div>
       <!-- Tab content — FTxTab reste monté pour préserver l'état autocall -->
       <div class="flex-1 overflow-hidden" style="min-height: 0;">
@@ -904,9 +894,6 @@ async function shutdownApp() {
         <div class="h-full" class:hidden={mainTab !== 'ftx'}>
           <FTxTab {ftxEnabled} {ftxDecodes} {watchlist} spots={filteredSpots} {ftxTXStatus} myGrid={stats.myGrid} />
         </div>
-        <div class="h-full" class:hidden={mainTab !== 'hunt'}>
-          <HuntTab {huntStatus} />
-        </div>
       </div>
     </div>
     
@@ -920,7 +907,6 @@ async function shutdownApp() {
         {recentQSOs}
         {logStats}
         {dxccProgress}
-        {huntStatus}
         {logbookType}
         {activations}
         {dxwNews}

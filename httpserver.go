@@ -391,7 +391,6 @@ func (s *HTTPServer) setupRoutes() {
 	api.HandleFunc("/log/recent", s.getRecentQSOs).Methods("GET", "OPTIONS")
 	api.HandleFunc("/log/stats", s.getLogStats).Methods("GET", "OPTIONS")
 	api.HandleFunc("/log/dxcc-progress", s.getDXCCProgress).Methods("GET", "OPTIONS")
-	api.HandleFunc("/log/hunt", s.getHuntStatus).Methods("GET", "OPTIONS")
 	api.HandleFunc("/logs", s.getLogs).Methods("GET", "OPTIONS")
 
 	// Watchlist
@@ -714,7 +713,6 @@ func (s *HTTPServer) sendInitialData(conn *websocket.Conn) {
 			"percentage": float64(dxccCount) / 340.0 * 100.0,
 		}})
 
-		s.safeWrite(conn, WSMessage{Type: "huntStatus", Data: s.ContactRepo.GetHuntStatus()})
 	}
 
 	// App logs
@@ -777,7 +775,6 @@ func (s *HTTPServer) broadcastUpdates() {
 
 	statsTicker := time.NewTicker(1 * time.Second)
 	logTicker := time.NewTicker(5 * time.Second)
-	huntTicker := time.NewTicker(30 * time.Second)
 	watchlistSaveTicker := time.NewTicker(20 * time.Second)
 	cleanupTicker := time.NewTicker(30 * time.Second)
 	watchlistCleanupTicker := time.NewTicker(24 * time.Hour)
@@ -785,7 +782,6 @@ func (s *HTTPServer) broadcastUpdates() {
 	defer func() {
 		statsTicker.Stop()
 		logTicker.Stop()
-		huntTicker.Stop()
 		watchlistSaveTicker.Stop()
 		cleanupTicker.Stop()
 		watchlistCleanupTicker.Stop()
@@ -873,17 +869,6 @@ func (s *HTTPServer) broadcastUpdates() {
 			case s.broadcast <- dxccMsg:
 			case <-time.After(50 * time.Millisecond):
 				s.Log.Debug("Broadcast channel busy, dropping DXCC update")
-			}
-
-		case <-huntTicker.C:
-			if s.clientCount() == 0 || s.ContactRepo == nil {
-				continue
-			}
-			huntMsg := WSMessage{Type: "huntStatus", Data: s.ContactRepo.GetHuntStatus()}
-			select {
-			case s.broadcast <- huntMsg:
-			case <-time.After(50 * time.Millisecond):
-				s.Log.Debug("Broadcast channel busy, dropping hunt status update")
 			}
 
 		case <-watchlistSaveTicker.C:
@@ -1059,10 +1044,6 @@ func (s *HTTPServer) getDXCCProgress(w http.ResponseWriter, r *http.Request) {
 		"total":      340,
 		"percentage": float64(count) / 340.0 * 100.0,
 	}, "")
-}
-
-func (s *HTTPServer) getHuntStatus(w http.ResponseWriter, r *http.Request) {
-	s.sendSuccess(w, s.ContactRepo.GetHuntStatus(), "")
 }
 
 // ============================================================================

@@ -22,11 +22,12 @@ type SetupRequest struct {
 }
 
 type SetupClusterDTO struct {
-	Name    string `json:"name"`
-	Server  string `json:"server"`
-	Port    string `json:"port"`
-	Enabled bool   `json:"enabled"`
-	Master  bool   `json:"master"`
+	Name     string `json:"name"`
+	Server   string `json:"server"`
+	Port     string `json:"port"`
+	Password string `json:"password"`
+	Enabled  bool   `json:"enabled"`
+	Master   bool   `json:"master"`
 }
 
 type SetupServer struct {
@@ -125,6 +126,7 @@ func (s *SetupServer) handleSetup(w http.ResponseWriter, r *http.Request) {
 			Name:        cl.Name,
 			Server:      cl.Server,
 			Port:        cl.Port,
+			Password:    cl.Password,
 			Enabled:     cl.Enabled,
 			Master:      cl.Master,
 			Login:       callsign,

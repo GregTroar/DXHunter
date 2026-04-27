@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
-	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -43,18 +42,6 @@ type QSOStats struct {
 	Total     int `json:"total"`
 }
 
-type DXCCBandStatus struct {
-	Band  string   `json:"band"`
-	Modes []string `json:"modes"`
-}
-
-type DXCCHuntEntry struct {
-	DXCC    string           `json:"dxcc"`
-	Country string           `json:"country"`
-	Bands   []DXCCBandStatus `json:"bands"`
-	Total   int              `json:"total"` // total QSOs for this DXCC
-}
-
 // LogbookProvider is the interface that any logbook backend must implement.
 // Add a new file (e.g. hrd.go, wavelog.go) with a struct satisfying this interface.
 type LogbookProvider interface {
@@ -74,7 +61,6 @@ type LogbookProvider interface {
 	GetWorkedCallsignsBandModeToday(callsigns []string, band string, mode string) map[string]bool
 	GetCallsignBandModes(callsign string) CallsignBandModeInfo
 	HasWorkedCallsignBandMode(callsign, band, mode string) bool
-	GetHuntStatus() []DXCCHuntEntry
 	Close()
 }
 
@@ -466,96 +452,6 @@ func (r *Log4OMContactsRepository) GetDXCCCount() int {
 		return 0
 	}
 	return count
-}
-
-func (r *Log4OMContactsRepository) GetHuntStatus() []DXCCHuntEntry {
-	rows, err := r.db.Query(`
-		SELECT dxcc, COALESCE(MAX(country), ''), band, mode, COUNT(*)
-		FROM log
-		WHERE dxcc != 0
-		  AND band != ''
-		  AND mode != ''
-		GROUP BY dxcc, band, mode
-		ORDER BY MAX(country), band
-	`)
-	if err != nil {
-		r.Log.Errorf("GetHuntStatus query error: %v", err)
-		return nil
-	}
-	defer rows.Close()
-	r.Log.Info("GetHuntStatus: query executed OK, scanning rows...")
-
-	type dxccData struct {
-		country string
-		bands   map[string]map[string]bool // band → set of modes
-		total   int
-	}
-
-	entries := make(map[string]*dxccData)
-	order := []string{}
-
-	rowCount := 0
-	for rows.Next() {
-		var dxccInt int
-		var country, band, mode string
-		var cnt int
-		if err := rows.Scan(&dxccInt, &country, &band, &mode, &cnt); err != nil {
-			r.Log.Errorf("GetHuntStatus scan: %v", err)
-			continue
-		}
-		if rowCount == 0 {
-			r.Log.Infof("GetHuntStatus first row: dxcc=%d country=%q band=%q mode=%q cnt=%d", dxccInt, country, band, mode, cnt)
-		}
-		rowCount++
-		dxcc := fmt.Sprintf("%d", dxccInt)
-		band = strings.ToUpper(strings.TrimSpace(band))
-		mode = strings.ToUpper(strings.TrimSpace(mode))
-		country = strings.TrimSpace(country)
-		if dxccInt == 0 || band == "" || mode == "" {
-			continue
-		}
-		if _, ok := entries[dxcc]; !ok {
-			entries[dxcc] = &dxccData{country: country, bands: make(map[string]map[string]bool)}
-			order = append(order, dxcc)
-		}
-		e := entries[dxcc]
-		if e.country == "" {
-			e.country = country
-		}
-		if _, ok := e.bands[band]; !ok {
-			e.bands[band] = make(map[string]bool)
-		}
-		e.bands[band][mode] = true
-		e.total += cnt
-	}
-
-	if err := rows.Err(); err != nil {
-		r.Log.Errorf("GetHuntStatus rows.Err: %v", err)
-	}
-	r.Log.Infof("GetHuntStatus: scanned %d rows → %d DXCC entries", rowCount, len(entries))
-	result := make([]DXCCHuntEntry, 0, len(entries))
-	for _, dxcc := range order {
-		e := entries[dxcc]
-		bandStatuses := make([]DXCCBandStatus, 0, len(e.bands))
-		for band, modes := range e.bands {
-			modeList := make([]string, 0, len(modes))
-			for m := range modes {
-				modeList = append(modeList, m)
-			}
-			sort.Strings(modeList)
-			bandStatuses = append(bandStatuses, DXCCBandStatus{Band: band, Modes: modeList})
-		}
-		sort.Slice(bandStatuses, func(i, j int) bool {
-			return bandStatuses[i].Band < bandStatuses[j].Band
-		})
-		result = append(result, DXCCHuntEntry{
-			DXCC:    dxcc,
-			Country: e.country,
-			Bands:   bandStatuses,
-			Total:   e.total,
-		})
-	}
-	return result
 }
 
 func (r *Log4OMContactsRepository) GetWorkedCallsignsBandMode(callsigns []string, band string, mode string) map[string]bool {
