@@ -318,16 +318,24 @@
             <div class="bg-slate-900/40 divide-y divide-slate-700/30">
               {#each cfg.clusters as cl, i}
                 <div class="px-3 py-2.5 space-y-2">
-                  <div class="flex items-center gap-3">
-                    <span class="font-mono font-semibold text-slate-300 flex-1">{cl.name}</span>
-                    <label class="flex items-center gap-1.5 cursor-pointer">
+                  <div class="flex items-center gap-2">
+                    <input bind:value={cl.name} placeholder="Display name"
+                      class="{INPUT} font-mono font-semibold flex-1" />
+                    <label class="flex items-center gap-1.5 cursor-pointer whitespace-nowrap">
                       <input type="checkbox" bind:checked={cl.enabled} class="accent-green-500" />
                       <span class="text-slate-400">Enabled</span>
                     </label>
-                    <label class="flex items-center gap-1.5 cursor-pointer">
-                      <input type="checkbox" bind:checked={cl.master} class="accent-blue-500" />
+                    <label class="flex items-center gap-1.5 cursor-pointer whitespace-nowrap">
+                      <input type="radio" name="cfg-master" checked={cl.master}
+                        on:change={() => { cfg.clusters = cfg.clusters.map((c, j) => ({ ...c, master: j === i })); }}
+                        class="accent-blue-500" />
                       <span class="text-slate-400">Master</span>
                     </label>
+                    <button on:click={() => { cfg.clusters = cfg.clusters.filter((_, j) => j !== i); }}
+                      disabled={cfg.clusters.length <= 1}
+                      class="text-red-400 hover:text-red-300 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-xs px-1">
+                      ✕
+                    </button>
                   </div>
                   <div class="grid grid-cols-2 gap-2">
                     <label class="flex flex-col gap-0.5">
@@ -379,6 +387,23 @@
                   </div>
                 </div>
               {/each}
+              <!-- Add cluster -->
+              <div class="px-3 py-2">
+                <button on:click={() => {
+                    cfg.clusters = [...cfg.clusters, {
+                      name: '', server: '', port: '7300', login: cfg?.general?.callsign ?? '',
+                      password: '', enabled: true, master: false,
+                      skimmer: false, ft8: false, ft4: false, beacon: false,
+                      command: '', loginPrompt: 'login:', clusterType: ''
+                    }];
+                  }}
+                  class="flex items-center gap-1.5 text-xs text-blue-400 hover:text-blue-300 transition-colors">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                  </svg>
+                  Add cluster
+                </button>
+              </div>
             </div>
           {/if}
         </div>

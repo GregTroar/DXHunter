@@ -287,17 +287,57 @@ func (cw *ConfigWatcher) applyConfigChanges(oldCfg, newCfg *Config) {
 		Log.Infof("Gotify notifications %s", map[bool]string{true: "enabled", false: "disabled"}[newCfg.Gotify.Enable])
 	}
 
-	// Clusters — détecter un changement de filtre sur le cluster maître
-	oldMaster := getClusterMaster(oldCfg.Clusters)
-	newMaster := getClusterMaster(newCfg.Clusters)
-	if oldMaster != nil && newMaster != nil &&
-		(oldMaster.FT8 != newMaster.FT8 ||
-			oldMaster.FT4 != newMaster.FT4 ||
-			oldMaster.Skimmer != newMaster.Skimmer ||
-			oldMaster.Beacon != newMaster.Beacon) {
-		Log.Info("Cluster filters changed, applying")
-		httpServerInstance.MasterClient().ReloadFilters()
+	if httpServerInstance == nil {
+		return
 	}
+
+	// Clusters — topology change (server/port/login/count): full reconnect
+	if clusterTopologyChanged(oldCfg.Clusters, newCfg.Clusters) {
+		active := newCfg.GetActiveClusters()
+		if len(active) > 0 {
+			go httpServerInstance.ReloadClusters(active)
+		}
+	} else {
+		// Only filter change on master — lightweight reload
+		oldMaster := getClusterMaster(oldCfg.Clusters)
+		newMaster := getClusterMaster(newCfg.Clusters)
+		if oldMaster != nil && newMaster != nil &&
+			(oldMaster.FT8 != newMaster.FT8 ||
+				oldMaster.FT4 != newMaster.FT4 ||
+				oldMaster.Skimmer != newMaster.Skimmer ||
+				oldMaster.Beacon != newMaster.Beacon) {
+			Log.Info("Cluster filters changed, applying")
+			if mc := httpServerInstance.MasterClient(); mc != nil {
+				mc.ReloadFilters()
+			}
+		}
+	}
+
+	// Logbook — path or type changed
+	if oldCfg.SQLite.SQLitePath != newCfg.SQLite.SQLitePath ||
+		oldCfg.Database.LogbookType != newCfg.Database.LogbookType {
+		go httpServerInstance.ReloadLogbook()
+	}
+}
+
+// clusterTopologyChanged returns true when any connection parameter changed
+// (server, port, login, password, enabled) or the cluster list size changed.
+func clusterTopologyChanged(old, new []ClusterConfig) bool {
+	if len(old) != len(new) {
+		return true
+	}
+	type key struct{ server, port string }
+	oldMap := make(map[key]ClusterConfig, len(old))
+	for _, c := range old {
+		oldMap[key{c.Server, c.Port}] = c
+	}
+	for _, c := range new {
+		o, exists := oldMap[key{c.Server, c.Port}]
+		if !exists || o.Login != c.Login || o.Password != c.Password || o.Enabled != c.Enabled {
+			return true
+		}
+	}
+	return false
 }
 
 func (cw *ConfigWatcher) Stop() {
