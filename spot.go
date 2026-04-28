@@ -4,7 +4,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"sync"
 
 	_ "modernc.org/sqlite"
 )
@@ -92,47 +91,14 @@ func ProcessTelnetSpot(re *regexp.Regexp, reShort *regexp.Regexp, spotRaw string
 	spot.NewDXCC = false
 	spot.NewSlot = false
 
-	contactsChan := make(chan []Contact)
-	contactsModeChan := make(chan []Contact)
-	contactsModeBandChan := make(chan []Contact)
-	contactsBandChan := make(chan []Contact)
-	contactsCallChan := make(chan []Contact)
-
-	wg := new(sync.WaitGroup)
-	wg.Add(5)
-
-	go contactRepo.ListByCountry(spot.DXCC, contactsChan, wg)
-	contacts := <-contactsChan
-
-	go contactRepo.ListByCountryMode(spot.DXCC, spot.Mode, contactsModeChan, wg)
-	contactsMode := <-contactsModeChan
-
-	go contactRepo.ListByCountryBand(spot.DXCC, spot.Band, contactsBandChan, wg)
-	contactsBand := <-contactsBandChan
-
-	go contactRepo.ListByCallSign(spot.DX, spot.Band, spot.Mode, contactsCallChan, wg)
-	contactsCall := <-contactsCallChan
-
-	go contactRepo.ListByCountryModeBand(spot.DXCC, spot.Band, spot.Mode, contactsModeBandChan, wg)
-	contactsModeBand := <-contactsModeBandChan
-
-	wg.Wait()
-
-	// ✅ Déterminer le statut
-	if len(contacts) == 0 {
-		spot.NewDXCC = true
-	}
-	if len(contactsMode) == 0 {
-		spot.NewMode = true
-	}
-	if len(contactsBand) == 0 {
-		spot.NewBand = true
-	}
-	if len(contactsModeBand) == 0 && !spot.NewDXCC && !spot.NewBand && !spot.NewMode {
-		spot.NewSlot = true
-	}
-	if len(contactsCall) > 0 {
-		spot.CallsignWorked = true
+	if globalLogbookCache != nil {
+		spot.NewDXCC = !globalLogbookCache.HasDXCC(spot.DXCC)
+		spot.NewMode = !globalLogbookCache.HasDXCCMode(spot.DXCC, spot.Mode)
+		spot.NewBand = !globalLogbookCache.HasDXCCBand(spot.DXCC, spot.Band)
+		spot.CallsignWorked = globalLogbookCache.HasCallBandMode(spot.DX, spot.Band, spot.Mode)
+		if !spot.NewDXCC && !spot.NewBand && !spot.NewMode {
+			spot.NewSlot = !globalLogbookCache.HasDXCCBandMode(spot.DXCC, spot.Band, spot.Mode)
+		}
 	}
 
 	// ✅ Envoyer le spot
