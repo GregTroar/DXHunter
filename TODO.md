@@ -29,6 +29,10 @@
 - [ ] Alerte sonore configurable par type d'événement (nouveau DXCC, watchlist, mon indicatif spotté)
 - [ ] Webhook Discord / Telegram en complément de Gotify
 
+## Radio Control (sans Flex)
+
+- [ ] Intégration Omnirig : tuner la radio via CAT/CI-V (changement de fréquence et mode depuis les spots) pour les rigs non-Flex
+
 ## Log / Intégration
 
 - [ ] LoTW status directement sur les spots (colonne ou icône — API ARRL LoTW)
