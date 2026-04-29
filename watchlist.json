@@ -1,35 +1,5 @@
 [
   {
-    "callsign": "C21TS",
-    "lastSeen": "2026-04-29T18:33:36.6527713+02:00",
-    "lastSeenStr": "14 minutes ago",
-    "addedAt": "2026-03-16T20:52:54.138603+01:00",
-    "spotCount": 335,
-    "isContest": false,
-    "notify": false,
-    "isExpedition": false,
-    "clubLogQSOs24h": 0,
-    "clubLogTotalQSOs": 129211,
-    "clubLogHasOQRS": false,
-    "clubLogLiveStream": true,
-    "clubLogUpdatedAt": "2026-04-29T18:33:36.6543352+02:00"
-  },
-  {
-    "callsign": "3B9G",
-    "lastSeen": "2026-04-29T18:50:27.5186932+02:00",
-    "lastSeenStr": "Just now",
-    "addedAt": "2026-04-18T18:45:15.0582147+02:00",
-    "spotCount": 638,
-    "isContest": false,
-    "notify": false,
-    "isExpedition": false,
-    "clubLogQSOs24h": 0,
-    "clubLogTotalQSOs": 5472,
-    "clubLogHasOQRS": true,
-    "clubLogLiveStream": false,
-    "clubLogUpdatedAt": "2026-04-29T18:50:27.5202649+02:00"
-  },
-  {
     "callsign": "HF0PAS",
     "lastSeen": "0001-01-01T00:00:00Z",
     "lastSeenStr": "Never",
@@ -931,10 +901,10 @@
   },
   {
     "callsign": "TL8GD",
-    "lastSeen": "2026-04-29T18:39:51.8564687+02:00",
-    "lastSeenStr": "8 minutes ago",
+    "lastSeen": "2026-04-29T18:52:28.4916617+02:00",
+    "lastSeenStr": "Just now",
     "addedAt": "2025-11-15T16:24:57.4489414+01:00",
-    "spotCount": 4209,
+    "spotCount": 4211,
     "isContest": false,
     "notify": false,
     "isExpedition": false,
@@ -942,7 +912,7 @@
     "clubLogTotalQSOs": 85785,
     "clubLogHasOQRS": true,
     "clubLogLiveStream": true,
-    "clubLogUpdatedAt": "2026-04-29T18:39:51.8580104+02:00"
+    "clubLogUpdatedAt": "2026-04-29T18:52:28.4937625+02:00"
   },
   {
     "callsign": "3Y0K",
@@ -1126,10 +1096,10 @@
   },
   {
     "callsign": "C5D",
-    "lastSeen": "2026-04-29T18:33:54.9110846+02:00",
-    "lastSeenStr": "14 minutes ago",
+    "lastSeen": "2026-04-29T18:52:48.0599721+02:00",
+    "lastSeenStr": "Just now",
     "addedAt": "2026-04-25T17:29:37.4737013+02:00",
-    "spotCount": 337,
+    "spotCount": 341,
     "isContest": false,
     "notify": false,
     "isExpedition": false,
@@ -1137,7 +1107,7 @@
     "clubLogTotalQSOs": 0,
     "clubLogHasOQRS": false,
     "clubLogLiveStream": false,
-    "clubLogUpdatedAt": "2026-04-29T18:33:54.9146901+02:00"
+    "clubLogUpdatedAt": "2026-04-29T18:52:48.0620371+02:00"
   },
   {
     "callsign": "TY5GG",
@@ -1858,5 +1828,35 @@
     "clubLogHasOQRS": true,
     "clubLogLiveStream": true,
     "clubLogUpdatedAt": "2026-04-26T18:02:24.5516381+02:00"
+  },
+  {
+    "callsign": "C21TS",
+    "lastSeen": "2026-04-29T18:52:44.5348619+02:00",
+    "lastSeenStr": "Just now",
+    "addedAt": "2026-03-16T20:52:54.138603+01:00",
+    "spotCount": 337,
+    "isContest": false,
+    "notify": false,
+    "isExpedition": false,
+    "clubLogQSOs24h": 0,
+    "clubLogTotalQSOs": 129211,
+    "clubLogHasOQRS": false,
+    "clubLogLiveStream": true,
+    "clubLogUpdatedAt": "2026-04-29T18:52:44.5381425+02:00"
+  },
+  {
+    "callsign": "3B9G",
+    "lastSeen": "2026-04-29T18:50:27.5186932+02:00",
+    "lastSeenStr": "Just now",
+    "addedAt": "2026-04-18T18:45:15.0582147+02:00",
+    "spotCount": 638,
+    "isContest": false,
+    "notify": false,
+    "isExpedition": false,
+    "clubLogQSOs24h": 0,
+    "clubLogTotalQSOs": 5472,
+    "clubLogHasOQRS": true,
+    "clubLogLiveStream": false,
+    "clubLogUpdatedAt": "2026-04-29T18:50:27.5202649+02:00"
   }
 ]

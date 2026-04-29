@@ -449,6 +449,7 @@
           // No current target (or stale) — find best priority call decoded this period
           let bestDecode = null;
           for (const prioUC of priorityCalls) {
+            if (recentlyWorked.has(prioUC)) continue;
             const d = decodes.find(dd => (dd.dxCall || '').toUpperCase() === prioUC);
             if (d && (!bestDecode || d.snr > bestDecode.snr)) bestDecode = d;
           }
