@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+	"time"
 )
 
 var Mutex sync.Mutex
@@ -131,6 +132,8 @@ func main() {
 	}
 	if cRepo != nil {
 		defer cRepo.Close()
+		globalLogbookCache = NewLogbookCache(cRepo)
+		globalLogbookCache.StartAutoRefresh(cRepo, 30*time.Second)
 	}
 
 	// ✅ Créer le canal pour le traitement centralisé des spots

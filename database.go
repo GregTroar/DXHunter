@@ -98,13 +98,9 @@ func NewLog4OMContactsRepository(filePath string) LogbookProvider {
 			return nil
 		}
 
-		// 5 parallel queries per cluster × number of active clusters.
-		sqliteConns := len(Cfg.GetActiveClusters()) * 5
-		if sqliteConns < 5 {
-			sqliteConns = 5
-		}
-		db.SetMaxOpenConns(sqliteConns)
-		db.SetMaxIdleConns(sqliteConns)
+		// SQLite works best with a single connection for reads alongside Log4OM
+		db.SetMaxOpenConns(1)
+		db.SetMaxIdleConns(1)
 
 		// Log4OM uses WAL mode while running — we must match it to read live data.
 		// If Log4OM holds an exclusive lock at this instant the pragma may fail;

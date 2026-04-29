@@ -354,9 +354,9 @@ func (s *HTTPServer) handleFTxHighlight(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	var req struct {
-		ClientID  string `json:"clientId"`
-		Callsign  string `json:"callsign"`
-		BgColor   [4]uint8 `json:"bgColor"`  // RGBA
+		ClientID  string   `json:"clientId"`
+		Callsign  string   `json:"callsign"`
+		BgColor   [4]uint8 `json:"bgColor"` // RGBA
 		FgColor   [4]uint8 `json:"fgColor"`
 		Highlight bool     `json:"highlight"`
 	}
@@ -789,7 +789,8 @@ func (s *HTTPServer) broadcastUpdates() {
 		}
 	}()
 
-	statsTicker := time.NewTicker(1 * time.Second)
+	statsTicker := time.NewTicker(300 * time.Millisecond)
+	spotsTicker := time.NewTicker(300 * time.Millisecond)
 	logTicker := time.NewTicker(5 * time.Second)
 	watchlistSaveTicker := time.NewTicker(20 * time.Second)
 	cleanupTicker := time.NewTicker(30 * time.Second)
@@ -797,6 +798,7 @@ func (s *HTTPServer) broadcastUpdates() {
 
 	defer func() {
 		statsTicker.Stop()
+		spotsTicker.Stop()
 		logTicker.Stop()
 		watchlistSaveTicker.Stop()
 		cleanupTicker.Stop()
@@ -827,23 +829,24 @@ func (s *HTTPServer) broadcastUpdates() {
 				continue
 			}
 
-			// ✅ Stats avec timeout
 			statsMsg := WSMessage{Type: "stats", Data: s.calculateStats()}
 			select {
 			case s.broadcast <- statsMsg:
-				// Envoyé avec succès
 			case <-time.After(50 * time.Millisecond):
 				s.Log.Debug("Broadcast channel busy, dropping stats update")
 			}
 
-			// ✅ Spots avec timeout
+		case <-spotsTicker.C:
+			if s.clientCount() == 0 {
+				continue
+			}
+
 			spots := s.enrichedSpots()
 			if len(spots) > 0 {
 				s.checkBandOpening(spots)
 				spotsMsg := WSMessage{Type: "spots", Data: spots}
 				select {
 				case s.broadcast <- spotsMsg:
-					// Envoyé avec succès
 				case <-time.After(50 * time.Millisecond):
 					s.Log.Debug("Broadcast channel busy, dropping spots update")
 				}
@@ -1830,12 +1833,12 @@ func (s *HTTPServer) calculateStats() Stats {
 			}
 			return s.ContactRepo.CountEntries()
 		}(),
-		ClusterStatus:    clusterStatus,
-		ClusterType:      clusterType,
-		Clusters:         clusterInfos,
-		FlexStatus:       flexStatus,
-		MyCallsign:       Cfg.General.Callsign,
-		MyGrid:           Cfg.General.Grid,
+		ClusterStatus: clusterStatus,
+		ClusterType:   clusterType,
+		Clusters:      clusterInfos,
+		FlexStatus:    flexStatus,
+		MyCallsign:    Cfg.General.Callsign,
+		MyGrid:        Cfg.General.Grid,
 		Filters: func() Filters {
 			if m := getClusterMaster(Cfg.Clusters); m != nil {
 				return Filters{Skimmer: m.Skimmer, FT8: m.FT8, FT4: m.FT4, Beacon: m.Beacon}

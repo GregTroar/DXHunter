@@ -29,13 +29,8 @@ func NewHRDContactsRepository(filePath string) LogbookProvider {
 		Log.Errorf("Cannot open HRD SQLite database: %v", err)
 		return nil
 	}
-	// 5 parallel queries per cluster × number of active clusters.
-	sqliteConns := len(Cfg.GetActiveClusters()) * 5
-	if sqliteConns < 5 {
-		sqliteConns = 5
-	}
-	db.SetMaxOpenConns(sqliteConns)
-	db.SetMaxIdleConns(sqliteConns)
+	db.SetMaxOpenConns(1)
+	db.SetMaxIdleConns(1)
 	if _, err = db.Exec("PRAGMA journal_mode=WAL"); err != nil {
 		Log.Warnf("Could not set WAL mode on HRD database (non-fatal): %v", err)
 	}
