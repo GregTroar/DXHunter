@@ -420,25 +420,32 @@ func (r *Log4OMContactsRepository) GetRecentQSOs(limit string) []QSO {
 func (r *Log4OMContactsRepository) GetQSOStats() QSOStats {
 	stats := QSOStats{}
 
-	// QSOs du jour
-	err := r.db.QueryRow("SELECT COUNT(*) FROM log WHERE qsodate >= DATE('now')").Scan(&stats.Today)
+	var today, week, month string
+	if Cfg.Database.MySQL {
+		today = "CURDATE()"
+		week = "DATE_SUB(CURDATE(), INTERVAL 7 DAY)"
+		month = "DATE_FORMAT(CURDATE(), '%Y-%m-01')"
+	} else {
+		today = "DATE('now')"
+		week = "DATE('now', '-7 days')"
+		month = "DATE('now', 'start of month')"
+	}
+
+	err := r.db.QueryRow("SELECT COUNT(*) FROM log WHERE qsodate >= " + today).Scan(&stats.Today)
 	if err != nil {
 		log.Error("could not get today's QSOs:", err)
 	}
 
-	// QSOs de la semaine
-	err = r.db.QueryRow("SELECT COUNT(*) FROM log WHERE qsodate >= DATE('now', '-7 days')").Scan(&stats.ThisWeek)
+	err = r.db.QueryRow("SELECT COUNT(*) FROM log WHERE qsodate >= " + week).Scan(&stats.ThisWeek)
 	if err != nil {
 		log.Error("could not get week's QSOs:", err)
 	}
 
-	// QSOs du mois
-	err = r.db.QueryRow("SELECT COUNT(*) FROM log WHERE qsodate >= DATE('now', 'start of month')").Scan(&stats.ThisMonth)
+	err = r.db.QueryRow("SELECT COUNT(*) FROM log WHERE qsodate >= " + month).Scan(&stats.ThisMonth)
 	if err != nil {
 		log.Error("could not get month's QSOs:", err)
 	}
 
-	// Total QSOs
 	stats.Total = r.CountEntries()
 
 	return stats
