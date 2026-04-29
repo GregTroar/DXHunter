@@ -2,7 +2,7 @@
 
 **FlexDXCluster is a DX cluster client built for one purpose: helping you chase new DXCC entities, new bands, new modes and new slots.**
 
-Every spot arriving from the cluster is instantly cross-referenced against your **Log4OM** logbook and classified — New DXCC, New Band, New Mode, New Slot, or Already Worked. Interesting spots are pushed directly to your **FlexRadio panadapter** so you can tune with a single click. FT8/FT4 decodes are enriched the same way in real time.
+Every spot arriving from the cluster is cross-referenced against your logbook (**Log4OM** or **Ham Radio Deluxe**) and classified — New DXCC, New Band, New Mode, New Slot, or Already Worked. Interesting spots are pushed directly to your **FlexRadio panadapter** so you can tune with a single click. FT8/FT4 decodes are enriched the same way in real time.
 
 Written in Go (backend) and Svelte + TailwindCSS (frontend). No external dependencies at runtime — the web dashboard is embedded in the binary.
 
@@ -12,7 +12,7 @@ Written in Go (backend) and Svelte + TailwindCSS (frontend). No external depende
 
 | Goal | How |
 |---|---|
-| Chase **New DXCC** | Every spot is looked up against your Log4OM database. New entities are highlighted in green. |
+| Chase **New DXCC** | Every spot is cross-referenced against your logbook. New entities are highlighted in green. |
 | Chase **New Band / New Mode** | Per-band and per-mode worked status computed from your log. Yellow = new band, orange = new mode, purple = new band+mode. |
 | Chase **New Slots** | New Band+Mode combinations (slots) highlighted in light blue. |
 | **FlexRadio integration** | Spots pushed to the panadapter with color coding. Click a spot in the UI to tune the radio. |
@@ -28,7 +28,7 @@ On first launch (no `config.yml` found), a **setup wizard** opens automatically 
 The wizard collects:
 - Your callsign and Maidenhead grid locator
 - FlexRadio IP address (or leave empty for auto-discovery)
-- Log4OM SQLite database path
+- Logbook database path (Log4OM or Ham Radio Deluxe SQLite)
 - DX cluster servers (pre-filled with F4BPO Cluster and POTA Cluster)
 
 After completing the wizard, the application starts all services automatically and the dashboard loads.
@@ -44,10 +44,11 @@ After completing the wizard, the application starts all services automatically a
 - Send custom login commands per cluster (e.g. `SET/FILTER` for geographic filtering)
 - Automatic reconnection on disconnect
 - Spot deduplication and configurable TTL (spot lifetime)
+- **Non-blocking TCP reader**: each spot is processed in its own goroutine so the socket is never stalled
 
 ### Spot Display & Filtering
 - Real-time spot list: callsign, frequency, band, mode, DXCC country, spotter, time, comment
-- **Log status badges**: New DXCC / New Band / New Mode / New Slot / Worked — queried live from Log4OM
+- **Log status badges**: New DXCC / New Band / New Mode / New Slot / Worked — resolved from in-memory logbook cache (refreshed every 30 seconds)
 - **LoTW indicator**: marks spots from confirmed LoTW users (~150k users downloaded at startup)
 - **Color-coded spots** — fully configurable in Settings:
   - New DXCC → green text
@@ -61,15 +62,16 @@ After completing the wizard, the application starts all services automatically a
 - Bands supported: 160M, 80M, 60M, 40M, 30M, 20M, 17M, 15M, 12M, 10M, 6M, 2M, 70cm
 - Web Worker-based filtering for smooth UI on large spot lists
 - Sortable columns (callsign, country, mode, frequency)
+- **Smooth display**: spot list refreshes at 500 ms cadence regardless of burst rate from the cluster
 
-### Log4OM Integration
-- Reads your **Log4OM SQLite or MySQL database** directly
+### Logbook Integration
+- Supports **Log4OM 2** (SQLite or MySQL) and **Ham Radio Deluxe** (SQLite)
+- **In-memory cache**: all contacts are loaded at startup into indexed maps and refreshed every 30 seconds — spot enrichment is O(1) with zero database I/O on the critical path
 - Computes worked status for every spot: New DXCC, New Band, New Mode, New Band+Mode Slot, Worked
 - QSO statistics: today, this week, this month, all-time
-- Recent QSO list
+- Recent QSO list (Log4OM tab, updated every 5 seconds)
 - DXCC progress counter (entities worked / 340)
 - Optionally sends **frequency and mode changes** to Log4OM radio control (UDP)
-- Per-DXCC contact cache to minimise database load during high-traffic FTx periods
 
 ### FlexRadio Integration
 - **Auto-discovery** via SmartSDR UDP broadcast or **direct IP** connection (local or remote)
@@ -85,7 +87,7 @@ After completing the wizard, the application starts all services automatically a
 - Listens on **UDP multicast** (default `239.255.0.1:2237`) with `SO_REUSEADDR` — shares the port with WSJT-X, GridTracker, Log4OM simultaneously
 - Decodes **FT8, FT4 and FT2** messages in real time
 - Decodes grouped by 15-second period with a clear visual separator
-- **Log status badges** on each decode: New DXCC / New Band / New Mode / New Slot / Worked — enriched asynchronously from Log4OM
+- **Log status badges** on each decode: New DXCC / New Band / New Mode / New Slot / Worked — enriched from in-memory logbook cache
 - Country lookup from callsign (in-memory, instant)
 - **LoTW indicator** on each decode
 - Watchlist highlight: watched callsigns highlighted directly in the decode list
@@ -107,6 +109,7 @@ After completing the wizard, the application starts all services automatically a
 - **ClubLog enrichment** (optional API key): expedition status, OQRS availability, live 24h QSO count, total QSOs
 - 5-minute notification cooldown per callsign to avoid spam
 - Contest mode integration: contest-prefixed callsigns auto-added
+- Worked status on watchlist spots queried live from database (always current)
 
 ### QRZ Callsign Lookup
 - Look up any callsign directly from the dashboard
@@ -169,12 +172,12 @@ After completing the wizard, the application starts all services automatically a
 
 | Requirement | Notes |
 |---|---|
-| **Log4OM 2** | Mandatory for spot enrichment. Provides the contact database (SQLite or MySQL). |
+| **Log4OM 2** or **Ham Radio Deluxe** | Required for spot enrichment. Provides the contact database (SQLite or MySQL). |
 | FlexRadio + SmartSDR | Optional. Required for panadapter spot display and one-click tuning. |
 | WSJT-X / JTDX / MSHV | Optional. Required for FTx decode monitoring. |
 | Windows | Primary platform (Windows toast notifications, multicast). |
 
-Without Log4OM, the following features are unavailable: New DXCC / Band / Mode / Slot detection, Worked status, FTx log badges, QSO stats, DXCC progress.
+Without a logbook, the following features are unavailable: New DXCC / Band / Mode / Slot detection, Worked status, FTx log badges, QSO stats, DXCC progress.
 
 ---
 
@@ -197,6 +200,7 @@ general:
 
 database:
   sqlite: true
+  logbook_type: "log4om"   # "log4om" or "hrd"
 
 sqlite:
   sqlite_path: 'C:\Users\you\AppData\Roaming\Log4OM2\Data\log4om.db'
@@ -233,6 +237,10 @@ telnetserver:
 1. Log4OM → **Network** → **DX Cluster** → server: `localhost:7300`
 2. Log4OM → **Database** → note the SQLite path and set it in `sqlite_path`
 3. Optionally enable **UDP Callsign** in Log4OM to receive frequency/mode from FlexDXCluster
+
+### Ham Radio Deluxe setup
+1. Set `logbook_type: "hrd"` in `config.yml`
+2. Set `sqlite_path` to your HRD SQLite database file
 
 ### WSJT-X / MSHV / JTDX setup
 - **UDP Server address:** `239.255.0.1` (multicast) or `127.0.0.1` (unicast)
@@ -271,15 +279,15 @@ Open `http://localhost:8080` in a browser (or any browser on the network).
 ## Architecture
 
 ```
-DX Cluster servers ──TCP──► tcpclient.go
+DX Cluster servers ──TCP──► TCPClient.go  (goroutine per spot)
 WSJT-X / MSHV ─────UDP──► ftx.go
-FlexRadio SmartSDR ─TCP──► flexclient.go
-Log4OM DB ─────────────► database.go
+FlexRadio SmartSDR ─TCP──► flexradio.go
+Log4OM / HRD DB ───────► database.go ──► logbookcache.go (in-memory, 30s refresh)
 
                     ┌──────────────────────┐
                     │  Go backend          │
-                    │  spotprocessor.go    │  dedup, TTL, enrich
-                    │  httpserver.go       │  HTTP + WebSocket
+                    │  spotprocessor.go    │  dedup, TTL, color
+                    │  httpserver.go       │  HTTP + WebSocket (500ms spot tick)
                     │  watchlist.go        │  watchlist engine
                     │  pota.go             │  POTA/SOTA cache
                     │  dxcc.go             │  DXCC lookup (cty.plist)
