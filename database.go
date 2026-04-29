@@ -186,7 +186,7 @@ func (r *Log4OMContactsRepository) Close() {
 
 func (r *Log4OMContactsRepository) CountEntries() int {
 	var contacts int
-	err := r.db.QueryRow("SELECT COUNT(*) FROM Log").Scan(&contacts)
+	err := r.db.QueryRow("SELECT COUNT(*) FROM log").Scan(&contacts)
 	if err != nil {
 		log.Error("could not query database", err)
 	}
