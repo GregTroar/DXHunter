@@ -29,9 +29,8 @@
       { cmd: 'SET/SKIMMER CW', label: 'Skimmer ON (CW)', desc: 'Activate Skimmers' },
       { cmd: 'UNSET/SKIMMER', label: 'Skimmer OFF', desc: 'Deactivate Skimmer' },
       { cmd: 'CLEAR/SPOTS ALL', label: 'No Filters', desc: 'Clear all Filters' },
+      { cmd: 'ACCEPT/SPOTS BY 1A,3A,4O,9A,9H,C3,CT,CU,DL,E7,EA,EA6,EI,ER,ES,EU,F,G,GD,GI,GJ,GM,GU,GW,HA,HB,HB0,HV,I,IS,IT9,JW,JX,LA,LX,LY,LZ,OE,OH,OH0,OJ0,OK,OM,ON,OY,OZ,PA,S5,SM,SP,SV,SV5,SV9,T7,TA1,TF,TK,UA,UR,YL,YO,YU,Z6,Z3', label: 'EU Only', desc: 'Filter only EU Origin' },
       { cmd: 'SHOW/FILTER', label: 'Show Filters', desc: 'Show Current Filters' },
-      { cmd: 'REJECT/SPOTS ON HF/CW', label: 'Reject CW', desc: 'Reject all CW HF Spots' },
-      { cmd: 'REJECT/SPOTS ON HF/SSB', label: 'Reject SSB', desc: 'Reject all SSB HF Spots' },
       { cmd: 'HELP', label: 'Help', desc: 'Help' }
     ],
     cc_cluster: [
