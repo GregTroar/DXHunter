@@ -400,8 +400,12 @@
     let action = null;
     let isNewTarget = false;
     try {
-      const group   = groupedDecodes.find(g => g.time === periodTime);
-      const decodes = group ? group.decodes : [];
+      const group      = groupedDecodes.find(g => g.time === periodTime);
+      const decodes    = group ? group.decodes : [];
+      // Also check previous period: QSO-complete signal (RRR/RR73/73) may have arrived
+      // in the preceding period and be absent from the current batch.
+      const prevGroup   = groupedDecodes[1]; // second newest = previous period
+      const prevDecodes = (prevGroup && prevGroup.time !== periodTime) ? prevGroup.decodes : [];
 
       if (priorityCalls.length > 0) {
         // ── Watch call mode: only call stations from the priority list ─────────
@@ -433,35 +437,35 @@
         if (autoCallTarget && targetIsOnList) {
           // Continue with current target
           const targetDecode = decodes.find(d => (d.dxCall || '').toUpperCase() === targetUC);
-          if (targetDecode) {
+          // Check QSO complete first — may have arrived in the previous period even if target
+          // is absent from the current batch.
+          if (acQSOComplete(decodes, targetUC) || acQSOComplete(prevDecodes, targetUC)) {
+            recentlyWorked.add(targetUC);
+            autoCallTarget   = null;
+            autoCallAttempts = 0;
+            action = { type: 'clearDXCall' };
+          } else if (targetDecode) {
             const wasInMiss = autoCallMissed > 0;
             autoCallMissed = 0;
-            if (acQSOComplete(decodes, targetUC)) {
-              recentlyWorked.add(targetUC);
-              autoCallTarget   = null;
-              autoCallAttempts = 0;
-              action = { type: 'clearDXCall' };
+            const replied = decodes.some(d =>
+              (d.dxCall || '').toUpperCase() === targetUC && d.myCall
+            );
+            if (replied) {
+              autoCallAttempts = 0; // in QSO, MSHV handles sequencing
             } else {
-              const replied = decodes.some(d =>
-                (d.dxCall || '').toUpperCase() === targetUC && d.myCall
-              );
-              if (replied) {
-                autoCallAttempts = 0; // in QSO, MSHV handles sequencing
-              } else {
-                const firstCall = autoCallAttempts === 1;
-                autoCallAttempts++;
-                const maxAttempts = isWatchlisted(targetUC) ? AUTO_WATCHLIST_ATTEMPT_MAX : AUTO_ATTEMPT_MAX;
-                if (autoCallAttempts >= maxAttempts) {
-                  autoCallStopped     = true;
-                  autoCallStoppedCall = targetUC;
-                  autoCallTarget      = null;
-                  autoCallAttempts    = 0;
-                  action = { type: 'halt' };
-                } else if (firstCall || wasInMiss) {
-                  action = { type: 'reply', decode: autoCallTarget };
-                }
-                // else: MSHV already transmitting — do not interrupt
+              const firstCall = autoCallAttempts === 1;
+              autoCallAttempts++;
+              const maxAttempts = isWatchlisted(targetUC) ? AUTO_WATCHLIST_ATTEMPT_MAX : AUTO_ATTEMPT_MAX;
+              if (autoCallAttempts >= maxAttempts) {
+                autoCallStopped     = true;
+                autoCallStoppedCall = targetUC;
+                autoCallTarget      = null;
+                autoCallAttempts    = 0;
+                action = { type: 'halt' };
+              } else if (firstCall || wasInMiss) {
+                action = { type: 'reply', decode: autoCallTarget };
               }
+              // else: MSHV already transmitting — do not interrupt
             }
           } else {
             // Target not decoded this period → miss
@@ -497,42 +501,42 @@
       } else {
         // ── Normal mode: auto-pick best candidate ─────────────────────────────
         if (autoCallTarget) {
-          const targetUC    = (autoCallTarget.dxCall || '').toUpperCase();
-          const targetSeen  = decodes.find(d => (d.dxCall || '').toUpperCase() === targetUC);
+          const targetUC   = (autoCallTarget.dxCall || '').toUpperCase();
+          const targetSeen = decodes.find(d => (d.dxCall || '').toUpperCase() === targetUC);
 
-          if (targetSeen) {
+          // Check QSO complete first — RRR/RR73/73 may have arrived in the previous period
+          // even if the target station is absent from the current batch.
+          if (acQSOComplete(decodes, targetUC) || acQSOComplete(prevDecodes, targetUC)) {
+            recentlyWorked.add(targetUC);
+            autoCallTarget       = null;
+            autoCallAttempts     = 0;
+            autoCallManualLocked = false;
+            action = { type: 'clearDXCall' };
+          } else if (targetSeen) {
             const wasInMiss = autoCallMissed > 0;
             autoCallMissed = 0;
-            if (acQSOComplete(decodes, targetUC)) {
-              recentlyWorked.add(targetUC);
-              autoCallTarget       = null;
-              autoCallAttempts     = 0;
-              autoCallManualLocked = false;
-              action = { type: 'clearDXCall' };
+            const replied = decodes.some(d =>
+              (d.dxCall || '').toUpperCase() === targetUC && d.myCall
+            );
+            if (replied) {
+              autoCallAttempts = 0; // in QSO, MSHV handles sequencing
             } else {
-              const replied = decodes.some(d =>
-                (d.dxCall || '').toUpperCase() === targetUC && d.myCall
-              );
-              if (replied) {
-                autoCallAttempts = 0; // in QSO, MSHV handles sequencing
-              } else {
-                const firstCall = autoCallAttempts === 1;
-                autoCallAttempts++;
-                const maxAttempts = isWatchlisted(targetUC) ? AUTO_WATCHLIST_ATTEMPT_MAX : AUTO_ATTEMPT_MAX;
-                if (autoCallAttempts >= maxAttempts) {
-                  autoCallTarget       = null;
-                  autoCallAttempts     = 0;
-                  autoCallMissed       = 0;
-                  autoCallManualLocked = false;
-                  action = { type: 'halt' };
-                } else if (firstCall || wasInMiss || contestMode) {
-                  // Normal: only (re)send on first call or when station reappears after miss.
-                  // Contest: resend every RX period — target may be working others, MSHV needs
-                  // a new Reply each period to keep transmitting in the next TX slot.
-                  action = { type: 'reply', decode: autoCallTarget };
-                }
-                // else: MSHV already transmitting — do not interrupt
+              const firstCall = autoCallAttempts === 1;
+              autoCallAttempts++;
+              const maxAttempts = isWatchlisted(targetUC) ? AUTO_WATCHLIST_ATTEMPT_MAX : AUTO_ATTEMPT_MAX;
+              if (autoCallAttempts >= maxAttempts) {
+                autoCallTarget       = null;
+                autoCallAttempts     = 0;
+                autoCallMissed       = 0;
+                autoCallManualLocked = false;
+                action = { type: 'halt' };
+              } else if (firstCall || wasInMiss || contestMode) {
+                // Normal: only (re)send on first call or when station reappears after miss.
+                // Contest: resend every RX period — target may be working others, MSHV needs
+                // a new Reply each period to keep transmitting in the next TX slot.
+                action = { type: 'reply', decode: autoCallTarget };
               }
+              // else: MSHV already transmitting — do not interrupt
             }
           } else {
             // Target not decoded this RX period → miss
