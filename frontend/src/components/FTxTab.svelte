@@ -8,6 +8,7 @@
   export let spots = [];
   export let ftxTXStatus = { transmitting: false, message: '', mode: '', clientId: '' };
   export let myGrid = '';
+  export let contestMode = false;
 
   let filterCQOnly = false;
   let filterMyCall = false;
@@ -218,6 +219,11 @@
     .map(c => c.trim().toUpperCase())
     .filter(Boolean);
 
+  // In contest mode, autocall is restricted to watchlist entries marked isContest=true.
+  $: contestWatchlistUC = new Set(
+    watchlist.filter(w => w.isContest).map(w => (w.callsign || '').toUpperCase()).filter(Boolean)
+  );
+
   const AUTO_MISS_MAX             = 3;
   const AUTO_ATTEMPT_MAX          = 7;
   const AUTO_WATCHLIST_ATTEMPT_MAX = 15;
@@ -230,11 +236,13 @@
 
   // Detect if a station is calling us directly (report/R-report) but not CQ/complete
   function acCallerToMe(decodes) {
-    return decodes.find(d =>
-      d.myCall && d.dxCall && !d.isCQ &&
-      !recentlyWorked.has((d.dxCall || '').toUpperCase()) &&
-      !acQSOComplete([d], d.dxCall)
-    ) || null;
+    return decodes.find(d => {
+      const uc = (d.dxCall || '').toUpperCase();
+      if (contestMode && !contestWatchlistUC.has(uc)) return false;
+      return d.myCall && d.dxCall && !d.isCQ &&
+        !recentlyWorked.has(uc) &&
+        !acQSOComplete([d], d.dxCall);
+    }) || null;
   }
 
   // Priority: DXCC > Band+Mode > Band > Mode > Slot > nothing > not enriched
@@ -259,10 +267,26 @@
     return '';
   }
 
-  // Best candidate: highest priority → watchlist first → highest SNR
+  // Best candidate:
+  //   Normal mode : new DXCC/band/mode/slot → watchlist first → highest SNR
+  //   Contest mode: any contest-watchlist station not yet worked this session → highest SNR
   function acBestCandidate(decodes) {
     const wlUC = new Set(watchlist.map(w => w.callsign?.toUpperCase()).filter(Boolean));
-    const eligible = decodes.filter(d => acPriority(d) > 0 && !recentlyWorked.has((d.dxCall || '').toUpperCase()));
+
+    if (contestMode) {
+      const eligible = decodes.filter(d => {
+        const uc = (d.dxCall || '').toUpperCase();
+        return contestWatchlistUC.has(uc) && !recentlyWorked.has(uc);
+      });
+      if (!eligible.length) return null;
+      eligible.sort((a, b) => b.snr - a.snr);
+      return eligible[0];
+    }
+
+    const eligible = decodes.filter(d => {
+      const uc = (d.dxCall || '').toUpperCase();
+      return acPriority(d) > 0 && !recentlyWorked.has(uc);
+    });
     if (!eligible.length) return null;
     eligible.sort((a, b) => {
       const pd = acPriority(b) - acPriority(a);
@@ -551,6 +575,30 @@
     if (action?.type === 'halt')        haltTX().catch(e => console.error('FTx halt:', e));
     if (action?.type === 'clearDXCall') clearMSHVDXCall().catch(e => console.error('FTx configure:', e));
   }
+
+  // ── UTC midnight reset for contest mode ─────────────────────────────────────
+  // recentlyWorked persists in memory; in contest mode it must be cleared at 00:00 UTC
+  // so stations worked yesterday don't stay blocked for today's contest session.
+  function msUntilUTCMidnight() {
+    const now = new Date();
+    const midnight = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1));
+    return midnight.getTime() - now.getTime();
+  }
+
+  let _midnightTimeout;
+  function scheduleMidnightReset() {
+    clearTimeout(_midnightTimeout);
+    _midnightTimeout = setTimeout(() => {
+      if (contestMode) {
+        recentlyWorked = new Set();
+        console.info('FTx: recentlyWorked cleared at UTC midnight (contest mode)');
+      }
+      scheduleMidnightReset(); // reschedule for the next day
+    }, msUntilUTCMidnight());
+  }
+
+  onMount(()    => { scheduleMidnightReset(); });
+  onDestroy(()  => { clearTimeout(_midnightTimeout); });
 
   // ── Period countdown timer ───────────────────────────────────────────────────
   let _tick = 0;

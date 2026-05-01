@@ -892,7 +892,7 @@ async function shutdownApp() {
           />
         </div>
         <div class="h-full" class:hidden={mainTab !== 'ftx'}>
-          <FTxTab {ftxEnabled} {ftxDecodes} {watchlist} spots={filteredSpots} {ftxTXStatus} myGrid={stats.myGrid} />
+          <FTxTab {ftxEnabled} {ftxDecodes} {watchlist} spots={filteredSpots} {ftxTXStatus} myGrid={stats.myGrid} {contestMode} />
         </div>
       </div>
     </div>

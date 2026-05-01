@@ -515,24 +515,23 @@ func (r *Log4OMContactsRepository) GetWorkedCallsignsBandMode(callsigns []string
 func (r *Log4OMContactsRepository) HasWorkedCallsignToday(callsign, band, mode string) bool {
 	var count int
 
-	// ✅ Utiliser le helper pour la condition de mode
 	modeCondition, modeParams := buildSSBModeCondition(mode)
 
-	// Construire la requête
+	var todayExpr string
+	if Cfg.Database.MySQL {
+		todayExpr = "CURDATE()"
+	} else {
+		todayExpr = "DATE('now')"
+	}
+
 	query := fmt.Sprintf(
-		`SELECT COUNT(*) FROM log 
-		WHERE callsign = ? 
-		AND band = ? 
-		AND %s
-		AND qsodate >= DATE('now')`,
+		`SELECT COUNT(*) FROM log WHERE callsign = ? AND band = ? AND %s AND qsodate >= `+todayExpr,
 		modeCondition,
 	)
 
-	// Construire les paramètres
 	args := []interface{}{callsign, band}
 	args = append(args, modeParams...)
 
-	// Exécuter la requête
 	err := r.db.QueryRow(query, args...).Scan(&count)
 	if err != nil {
 		log.Error("could not check today's contact:", err)
@@ -565,13 +564,15 @@ func (r *Log4OMContactsRepository) GetWorkedCallsignsBandModeToday(callsigns []s
 	modeCondition, modeParams := buildSSBModeCondition(mode)
 	args = append(args, modeParams...)
 
-	// Construire la requête
+	var todayExpr string
+	if Cfg.Database.MySQL {
+		todayExpr = "CURDATE()"
+	} else {
+		todayExpr = "DATE('now')"
+	}
+
 	query := fmt.Sprintf(
-		`SELECT DISTINCT callsign FROM log 
-		WHERE callsign IN (%s) 
-		AND band = ? 
-		AND %s
-		AND qsodate >= DATE('now')`,
+		`SELECT DISTINCT callsign FROM log WHERE callsign IN (%s) AND band = ? AND %s AND qsodate >= `+todayExpr,
 		strings.Join(placeholders, ","),
 		modeCondition,
 	)
