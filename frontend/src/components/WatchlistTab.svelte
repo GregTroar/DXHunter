@@ -20,8 +20,8 @@
   let selectedMode = 'ALL'; // 'ALL', 'DIGI', 'SSB', 'CW'
   
   // ✅ Liste des bandes disponibles
-  const bands = ['ALL', '80M', '40M', '30M', '20M', 
-               '17M', '15M', '12M', '10M'];
+  const bands = ['ALL', '160M', '80M', '40M', '30M', '20M',
+               '17M', '15M', '12M', '10M', '6M'];
   
   // ✅ Liste des modes disponibles
   const modes = [
