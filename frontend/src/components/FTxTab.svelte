@@ -369,8 +369,10 @@
 
   // Trigger strategy:
   //  1. New period → fire immediately (handles misses + existing target tracking — no enrichment needed).
-  //  2. No candidate found (handler sets _acNeedRerun) → re-fire as soon as any decode
-  //     has a positive enrichment flag (newDXCC/newBand/newMode/newSlot = true).
+  //  2. No candidate found (handler sets _acNeedRerun) → re-fire as soon as enrichment arrives.
+  //     Normal mode: wait for a positive flag (newDXCC/newBand/newMode/newSlot).
+  //     Contest mode: rerun as soon as ANY decode is enriched — contest stations may have all
+  //     new-flags=false (already-worked DXCC/band/mode) yet still be eligible (not worked today).
   // TX periods produce no decodes → reactive never fires → not counted as miss (correct).
   let _acLastPeriod = '';
   let _acNeedRerun  = false;
@@ -382,8 +384,9 @@
       _acNeedRerun  = false;
       _handleAutoCallPeriod(g.time);
     } else if (_acNeedRerun) {
-      // Enrichment updates groupedDecodes — re-run only if a positive flag appeared
-      const hasPositive = g.decodes.some(d => d.newDXCC || d.newBand || d.newMode || d.newSlot);
+      const hasPositive = contestMode
+        ? g.decodes.some(d => typeof d.newDXCC !== 'undefined') // any enriched decode
+        : g.decodes.some(d => d.newDXCC || d.newBand || d.newMode || d.newSlot);
       if (hasPositive) {
         _acNeedRerun = false;
         _handleAutoCallPeriod(g.time);
@@ -522,8 +525,10 @@
                   autoCallMissed       = 0;
                   autoCallManualLocked = false;
                   action = { type: 'halt' };
-                } else if (firstCall || wasInMiss) {
-                  // Only (re)send on first call or when station reappears after miss
+                } else if (firstCall || wasInMiss || contestMode) {
+                  // Normal: only (re)send on first call or when station reappears after miss.
+                  // Contest: resend every RX period — target may be working others, MSHV needs
+                  // a new Reply each period to keep transmitting in the next TX slot.
                   action = { type: 'reply', decode: autoCallTarget };
                 }
                 // else: MSHV already transmitting — do not interrupt
@@ -540,8 +545,9 @@
               action = { type: 'halt' };
             }
           }
-        } else if (!autoCallManualLocked && !ftxTXStatus.transmitting) {
+        } else if (!autoCallManualLocked && (!ftxTXStatus.transmitting || contestMode)) {
           // No target → check first if a station is calling us back (late response),
+          // Contest mode ignores transmitting state: Reply is queued for the next TX slot anyway.
           // then fall back to best new-DXCC/band/mode/slot candidate.
           const candidate = acCallerToMe(decodes) || acBestCandidate(decodes);
           if (candidate) {
@@ -576,7 +582,12 @@
     // Network calls outside the busy lock so slow responses never block the next period
     if (action?.type === 'reply')       sendReply(action.decode).catch(e => console.error('FTx reply:', e));
     if (action?.type === 'halt')        haltTX().catch(e => console.error('FTx halt:', e));
-    if (action?.type === 'clearDXCall') clearMSHVDXCall().catch(e => console.error('FTx configure:', e));
+    if (action?.type === 'clearDXCall') {
+      // Delay by one full TX period + buffer so MSHV can send its final 73 before we clear
+      // the DX call field. Sending clearDXCall immediately would abort MSHV's 73 transmission.
+      const delay = (periodMs || 15000) + 3000;
+      setTimeout(() => clearMSHVDXCall().catch(e => console.error('FTx configure:', e)), delay);
+    }
   }
 
   // ── UTC midnight reset for contest mode ─────────────────────────────────────
