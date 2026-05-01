@@ -113,6 +113,7 @@ type FTxDecode struct {
 	NewMode       bool    `json:"newMode"`
 	NewSlot       bool    `json:"newSlot"`
 	Worked        bool    `json:"worked"`
+	WorkedToday   bool    `json:"workedToday"`
 	LowConfidence bool    `json:"lowConfidence"`
 	SourceAddr    string  `json:"-"` // UDP source — used to send Reply
 }
@@ -465,6 +466,7 @@ func (f *FTxService) handleQSOLogged(r *bytes.Reader) {
 			Mode:     strings.ToUpper(mode),
 			DXCC:     dxccInfo.DXCC,
 			Country:  dxccInfo.CountryName,
+			Date:     time.Now().UTC().Format("2006-01-02"),
 		})
 		Log.Debugf("FTx: logCache updated — added %s %s %s", dxCall, band, mode)
 	}
@@ -601,7 +603,7 @@ func (f *FTxService) handleDecode(r *bytes.Reader, src *net.UDPAddr) {
 	// when they finish, the result is patched in place; otherwise discarded.
 	if f.contactRepo != nil && dxCall != "" && decode.DXCC != "" && band != "" {
 		go func(d FTxDecode, tMs uint32) {
-			d.NewDXCC, d.NewBand, d.NewMode, d.NewSlot, d.Worked =
+			d.NewDXCC, d.NewBand, d.NewMode, d.NewSlot, d.Worked, d.WorkedToday =
 				f.checkLogStatus(dxCall, d.DXCC, band, mode)
 			f.enrichInBatch(tMs, d)
 		}(decode, timeMs)
@@ -635,14 +637,15 @@ func (f *FTxService) addToBatch(timeMs uint32, decode FTxDecode) {
 
 // FTxEnrichUpdate is a minimal status update sent after the batch is already displayed.
 type FTxEnrichUpdate struct {
-	Message string `json:"message"`
-	DF      uint32 `json:"df"`
-	Time    string `json:"time"`
-	NewDXCC bool   `json:"newDXCC"`
-	NewBand bool   `json:"newBand"`
-	NewMode bool   `json:"newMode"`
-	NewSlot bool   `json:"newSlot"`
-	Worked  bool   `json:"worked"`
+	Message     string `json:"message"`
+	DF          uint32 `json:"df"`
+	Time        string `json:"time"`
+	NewDXCC     bool   `json:"newDXCC"`
+	NewBand     bool   `json:"newBand"`
+	NewMode     bool   `json:"newMode"`
+	NewSlot     bool   `json:"newSlot"`
+	Worked      bool   `json:"worked"`
+	WorkedToday bool   `json:"workedToday"`
 }
 
 // enrichInBatch patches a decode still in the pending batch, or sends a
@@ -659,6 +662,7 @@ func (f *FTxService) enrichInBatch(timeMs uint32, enriched FTxDecode) {
 				f.batchDecodes[i].NewMode = enriched.NewMode
 				f.batchDecodes[i].NewSlot = enriched.NewSlot
 				f.batchDecodes[i].Worked = enriched.Worked
+				f.batchDecodes[i].WorkedToday = enriched.WorkedToday
 				break
 			}
 		}
@@ -670,14 +674,15 @@ func (f *FTxService) enrichInBatch(timeMs uint32, enriched FTxDecode) {
 	// Batch already flushed — send a lightweight update so the frontend can
 	// patch the status on the already-displayed row.
 	update := FTxEnrichUpdate{
-		Message: enriched.Message,
-		DF:      enriched.DeltaFreq,
-		Time:    enriched.Time,
-		NewDXCC: enriched.NewDXCC,
-		NewBand: enriched.NewBand,
-		NewMode: enriched.NewMode,
-		NewSlot: enriched.NewSlot,
-		Worked:  enriched.Worked,
+		Message:     enriched.Message,
+		DF:          enriched.DeltaFreq,
+		Time:        enriched.Time,
+		NewDXCC:     enriched.NewDXCC,
+		NewBand:     enriched.NewBand,
+		NewMode:     enriched.NewMode,
+		NewSlot:     enriched.NewSlot,
+		Worked:      enriched.Worked,
+		WorkedToday: enriched.WorkedToday,
 	}
 	select {
 	case f.broadcast <- WSMessage{Type: "ftxEnrich", Data: update}:
@@ -705,14 +710,15 @@ func (f *FTxService) flushLocked() {
 }
 
 // checkLogStatus reads the in-memory log cache — zero DB calls, microsecond latency.
-func (f *FTxService) checkLogStatus(callsign, dxcc, band, mode string) (newDXCC, newBand, newMode, newSlot, worked bool) {
+func (f *FTxService) checkLogStatus(callsign, dxcc, band, mode string) (newDXCC, newBand, newMode, newSlot, worked, workedToday bool) {
 	contacts := f.lc.byDXCCContacts(dxcc)
 
 	modeUpper := strings.ToUpper(mode)
 	bandUpper := strings.ToUpper(band)
 	callUpper := strings.ToUpper(callsign)
+	today := time.Now().UTC().Format("2006-01-02")
 
-	var hasCountry, hasBand, hasMode, hasBandMode, hasCall bool
+	var hasCountry, hasBand, hasMode, hasBandMode, hasCall, hasCallToday bool
 	for _, c := range contacts {
 		cMode := strings.ToUpper(c.Mode)
 		cBand := strings.ToUpper(c.Band)
@@ -731,6 +737,9 @@ func (f *FTxService) checkLogStatus(callsign, dxcc, band, mode string) (newDXCC,
 		}
 		if cCall == callUpper && cBand == bandUpper && modeMatch {
 			hasCall = true
+			if strings.HasPrefix(c.Date, today) {
+				hasCallToday = true
+			}
 		}
 	}
 
@@ -739,6 +748,7 @@ func (f *FTxService) checkLogStatus(callsign, dxcc, band, mode string) (newDXCC,
 	newMode = !hasMode
 	newSlot = !hasBandMode && !newDXCC && !newBand && !newMode
 	worked = hasCall
+	workedToday = hasCallToday
 	return
 }
 

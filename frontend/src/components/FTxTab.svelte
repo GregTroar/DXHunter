@@ -239,7 +239,7 @@
     return decodes.find(d => {
       const uc = (d.dxCall || '').toUpperCase();
       if (contestMode && !contestWatchlistUC.has(uc)) return false;
-      if (contestMode && d.worked) return false; // already worked on this band/mode (server cache)
+      if (contestMode && d.workedToday) return false;
       return d.myCall && d.dxCall && !d.isCQ &&
         !recentlyWorked.has(uc) &&
         !acQSOComplete([d], d.dxCall);
@@ -277,8 +277,7 @@
     if (contestMode) {
       const eligible = decodes.filter(d => {
         const uc = (d.dxCall || '').toUpperCase();
-        // d.worked = already worked on this band/mode (server FTx logCache, survives autocall toggles)
-        return contestWatchlistUC.has(uc) && !recentlyWorked.has(uc) && !d.worked;
+        return contestWatchlistUC.has(uc) && !recentlyWorked.has(uc) && !d.workedToday;
       });
       if (!eligible.length) return null;
       eligible.sort((a, b) => b.snr - a.snr);
@@ -352,6 +351,8 @@
   }
 
   // Disable autocall: halt and reset everything
+  // In contest mode, recentlyWorked is intentionally preserved across toggles —
+  // it is the day-scoped worked guard, reset only at UTC midnight.
   $: if (!autoCallEnabled) {
     if (autoCallTarget) haltTX();
     autoCallTarget       = null;
@@ -363,7 +364,7 @@
     _acNeedRerun         = false;
     acStats              = { attempts: 0, successes: 0, totalMs: 0 };
     acCallStartTime      = null;
-    recentlyWorked       = new Set();
+    if (!contestMode) recentlyWorked = new Set();
   }
 
   // Trigger strategy:

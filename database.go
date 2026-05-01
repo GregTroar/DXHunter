@@ -22,6 +22,7 @@ type Contact struct {
 	DXCC            string
 	StationCallsign string
 	Country         string
+	Date            string // UTC date "YYYY-MM-DD" — used for workedToday in FTx logCache
 }
 
 type QSO struct {
@@ -196,7 +197,7 @@ func (r *Log4OMContactsRepository) CountEntries() int {
 
 // ListAll fetches every contact from the log in one query — used to populate the in-memory cache.
 func (r *Log4OMContactsRepository) ListAll() []Contact {
-	rows, err := r.db.Query("SELECT callsign, band, mode, dxcc, stationcallsign, country FROM log")
+	rows, err := r.db.Query("SELECT callsign, band, mode, dxcc, stationcallsign, country, qsodate FROM log")
 	if err != nil {
 		r.Log.Errorf("ListAll: query error: %v", err)
 		return nil
@@ -205,7 +206,7 @@ func (r *Log4OMContactsRepository) ListAll() []Contact {
 	var contacts []Contact
 	for rows.Next() {
 		var c Contact
-		if err := rows.Scan(&c.Callsign, &c.Band, &c.Mode, &c.DXCC, &c.StationCallsign, &c.Country); err != nil {
+		if err := rows.Scan(&c.Callsign, &c.Band, &c.Mode, &c.DXCC, &c.StationCallsign, &c.Country, &c.Date); err != nil {
 			continue
 		}
 		contacts = append(contacts, c)
