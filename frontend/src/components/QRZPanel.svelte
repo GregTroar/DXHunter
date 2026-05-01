@@ -25,7 +25,7 @@
     error        = '';
     loading      = true;
     try {
-      const res  = await fetch(`/api/qrz/${encodeURIComponent(call)}`);
+      const res  = await fetch(`/api/qrz?call=${encodeURIComponent(call)}`);
       const data = await res.json();
       if (!res.ok || !data.success) {
         error = data.error || 'Lookup failed';

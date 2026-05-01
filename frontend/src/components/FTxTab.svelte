@@ -239,6 +239,7 @@
     return decodes.find(d => {
       const uc = (d.dxCall || '').toUpperCase();
       if (contestMode && !contestWatchlistUC.has(uc)) return false;
+      if (contestMode && d.worked) return false; // already worked on this band/mode (server cache)
       return d.myCall && d.dxCall && !d.isCQ &&
         !recentlyWorked.has(uc) &&
         !acQSOComplete([d], d.dxCall);
@@ -276,7 +277,8 @@
     if (contestMode) {
       const eligible = decodes.filter(d => {
         const uc = (d.dxCall || '').toUpperCase();
-        return contestWatchlistUC.has(uc) && !recentlyWorked.has(uc);
+        // d.worked = already worked on this band/mode (server FTx logCache, survives autocall toggles)
+        return contestWatchlistUC.has(uc) && !recentlyWorked.has(uc) && !d.worked;
       });
       if (!eligible.length) return null;
       eligible.sort((a, b) => b.snr - a.snr);

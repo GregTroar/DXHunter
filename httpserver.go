@@ -427,7 +427,7 @@ func (s *HTTPServer) setupRoutes() {
 	api.HandleFunc("/solar", s.HandleSolarData).Methods("GET", "OPTIONS")
 	api.HandleFunc("/adxo", s.HandleADXO).Methods("GET", "OPTIONS")
 	api.HandleFunc("/dxworld", s.HandleDXWorld).Methods("GET", "OPTIONS")
-	api.HandleFunc("/qrz/{call}", s.HandleQRZ).Methods("GET", "OPTIONS")
+	api.HandleFunc("/qrz", s.HandleQRZ).Methods("GET", "OPTIONS")
 	api.HandleFunc("/cty/update", s.updateCtyPlist).Methods("POST", "OPTIONS")
 
 	// WebSocket (seul point d'entrée pour les commandes Telnet maintenant)
@@ -1474,7 +1474,7 @@ func (s *HTTPServer) HandleDXWorld(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *HTTPServer) HandleQRZ(w http.ResponseWriter, r *http.Request) {
-	call := mux.Vars(r)["call"]
+	call := r.URL.Query().Get("call")
 	result, err := QRZLookup(call)
 	if err != nil {
 		s.sendError(w, err.Error())
