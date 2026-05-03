@@ -204,15 +204,10 @@
   let autoCallManualLocked = false;  // user manually clicked a row — don't auto-pick after halt
   let priorityCall         = '';     // watch call field — comma/space separated list
   let autoCallStoppedCall  = '';     // which call triggered the stop
-  let acStats              = { attempts: 0, successes: 0, totalMs: 0 };
-  let acCallStartTime      = null;   // Date.now() when current QSO call started
   // Callsigns worked this session — excluded from auto-pick until enrichment updates.
   // Prevents MSHV "already logged" dialog caused by re-selecting a just-worked station
   // before Log4OM cache refreshes (typically within 30s).
   let recentlyWorked       = new Set();
-
-  $: acSuccessRate = acStats.attempts > 0 ? Math.round(acStats.successes / acStats.attempts * 100) : null;
-  $: acAvgSeconds  = acStats.successes  > 0 ? Math.round(acStats.totalMs  / acStats.successes  / 1000) : null;
 
   $: priorityCalls = priorityCall
     .split(/[\s,]+/)
@@ -345,8 +340,6 @@
       autoCallMissed       = 0;
       autoCallStopped      = false;
       autoCallManualLocked = true;  // prevent auto-picking a new candidate
-      acCallStartTime      = Date.now();
-      acStats              = { ...acStats, attempts: acStats.attempts + 1 };
     }
   }
 
@@ -362,8 +355,6 @@
     autoCallManualLocked = false;
     _acLastPeriod        = '';
     _acNeedRerun         = false;
-    acStats              = { attempts: 0, successes: 0, totalMs: 0 };
-    acCallStartTime      = null;
     if (!contestMode) recentlyWorked = new Set();
   }
 
@@ -398,7 +389,6 @@
     if (!autoCallEnabled || autoCallBusy) return;
     autoCallBusy = true;
     let action = null;
-    let isNewTarget = false;
     try {
       const group      = groupedDecodes.find(g => g.time === periodTime);
       const decodes    = group ? group.decodes : [];
@@ -424,7 +414,6 @@
             qrzCallsign         = (comeback.dxCall || '').toUpperCase();
             autoCallAttempts    = 1;
             autoCallMissed      = 0;
-            isNewTarget         = true;
             action = { type: 'reply', decode: comeback };
           } else {
             return; // still stopped, wait for manual restart or late response
@@ -493,7 +482,6 @@
             qrzCallsign      = (bestDecode.dxCall || '').toUpperCase();
             autoCallAttempts = 1;
             autoCallMissed   = 0;
-            isNewTarget      = true;
             action = { type: 'reply', decode: bestDecode };
           }
           // Not yet decoded — wait silently
@@ -561,7 +549,6 @@
             qrzCallsign      = (candidate.dxCall || '').toUpperCase();
             autoCallAttempts = 1;
             autoCallMissed   = 0;
-            isNewTarget      = true;
             action = { type: 'reply', decode: candidate };
           } else {
             // No eligible candidate yet — enrichment may not have arrived.
@@ -575,16 +562,6 @@
     }
 
     // Stats tracking
-    if (isNewTarget) {
-      acCallStartTime = Date.now();
-      acStats = { ...acStats, attempts: acStats.attempts + 1 };
-    }
-    if (action?.type === 'clearDXCall' && acCallStartTime) {
-      acStats = { ...acStats, successes: acStats.successes + 1, totalMs: acStats.totalMs + (Date.now() - acCallStartTime) };
-      acCallStartTime = null;
-    }
-    if (action?.type === 'halt') acCallStartTime = null;
-
     // Network calls outside the busy lock so slow responses never block the next period
     if (action?.type === 'reply')       sendReply(action.decode).catch(e => console.error('FTx reply:', e));
     if (action?.type === 'halt')        haltTX().catch(e => console.error('FTx halt:', e));
@@ -746,14 +723,6 @@
         class="w-36 px-1.5 py-0.5 rounded text-xs font-mono bg-slate-800 border {priorityCalls.length > 0 ? 'border-amber-500/60 text-amber-300' : 'border-slate-600 text-slate-400'} placeholder-slate-600 focus:outline-none focus:border-amber-500/80"
         title="Watch calls: comma or space separated — only call these stations when decoded (Auto must be ON)" />
 
-      {#if acStats.attempts > 0}
-        <span class="text-slate-500">|</span>
-        <span class="text-[10px] font-mono space-x-1" title="Autocall stats — success rate and avg QSO duration">
-          <span class="text-green-400">{acStats.successes}✓</span>{#if acStats.attempts - acStats.successes > 0}<span class="text-red-400/80">{acStats.attempts - acStats.successes}✗</span>{/if}
-          {#if acSuccessRate !== null}<span class="text-slate-400">{acSuccessRate}%</span>{/if}
-          {#if acAvgSeconds  !== null}<span class="text-slate-500">ø{acAvgSeconds}s</span>{/if}
-        </span>
-      {/if}
     {/if}
 
     <!-- Right side: period countdown + TX status -->
