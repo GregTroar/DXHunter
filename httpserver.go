@@ -840,9 +840,7 @@ func (s *HTTPServer) handleBroadcasts() {
 // enrichedSpots returns all spots with LoTWUser populated.
 func (s *HTTPServer) enrichedSpots() []FlexSpot {
 	spots := s.FlexRepo.GetAllSpots("0")
-	for i := range spots {
-		spots[i].LoTWUser = IsLoTWUser(spots[i].DX)
-	}
+	EnrichLoTWBatch(spots)
 	return spots
 }
 

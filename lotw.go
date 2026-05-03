@@ -48,6 +48,33 @@ func IsLoTWUser(callsign string) bool {
 	return false
 }
 
+// EnrichLoTWBatch populates LoTWUser on every spot in the slice.
+// It acquires the read lock once for the whole batch instead of once per callsign.
+func EnrichLoTWBatch(spots []FlexSpot) {
+	if !lotwReady || len(spots) == 0 {
+		return
+	}
+	lotwMu.RLock()
+	snap := lotwUsers // snapshot the map reference; safe after RUnlock (Go GC keeps old map alive)
+	lotwMu.RUnlock()
+
+	for i := range spots {
+		upper := strings.ToUpper(strings.TrimSpace(spots[i].DX))
+		if snap[upper] {
+			spots[i].LoTWUser = true
+			continue
+		}
+		if strings.Contains(upper, "/") {
+			for _, p := range strings.Split(upper, "/") {
+				if snap[p] {
+					spots[i].LoTWUser = true
+					break
+				}
+			}
+		}
+	}
+}
+
 // LoadLoTWUsers downloads the LoTW user activity CSV and populates the in-memory map.
 // Runs in background; sets lotwReady when done.
 func LoadLoTWUsers() {
