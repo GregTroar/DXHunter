@@ -4,13 +4,9 @@ import (
 	"flag"
 	"log"
 	"os"
-	"os/signal"
 	"path/filepath"
 	"sync"
-	"syscall"
 	"time"
-
-	"github.com/getlantern/systray"
 )
 
 var Mutex sync.Mutex
@@ -277,17 +273,6 @@ func main() {
 		log.Infof("Cluster [%s]: %s:%s", name, cl.Server, cl.Port)
 	}
 
-	// OS signals (Ctrl+C / SIGTERM) trigger a clean tray exit.
-	go func() {
-		sigchan := make(chan os.Signal, 1)
-		signal.Notify(sigchan, os.Interrupt, syscall.SIGTERM)
-		<-sigchan
-		systray.Quit()
-	}()
-
-	// Block on the systray message loop (must run on the main goroutine).
-	// GracefulShutdown is called from inside runTray when the user picks Quit
-	// or an OS signal fires above.
 	runTray(TCPClients, TCPServer, FlexClient, fRepo, cRepo)
 }
 

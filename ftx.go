@@ -63,20 +63,10 @@ import (
 	"regexp"
 	"strings"
 	"sync"
-	"syscall"
 	"time"
 
 	"golang.org/x/net/ipv4"
-	"golang.org/x/sys/windows"
 )
-
-// reuseAddrControl sets SO_REUSEADDR before the socket is bound so that
-// multiple processes (MSHV, WSJT-X, GridTracker, us) can share port 2237.
-func reuseAddrControl(network, address string, c syscall.RawConn) error {
-	return c.Control(func(fd uintptr) {
-		windows.SetsockoptInt(windows.Handle(fd), windows.SOL_SOCKET, windows.SO_REUSEADDR, 1) //nolint
-	})
-}
 
 const (
 	wsjtxMagic  uint32 = 0xADBCCBDA

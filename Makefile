@@ -6,7 +6,14 @@ GO_FILES=$(shell find . -name '*.go' -not -path "./$(FRONTEND_DIR)/*")
 CGO_ENABLED ?= 1
 GOFLAGS = CGO_ENABLED=$(CGO_ENABLED)
 
-.PHONY: all build frontend backend run clean dev help install-deps
+# Cross-compilation targets
+BINARY_LINUX_AMD64   = FlexDXCluster-linux-amd64
+BINARY_DARWIN_AMD64  = FlexDXCluster-darwin-amd64
+BINARY_DARWIN_ARM64  = FlexDXCluster-darwin-arm64
+
+.PHONY: all build build-all frontend backend run clean dev help install-deps \
+        build-linux build-darwin-amd64 build-darwin-arm64 \
+        _bin-linux _bin-darwin-amd64 _bin-darwin-arm64
 
 # Commande par défaut
 all: build
@@ -16,14 +23,18 @@ help:
 	@echo "FlexDXCluster - Makefile"
 	@echo ""
 	@echo "Commandes disponibles:"
-	@echo "  make build         - Build complet (frontend + backend)"
-	@echo "  make frontend      - Build uniquement le frontend"
-	@echo "  make backend       - Build uniquement le backend Go"
-	@echo "  make run           - Build et lance l'application"
-	@echo "  make dev           - Lance le frontend en mode dev"
-	@echo "  make clean         - Nettoie les fichiers générés"
-	@echo "  make install-deps  - Installe toutes les dépendances"
-	@echo "  make help          - Affiche cette aide"
+	@echo "  make build              - Build complet Windows (frontend + backend)"
+	@echo "  make build-all          - Build pour toutes les plateformes"
+	@echo "  make build-linux        - Build Linux amd64"
+	@echo "  make build-darwin-amd64 - Build macOS Intel"
+	@echo "  make build-darwin-arm64 - Build macOS Apple Silicon"
+	@echo "  make frontend           - Build uniquement le frontend"
+	@echo "  make backend            - Build uniquement le backend Go"
+	@echo "  make run                - Build et lance l'application"
+	@echo "  make dev                - Lance le frontend en mode dev"
+	@echo "  make clean              - Nettoie les fichiers générés"
+	@echo "  make install-deps       - Installe toutes les dépendances"
+	@echo "  make help               - Affiche cette aide"
 
 ## install-deps: Installe les dépendances npm
 install-deps:
@@ -91,9 +102,49 @@ dev:
 ## clean: Nettoie les fichiers générés
 clean:
 	@echo "Cleaning build files..."
-	@if exist $(BINARY_NAME) del /f /q $(BINARY_NAME)
+	@if exist $(BINARY_NAME)          del /f /q $(BINARY_NAME)
+	@if exist $(BINARY_LINUX_AMD64)   del /f /q $(BINARY_LINUX_AMD64)
+	@if exist $(BINARY_DARWIN_AMD64)  del /f /q $(BINARY_DARWIN_AMD64)
+	@if exist $(BINARY_DARWIN_ARM64)  del /f /q $(BINARY_DARWIN_ARM64)
 	@if exist $(DIST_DIR) rmdir /s /q $(DIST_DIR)
 	@echo "Clean complete"
+
+## build-linux: Cross-compile pour Linux amd64
+build-linux: frontend _bin-linux
+
+## build-darwin-amd64: Cross-compile pour macOS Intel
+build-darwin-amd64: frontend _bin-darwin-amd64
+
+## build-darwin-arm64: Cross-compile pour macOS Apple Silicon
+build-darwin-arm64: frontend _bin-darwin-arm64
+
+# Cibles internes — Go uniquement, sans rebuild du frontend
+_bin-linux:
+	@echo "Building Linux amd64..."
+	GOOS=linux GOARCH=amd64 go build -o $(BINARY_LINUX_AMD64) .
+	@echo "  -> $(BINARY_LINUX_AMD64)"
+
+_bin-darwin-amd64:
+	@echo "Building macOS Intel (amd64)..."
+	GOOS=darwin GOARCH=amd64 go build -o $(BINARY_DARWIN_AMD64) .
+	@echo "  -> $(BINARY_DARWIN_AMD64)"
+
+_bin-darwin-arm64:
+	@echo "Building macOS Apple Silicon (arm64)..."
+	GOOS=darwin GOARCH=arm64 go build -o $(BINARY_DARWIN_ARM64) .
+	@echo "  -> $(BINARY_DARWIN_ARM64)"
+
+## build-all: Build pour toutes les plateformes (frontend compilé une seule fois)
+build-all: frontend _bin-linux _bin-darwin-amd64 _bin-darwin-arm64 backend
+	@echo ""
+	@echo "====================================="
+	@echo "  BUILD ALL COMPLETE!"
+	@echo "====================================="
+	@echo "  Windows : $(BINARY_NAME)"
+	@echo "  Linux   : $(BINARY_LINUX_AMD64)"
+	@echo "  macOS   : $(BINARY_DARWIN_AMD64)"
+	@echo "  macOS M : $(BINARY_DARWIN_ARM64)"
+	@echo "====================================="
 
 ## watch: Build auto lors des changements (nécessite watchexec)
 watch:

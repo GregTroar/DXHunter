@@ -1,10 +1,14 @@
+//go:build windows
+
 package main
 
 import (
 	_ "embed"
+	"os"
 	"os/exec"
-	"runtime"
+	"os/signal"
 	"sync"
+	"syscall"
 
 	"github.com/getlantern/systray"
 )
@@ -13,8 +17,6 @@ import (
 var appIcon []byte
 
 // runTray sets up the system-tray icon and blocks (must be called from main goroutine).
-// It is the replacement for CheckSignal: the app stays alive until the user picks
-// "Quit" from the tray menu or sends an OS interrupt signal.
 func runTray(
 	tcpClients []*TCPClient,
 	tcpServer *TCPServer,
@@ -29,6 +31,14 @@ func runTray(
 		})
 	}
 
+	// OS signals quit the tray cleanly.
+	go func() {
+		sigchan := make(chan os.Signal, 1)
+		signal.Notify(sigchan, os.Interrupt, syscall.SIGTERM)
+		<-sigchan
+		systray.Quit()
+	}()
+
 	systray.Run(func() {
 		systray.SetIcon(appIcon)
 		systray.SetTitle("FlexDXCluster")
@@ -42,7 +52,7 @@ func runTray(
 			for {
 				select {
 				case <-mOpen.ClickedCh:
-					openBrowser("http://localhost:8080")
+					exec.Command("rundll32", "url.dll,FileProtocolHandler", "http://localhost:8080").Start()
 				case <-mQuit.ClickedCh:
 					doShutdown()
 					systray.Quit()
@@ -52,15 +62,3 @@ func runTray(
 		}()
 	}, doShutdown)
 }
-
-func openBrowser(url string) {
-	switch runtime.GOOS {
-	case "windows":
-		exec.Command("rundll32", "url.dll,FileProtocolHandler", url).Start()
-	case "darwin":
-		exec.Command("open", url).Start()
-	default:
-		exec.Command("xdg-open", url).Start()
-	}
-}
-
