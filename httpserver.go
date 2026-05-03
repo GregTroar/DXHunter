@@ -26,6 +26,11 @@ var frontendFiles embed.FS
 var httpServerInstance *HTTPServer
 var writeMutex sync.Mutex
 
+const (
+	wsPingPeriod = 30 * time.Second // how often the server pings each client
+	wsPongWait   = 60 * time.Second // client must pong within this window or it is dropped
+)
+
 // ============================================================================
 // TYPES
 // ============================================================================
@@ -634,6 +639,32 @@ func (s *HTTPServer) handleWebSocketClient(conn *websocket.Conn) {
 		s.Log.Infof("WebSocket client disconnected (remaining: %d)", clientCount)
 	}()
 
+	// Each pong resets the deadline; if no pong arrives within wsPongWait the
+	// read returns an error and the goroutine exits, removing a dead client.
+	conn.SetReadDeadline(time.Now().Add(wsPongWait))
+	conn.SetPongHandler(func(string) error {
+		conn.SetReadDeadline(time.Now().Add(wsPongWait))
+		return nil
+	})
+
+	// Ping ticker — closed via done channel when the read loop exits.
+	done := make(chan struct{})
+	defer close(done)
+	go func() {
+		ticker := time.NewTicker(wsPingPeriod)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-done:
+				return
+			case <-ticker.C:
+				if err := s.safePing(conn); err != nil {
+					return
+				}
+			}
+		}
+	}()
+
 	for {
 		messageType, message, err := conn.ReadMessage()
 		if err != nil {
@@ -730,6 +761,12 @@ func (s *HTTPServer) safeWrite(conn *websocket.Conn, msg WSMessage) error {
 	err := conn.WriteJSON(msg)
 	conn.SetWriteDeadline(time.Time{})
 	return err
+}
+
+func (s *HTTPServer) safePing(conn *websocket.Conn) error {
+	writeMutex.Lock()
+	defer writeMutex.Unlock()
+	return conn.WriteControl(websocket.PingMessage, nil, time.Now().Add(3*time.Second))
 }
 
 func (s *HTTPServer) sendInitialData(conn *websocket.Conn) {
