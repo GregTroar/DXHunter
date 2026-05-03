@@ -445,6 +445,7 @@
             autoCallAttempts = 0;
             action = { type: 'clearDXCall' };
           } else if (targetDecode) {
+            autoCallTarget = targetDecode; // refresh: use current-period decode so Reply has fresh timestamp
             const wasInMiss = autoCallMissed > 0;
             autoCallMissed = 0;
             const replied = decodes.some(d =>
@@ -513,6 +514,7 @@
             autoCallManualLocked = false;
             action = { type: 'clearDXCall' };
           } else if (targetSeen) {
+            autoCallTarget = targetSeen; // refresh: use current-period decode so Reply has fresh timestamp
             const wasInMiss = autoCallMissed > 0;
             autoCallMissed = 0;
             const replied = decodes.some(d =>
