@@ -742,18 +742,40 @@ func (f *FTxService) checkLogStatus(callsign, dxcc, band, mode string) (newDXCC,
 	return
 }
 
-// SendReply sends a WSJT-X "Reply" message (type 4) back to the source app.
-func (f *FTxService) SendReply(decode FTxDecode, _ string) error {
+// replyAddr returns the UDP address to use for outgoing control messages (Reply, HaltTX, etc.).
+//
+// When multicast is configured, we send to the multicast group address.  This is critical on
+// Windows: both WSJT-X and FlexDXCluster bind to the same port with SO_REUSEADDR, so a
+// unicast packet to 127.0.0.1:<port> is delivered to only one socket (OS-specific, often the
+// last-bound one — which may be FlexDXCluster, not WSJT-X).  Sending to the multicast address
+// guarantees delivery to every socket that has joined the group, including WSJT-X.
+func (f *FTxService) replyAddr() (*net.UDPAddr, error) {
+	if Cfg.FTx.Multicast && Cfg.FTx.MulticastIP != "" {
+		ip := net.ParseIP(Cfg.FTx.MulticastIP)
+		if ip != nil {
+			return &net.UDPAddr{IP: ip, Port: Cfg.FTx.Port}, nil
+		}
+	}
 	f.mu.RLock()
 	src := f.sourceAddr
+	f.mu.RUnlock()
+	if src == nil {
+		return nil, fmt.Errorf("no source address known yet")
+	}
+	return src, nil
+}
+
+// SendReply sends a WSJT-X "Reply" message (type 4) back to the source app.
+func (f *FTxService) SendReply(decode FTxDecode, _ string) error {
+	dst, err := f.replyAddr()
+	if err != nil {
+		return err
+	}
+	f.mu.RLock()
 	id := f.clientID // always echo the ID captured from the app's own packets
 	f.mu.RUnlock()
 
-	if src == nil {
-		return fmt.Errorf("no source address known yet")
-	}
-
-	conn, err := net.DialUDP("udp4", nil, src)
+	conn, err := net.DialUDP("udp4", nil, dst)
 	if err != nil {
 		return err
 	}
@@ -782,14 +804,14 @@ func (f *FTxService) SendReply(decode FTxDecode, _ string) error {
 // HaltTX sends a WSJT-X "Halt TX" message (type 8).
 // autoOnly: true = only halt if auto-sequence is active, false = halt immediately.
 func (f *FTxService) HaltTX(_ string, autoOnly bool) error {
+	dst, err := f.replyAddr()
+	if err != nil {
+		return err
+	}
 	f.mu.RLock()
-	src := f.sourceAddr
 	id := f.clientID
 	f.mu.RUnlock()
-	if src == nil {
-		return fmt.Errorf("no source address known yet")
-	}
-	conn, err := net.DialUDP("udp4", nil, src)
+	conn, err := net.DialUDP("udp4", nil, dst)
 	if err != nil {
 		return err
 	}
@@ -810,14 +832,14 @@ func (f *FTxService) HaltTX(_ string, autoOnly bool) error {
 // Passing empty colors clears the highlight. Set last = true to highlight
 // the last compound callsign only.
 func (f *FTxService) HighlightCallsign(_, callsign string, bgColor, fgColor [4]uint8, highlight bool) error {
+	dst, err := f.replyAddr()
+	if err != nil {
+		return err
+	}
 	f.mu.RLock()
-	src := f.sourceAddr
 	id := f.clientID
 	f.mu.RUnlock()
-	if src == nil {
-		return fmt.Errorf("no source address known yet")
-	}
-	conn, err := net.DialUDP("udp4", nil, src)
+	conn, err := net.DialUDP("udp4", nil, dst)
 	if err != nil {
 		return err
 	}
@@ -872,13 +894,13 @@ func writeQColor(buf *bytes.Buffer, c [4]uint8) {
 // clearDXCall: true = clear the DX call field (stops Log4OM broadcast).
 // The client ID is taken from the stored f.clientID (learned from incoming Status packets).
 func (f *FTxService) SendConfigure(targetMode string, clearDXCall bool) error {
+	dst, err := f.replyAddr()
+	if err != nil {
+		return err
+	}
 	f.mu.RLock()
-	src := f.sourceAddr
 	clientID := f.clientID
 	f.mu.RUnlock()
-	if src == nil {
-		return fmt.Errorf("no source address known yet")
-	}
 	if clientID == "" {
 		clientID = "MSHV"
 	}
@@ -912,7 +934,7 @@ func (f *FTxService) SendConfigure(targetMode string, clearDXCall bool) error {
 	Log.Infof("FTx Configure → clientID=%q mode=%q subMode=%q trPeriod=%d clearDXCall=%v",
 		clientID, modeField, subModeField, trPeriod, clearDXCall)
 
-	conn, err := net.DialUDP("udp4", nil, src)
+	conn, err := net.DialUDP("udp4", nil, dst)
 	if err != nil {
 		return err
 	}
