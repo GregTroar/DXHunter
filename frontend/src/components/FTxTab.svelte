@@ -623,7 +623,7 @@
   // ── Period countdown timer ───────────────────────────────────────────────────
   let _tick = 0;
   let _tickInterval;
-  onMount(()    => { _tickInterval = setInterval(() => _tick++, 100); });
+  onMount(()    => { _tickInterval = setInterval(() => _tick++, 250); });
   onDestroy(()  => clearInterval(_tickInterval));
 
   function getPeriodMs(mode) {
@@ -764,7 +764,7 @@
           <span class="text-[10px] font-mono text-slate-500">{ftxTXStatus.mode}</span>
           <div class="relative w-16 h-1.5 rounded-full bg-slate-700/80 overflow-hidden">
             <div class="absolute inset-y-0 left-0 rounded-full"
-              style="width:{countdown.pct}%; background:{ftxTXStatus.transmitting ? '#ef4444' : '#3b82f6'}" />
+              style="width:{countdown.pct}%; background:{ftxTXStatus.transmitting ? '#ef4444' : '#3b82f6'}; transition:width 0.25s linear" />
           </div>
           <span class="text-[10px] font-mono w-7 text-right {ftxTXStatus.transmitting ? 'text-red-400' : 'text-slate-400'}">{countdown.remaining.toFixed(1)}s</span>
         </div>
