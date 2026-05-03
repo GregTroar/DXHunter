@@ -59,6 +59,24 @@
   let ftxEnabled = false;
   let ftxDecodes = [];
   let ftxTXStatus = { transmitting: false, message: '', mode: '', clientId: 'MSHV' };
+
+  // Enrichment batching: instead of applying each ftxEnrich immediately (one map() per decode,
+  // firing 50+ reactive recomputes per period), we queue enrichments and flush them together
+  // after a short window. This reduces groupedDecodes rebuilds from ~50 to 1-3 per period.
+  let _enrichQueue = [];
+  let _enrichTimer = null;
+  function _flushEnrichQueue() {
+    if (!_enrichQueue.length) return;
+    const pending = _enrichQueue.splice(0); // drain atomically
+    _enrichTimer = null;
+    const byKey = new Map(pending.map(u => [`${u.time}|${u.df}|${u.message}`, u]));
+    ftxDecodes = ftxDecodes.map(d => {
+      const upd = byKey.get(`${d.time}|${d.df}|${d.message}`);
+      return upd
+        ? { ...d, newDXCC: upd.newDXCC, newBand: upd.newBand, newMode: upd.newMode, newSlot: upd.newSlot, worked: upd.worked }
+        : d;
+    });
+  }
   
   let spotFilters = {
     showAll: true,
@@ -549,14 +567,12 @@ function applyFilters(allSpots, filters, wl) {
         ftxDecodes = [...(message.data || []).map(d => ({ ...d, receivedAt: ftxNow })), ...ftxDecodes].slice(0, 500);
         break;
       case 'ftxEnrich':
-        const u = message.data;
-        ftxDecodes = ftxDecodes.map(d =>
-          d.message === u.message && d.df === u.df && d.time === u.time
-            ? { ...d, newDXCC: u.newDXCC, newBand: u.newBand, newMode: u.newMode, newSlot: u.newSlot, worked: u.worked }
-            : d
-        );
+        _enrichQueue.push(message.data);
+        if (!_enrichTimer) _enrichTimer = setTimeout(_flushEnrichQueue, 50);
         break;
       case 'ftxClear':
+        if (_enrichTimer) { clearTimeout(_enrichTimer); _enrichTimer = null; }
+        _enrichQueue = [];
         ftxDecodes = [];
         break;
       case 'ftxTXStatus':
