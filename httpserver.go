@@ -105,6 +105,7 @@ type APIResponse struct {
 
 type ConfigDTO struct {
 	General  ConfigGeneralDTO   `json:"general"`
+	Database ConfigDatabaseDTO  `json:"database"`
 	FTx      ConfigFTxDTO       `json:"ftx"`
 	QRZ      ConfigQRZDTO       `json:"qrz"`
 	Gotify   ConfigGotifyDTO    `json:"gotify"`
@@ -113,12 +114,27 @@ type ConfigDTO struct {
 }
 
 type ConfigGeneralDTO struct {
-	Callsign          string `json:"callsign"`
-	Grid              string `json:"grid"`
-	LogLevel          string `json:"logLevel"`
-	SendFreqModeToLog bool   `json:"sendFreqModeToLog"`
-	FlexRadioSpot     bool   `json:"flexRadioSpot"`
-	TelnetServer      bool   `json:"telnetServer"`
+	Callsign             string `json:"callsign"`
+	Grid                 string `json:"grid"`
+	LogLevel             string `json:"logLevel"`
+	SendFreqModeToLog    bool   `json:"sendFreqModeToLog"`
+	FlexRadioSpot        bool   `json:"flexRadioSpot"`
+	TelnetServer         bool   `json:"telnetServer"`
+	ContestMode          bool   `json:"contestMode"`
+	ContestPrefix        string `json:"contestPrefix"`
+	DeleteLogFileAtStart bool   `json:"deleteLogFileAtStart"`
+	LogToFile            bool   `json:"logToFile"`
+}
+
+type ConfigDatabaseDTO struct {
+	MySQL         bool   `json:"mysql"`
+	SQLitePath    string `json:"sqlitePath"`
+	MySQLHost     string `json:"mysqlHost"`
+	MySQLPort     string `json:"mysqlPort"`
+	MySQLUser     string `json:"mysqlUser"`
+	MySQLPassword string `json:"mysqlPassword"`
+	MySQLDbName   string `json:"mysqlDbName"`
+	LogbookType   string `json:"logbookType"`
 }
 
 type ConfigFTxDTO struct {
@@ -183,6 +199,18 @@ func configToDTO() ConfigDTO {
 			Callsign: Cfg.General.Callsign, Grid: Cfg.General.Grid,
 			LogLevel: Cfg.General.LogLevel, SendFreqModeToLog: Cfg.General.SendFreqModeToLog,
 			FlexRadioSpot: Cfg.General.FlexRadioSpot, TelnetServer: Cfg.General.TelnetServer,
+			ContestMode: Cfg.General.ContestMode, ContestPrefix: Cfg.General.ContestPrefix,
+			DeleteLogFileAtStart: Cfg.General.DeleteLogFileAtStart, LogToFile: Cfg.General.LogToFile,
+		},
+		Database: ConfigDatabaseDTO{
+			MySQL:         Cfg.Database.MySQL,
+			SQLitePath:    Cfg.SQLite.SQLitePath,
+			MySQLHost:     Cfg.Database.MySQLHost,
+			MySQLPort:     Cfg.Database.MySQLPort,
+			MySQLUser:     Cfg.Database.MySQLUser,
+			MySQLPassword: Cfg.Database.MySQLPassword,
+			MySQLDbName:   Cfg.Database.MySQLDbName,
+			LogbookType:   Cfg.Database.LogbookType,
 		},
 		FTx: ConfigFTxDTO{
 			Enabled: Cfg.FTx.Enabled, Multicast: Cfg.FTx.Multicast,
@@ -1535,6 +1563,7 @@ func (s *HTTPServer) saveConfigAPI(w http.ResponseWriter, r *http.Request) {
 	oldLogLevel := Cfg.General.LogLevel
 	oldSQLitePath := Cfg.SQLite.SQLitePath
 	oldLogbookType := Cfg.Database.LogbookType
+	oldContestMode := Cfg.General.ContestMode
 	oldClusters := make([]ClusterConfig, len(Cfg.Clusters))
 	copy(oldClusters, Cfg.Clusters)
 
@@ -1544,6 +1573,18 @@ func (s *HTTPServer) saveConfigAPI(w http.ResponseWriter, r *http.Request) {
 	Cfg.General.SendFreqModeToLog = dto.General.SendFreqModeToLog
 	Cfg.General.FlexRadioSpot = dto.General.FlexRadioSpot
 	Cfg.General.TelnetServer = dto.General.TelnetServer
+	Cfg.General.ContestMode = dto.General.ContestMode
+	Cfg.General.ContestPrefix = dto.General.ContestPrefix
+	Cfg.General.DeleteLogFileAtStart = dto.General.DeleteLogFileAtStart
+	Cfg.General.LogToFile = dto.General.LogToFile
+	Cfg.Database.MySQL = dto.Database.MySQL
+	Cfg.SQLite.SQLitePath = dto.Database.SQLitePath
+	Cfg.Database.MySQLHost = dto.Database.MySQLHost
+	Cfg.Database.MySQLPort = dto.Database.MySQLPort
+	Cfg.Database.MySQLUser = dto.Database.MySQLUser
+	Cfg.Database.MySQLPassword = dto.Database.MySQLPassword
+	Cfg.Database.MySQLDbName = dto.Database.MySQLDbName
+	Cfg.Database.LogbookType = dto.Database.LogbookType
 	Cfg.FTx.Enabled = dto.FTx.Enabled
 	Cfg.FTx.Multicast = dto.FTx.Multicast
 	Cfg.FTx.MulticastIP = dto.FTx.MulticastIP
@@ -1621,6 +1662,10 @@ func (s *HTTPServer) saveConfigAPI(w http.ResponseWriter, r *http.Request) {
 
 	if oldSQLitePath != Cfg.SQLite.SQLitePath || oldLogbookType != Cfg.Database.LogbookType {
 		go s.ReloadLogbook()
+	}
+
+	if oldContestMode != Cfg.General.ContestMode && s.Watchlist != nil {
+		s.broadcast <- WSMessage{Type: "watchlist", Data: s.Watchlist.GetAll()}
 	}
 
 	s.broadcast <- WSMessage{Type: "stats", Data: s.calculateStats()}

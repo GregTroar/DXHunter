@@ -140,35 +140,121 @@
             <span class="text-slate-500">{openSection === 'general' ? '▲' : '▼'}</span>
           </button>
           {#if openSection === 'general'}
-            <div class="px-3 py-3 grid grid-cols-2 gap-3 bg-slate-900/40">
+            <div class="px-3 py-3 space-y-3 bg-slate-900/40">
+              <div class="grid grid-cols-2 gap-3">
+                <label class="flex flex-col gap-1">
+                  <span class="text-slate-500">Callsign</span>
+                  <input bind:value={cfg.general.callsign} class="{INPUT} uppercase" />
+                </label>
+                <label class="flex flex-col gap-1">
+                  <span class="text-slate-500">Grid (Maidenhead)</span>
+                  <input bind:value={cfg.general.grid} class="{INPUT} uppercase" maxlength="6" />
+                </label>
+                <label class="flex flex-col gap-1">
+                  <span class="text-slate-500">Log level</span>
+                  <select bind:value={cfg.general.logLevel} class="{INPUT}">
+                    {#each LOG_LEVELS as l}<option value={l}>{l}</option>{/each}
+                  </select>
+                </label>
+                <div class="flex flex-col gap-2 pt-3">
+                  <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" bind:checked={cfg.general.flexRadioSpot} class="accent-blue-500" />
+                    <span class="text-slate-400">FlexRadio spot</span>
+                  </label>
+                  <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" bind:checked={cfg.general.sendFreqModeToLog} class="accent-blue-500" />
+                    <span class="text-slate-400">Send freq/mode to Log4OM</span>
+                  </label>
+                  <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" bind:checked={cfg.general.telnetServer} class="accent-blue-500" />
+                    <span class="text-slate-400">Telnet server</span>
+                  </label>
+                  <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" bind:checked={cfg.general.deleteLogFileAtStart} class="accent-blue-500" />
+                    <span class="text-slate-400">Delete log file at start</span>
+                  </label>
+                  <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" bind:checked={cfg.general.logToFile} class="accent-blue-500" />
+                    <span class="text-slate-400">Log to file <span class={RESTART_BADGE}>⚠ restart</span></span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Contest -->
+              <div class="border-t border-slate-700/40 pt-3 space-y-2">
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" bind:checked={cfg.general.contestMode} class="accent-amber-500" />
+                  <span class="text-slate-300 font-semibold">Contest mode</span>
+                </label>
+                {#if cfg.general.contestMode}
+                  <label class="flex flex-col gap-1">
+                    <span class="text-slate-500">Contest prefix</span>
+                    <input bind:value={cfg.general.contestPrefix} class="{INPUT} uppercase font-mono" placeholder="e.g. CQ-WW" />
+                  </label>
+                {/if}
+              </div>
+            </div>
+          {/if}
+        </div>
+
+        <!-- ── Database ── -->
+        <div class="border border-slate-700/50 rounded-lg overflow-hidden">
+          <button class="w-full flex items-center justify-between px-3 py-2 bg-slate-800/60 hover:bg-slate-800 text-left transition-colors"
+            on:click={() => toggle('database')}>
+            <span class="font-semibold text-slate-300">🗄️ Database / Logbook</span>
+            <span class="text-slate-500">{openSection === 'database' ? '▲' : '▼'}</span>
+          </button>
+          {#if openSection === 'database'}
+            <div class="px-3 py-3 space-y-3 bg-slate-900/40">
+              <div class="flex items-center gap-4">
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="radio" name="db-type" value={false} bind:group={cfg.database.mysql} class="accent-blue-500" />
+                  <span class="text-slate-300">SQLite</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="radio" name="db-type" value={true} bind:group={cfg.database.mysql} class="accent-blue-500" />
+                  <span class="text-slate-300">MySQL</span>
+                </label>
+                <span class={RESTART_BADGE}>⚠ restart</span>
+              </div>
+
+              {#if !cfg.database.mysql}
+                <label class="flex flex-col gap-1">
+                  <span class="text-slate-500">SQLite path <span class={RESTART_BADGE}>⚠ restart</span></span>
+                  <input bind:value={cfg.database.sqlitePath} class="{INPUT} font-mono" placeholder="/path/to/log4om.db" />
+                </label>
+              {:else}
+                <div class="grid grid-cols-2 gap-3">
+                  <label class="flex flex-col gap-1">
+                    <span class="text-slate-500">Host <span class={RESTART_BADGE}>⚠ restart</span></span>
+                    <input bind:value={cfg.database.mysqlHost} class="{INPUT} font-mono" placeholder="localhost" />
+                  </label>
+                  <label class="flex flex-col gap-1">
+                    <span class="text-slate-500">Port <span class={RESTART_BADGE}>⚠ restart</span></span>
+                    <input bind:value={cfg.database.mysqlPort} class="{INPUT} font-mono" placeholder="3306" />
+                  </label>
+                  <label class="flex flex-col gap-1">
+                    <span class="text-slate-500">Database name <span class={RESTART_BADGE}>⚠ restart</span></span>
+                    <input bind:value={cfg.database.mysqlDbName} class="{INPUT} font-mono" />
+                  </label>
+                  <label class="flex flex-col gap-1">
+                    <span class="text-slate-500">User <span class={RESTART_BADGE}>⚠ restart</span></span>
+                    <input bind:value={cfg.database.mysqlUser} class="{INPUT} font-mono" />
+                  </label>
+                  <label class="flex flex-col gap-1 col-span-2">
+                    <span class="text-slate-500">Password <span class={RESTART_BADGE}>⚠ restart</span></span>
+                    <input type="password" bind:value={cfg.database.mysqlPassword} class="{INPUT} font-mono" autocomplete="new-password" />
+                  </label>
+                </div>
+              {/if}
+
               <label class="flex flex-col gap-1">
-                <span class="text-slate-500">Callsign</span>
-                <input bind:value={cfg.general.callsign} class="{INPUT} uppercase" />
-              </label>
-              <label class="flex flex-col gap-1">
-                <span class="text-slate-500">Grid (Maidenhead)</span>
-                <input bind:value={cfg.general.grid} class="{INPUT} uppercase" maxlength="6" />
-              </label>
-              <label class="flex flex-col gap-1">
-                <span class="text-slate-500">Log level</span>
-                <select bind:value={cfg.general.logLevel} class="{INPUT}">
-                  {#each LOG_LEVELS as l}<option value={l}>{l}</option>{/each}
+                <span class="text-slate-500">Logbook type <span class={RESTART_BADGE}>⚠ restart</span></span>
+                <select bind:value={cfg.database.logbookType} class="{INPUT}">
+                  <option value="log4om">Log4OM</option>
+                  <option value="hrd">HRD</option>
                 </select>
               </label>
-              <div class="flex flex-col gap-2 pt-3">
-                <label class="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" bind:checked={cfg.general.flexRadioSpot} class="accent-blue-500" />
-                  <span class="text-slate-400">FlexRadio spot</span>
-                </label>
-                <label class="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" bind:checked={cfg.general.sendFreqModeToLog} class="accent-blue-500" />
-                  <span class="text-slate-400">Send freq/mode to Log4OM</span>
-                </label>
-                <label class="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" bind:checked={cfg.general.telnetServer} class="accent-blue-500" />
-                  <span class="text-slate-400">Telnet server</span>
-                </label>
-              </div>
             </div>
           {/if}
         </div>
