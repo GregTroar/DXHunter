@@ -554,58 +554,68 @@ func (s *HTTPServer) handleConsoleMessages() {
 	spotDetectRe := regexp.MustCompile(`(?i)^DX\sde\s`)
 	shortSpotDetectRe := regexp.MustCompile(`^\d+\.\d+\s+[\w\d\/]+\s+\d{2}-\w{3}-\d{4}`)
 
-	// Déduplication To ALL: hash -> timestamp dernier envoi
+	// Déduplication To ALL: message -> unix timestamp of last send
 	toAllSeen := make(map[string]int64)
 
-	for msg := range s.ConsoleChan {
-		cleanMsg := strings.TrimSpace(msg)
-		if cleanMsg == "" {
-			continue
-		}
+	// Periodic eviction so stale entries are removed even when TO_ALL messages stop.
+	cleanupTicker := time.NewTicker(60 * time.Second)
+	defer cleanupTicker.Stop()
 
-		// Filtrer les spots DX
-		if spotDetectRe.MatchString(cleanMsg) || shortSpotDetectRe.MatchString(cleanMsg) {
-			continue
-		}
-
-		// To ALL -- forward as dedicated toast (deduplicated: TTL 30s)
-		if strings.HasPrefix(cleanMsg, "TO_ALL:") {
-			toAllMsg := strings.TrimSpace(strings.TrimPrefix(cleanMsg, "TO_ALL:"))
-			now := time.Now().Unix()
-			// Nettoyer les entrees expirées
-			for k, t := range toAllSeen {
-				if now-t > 30 {
-					delete(toAllSeen, k)
-				}
+	for {
+		select {
+		case msg, ok := <-s.ConsoleChan:
+			if !ok {
+				return
 			}
-			// Ignorer si déjà vu dans les 30 dernières secondes
-			if _, seen := toAllSeen[toAllMsg]; seen {
+			cleanMsg := strings.TrimSpace(msg)
+			if cleanMsg == "" {
 				continue
 			}
-			toAllSeen[toAllMsg] = now
+
+			// Filtrer les spots DX
+			if spotDetectRe.MatchString(cleanMsg) || shortSpotDetectRe.MatchString(cleanMsg) {
+				continue
+			}
+
+			// To ALL -- forward as dedicated toast (deduplicated: TTL 30s)
+			if strings.HasPrefix(cleanMsg, "TO_ALL:") {
+				toAllMsg := strings.TrimSpace(strings.TrimPrefix(cleanMsg, "TO_ALL:"))
+				if _, seen := toAllSeen[toAllMsg]; seen {
+					continue
+				}
+				toAllSeen[toAllMsg] = time.Now().Unix()
+				select {
+				case s.broadcast <- WSMessage{
+					Type: "toAll",
+					Data: map[string]interface{}{
+						"message":   toAllMsg,
+						"timestamp": time.Now().Format("15:04:05"),
+					},
+				}:
+				case <-time.After(200 * time.Millisecond):
+				}
+				continue
+			}
+
+			// Broadcaster les réponses non-spot
 			select {
 			case s.broadcast <- WSMessage{
-				Type: "toAll",
+				Type: "telnetResponse",
 				Data: map[string]interface{}{
-					"message":   toAllMsg,
+					"message":   cleanMsg,
 					"timestamp": time.Now().Format("15:04:05"),
 				},
 			}:
 			case <-time.After(200 * time.Millisecond):
 			}
-			continue
-		}
 
-		// Broadcaster les réponses non-spot
-		select {
-		case s.broadcast <- WSMessage{
-			Type: "telnetResponse",
-			Data: map[string]interface{}{
-				"message":   cleanMsg,
-				"timestamp": time.Now().Format("15:04:05"),
-			},
-		}:
-		case <-time.After(200 * time.Millisecond):
+		case <-cleanupTicker.C:
+			cutoff := time.Now().Unix() - 30
+			for k, t := range toAllSeen {
+				if t < cutoff {
+					delete(toAllSeen, k)
+				}
+			}
 		}
 	}
 }
