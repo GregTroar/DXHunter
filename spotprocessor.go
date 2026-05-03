@@ -4,8 +4,11 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 )
+
+const clubLogRefreshInterval = time.Hour
 
 type SpotProcessor struct {
 	FlexRepo   *FlexDXClusterRepository
@@ -14,6 +17,9 @@ type SpotProcessor struct {
 	SpotChan   chan TelnetSpot
 	ctx        context.Context
 	cancel     context.CancelFunc
+
+	// Guards against spawning multiple concurrent ClubLog fetches for the same callsign.
+	clubLogInFlight sync.Map // map[string]struct{}
 }
 
 func NewSpotProcessor(flexRepo *FlexDXClusterRepository, flexClient *FlexClient, httpServer *HTTPServer, spotChan chan TelnetSpot) *SpotProcessor {
@@ -123,34 +129,38 @@ func (sp *SpotProcessor) processSpot(spot TelnetSpot) {
 			// Mark as seen and update last seen time
 			sp.HTTPServer.Watchlist.MarkSeen(flexSpot.DX)
 
-			// Trigger ClubLog check in background (cache-backed, TTL 1h/6h)
-			if clubLogClient != nil {
-				go func(cs string) {
-					Log.Infof("ClubLog [%s] triggered by spot", cs)
-					data, err := clubLogClient.WatchCallsign(cs)
-					if err != nil {
-						Log.Warnf("ClubLog [%s] error: %v", cs, err)
-						return
-					}
-					// Mettre a jour l'entree watchlist avec les donnees ClubLog
-					sp.HTTPServer.Watchlist.mutex.Lock()
-					if e, ok := sp.HTTPServer.Watchlist.entries[cs]; ok {
-						e.IsExpedition = data.IsExpedition
-						e.ClubLogQSOs24h = data.Get24hQSOCount()
-						e.ClubLogHasOQRS = data.HasOQRS
-						e.ClubLogLiveStream = data.LiveStream
-						if data.ClubLogInfo != nil {
-							e.ClubLogTotalQSOs = data.ClubLogInfo.TotalQSOs
+			// Trigger ClubLog check in background (cache-backed, TTL 1h/6h).
+			// Skip if data was refreshed within the last hour, and deduplicate
+			// concurrent fetches for the same callsign with an in-flight guard.
+			if clubLogClient != nil && (entry == nil || time.Since(entry.ClubLogUpdatedAt) > clubLogRefreshInterval) {
+				cs := flexSpot.DX
+				if _, alreadyRunning := sp.clubLogInFlight.LoadOrStore(cs, struct{}{}); !alreadyRunning {
+					go func(cs string) {
+						defer sp.clubLogInFlight.Delete(cs)
+						Log.Infof("ClubLog [%s] triggered by spot", cs)
+						data, err := clubLogClient.WatchCallsign(cs)
+						if err != nil {
+							Log.Warnf("ClubLog [%s] error: %v", cs, err)
+							return
 						}
-						e.ClubLogUpdatedAt = time.Now()
-					}
-					sp.HTTPServer.Watchlist.mutex.Unlock()
-					// Broadcaster la mise a jour
-					sp.HTTPServer.broadcast <- WSMessage{
-						Type: "watchlist",
-						Data: sp.HTTPServer.Watchlist.GetAll(),
-					}
-				}(flexSpot.DX)
+						sp.HTTPServer.Watchlist.mutex.Lock()
+						if e, ok := sp.HTTPServer.Watchlist.entries[cs]; ok {
+							e.IsExpedition = data.IsExpedition
+							e.ClubLogQSOs24h = data.Get24hQSOCount()
+							e.ClubLogHasOQRS = data.HasOQRS
+							e.ClubLogLiveStream = data.LiveStream
+							if data.ClubLogInfo != nil {
+								e.ClubLogTotalQSOs = data.ClubLogInfo.TotalQSOs
+							}
+							e.ClubLogUpdatedAt = time.Now()
+						}
+						sp.HTTPServer.Watchlist.mutex.Unlock()
+						sp.HTTPServer.broadcast <- WSMessage{
+							Type: "watchlist",
+							Data: sp.HTTPServer.Watchlist.GetAll(),
+						}
+					}(cs)
+				}
 			}
 		}
 	}
