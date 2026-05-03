@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"strings"
 	"sync"
 	"time"
@@ -56,12 +57,17 @@ func (c *LogbookCache) rebuild(repo LogbookProvider) {
 }
 
 // StartAutoRefresh rebuilds the cache on the given interval in a background goroutine.
-func (c *LogbookCache) StartAutoRefresh(repo LogbookProvider, interval time.Duration) {
+func (c *LogbookCache) StartAutoRefresh(ctx context.Context, repo LogbookProvider, interval time.Duration) {
 	go func() {
 		ticker := time.NewTicker(interval)
 		defer ticker.Stop()
-		for range ticker.C {
-			c.rebuild(repo)
+		for {
+			select {
+			case <-ticker.C:
+				c.rebuild(repo)
+			case <-ctx.Done():
+				return
+			}
 		}
 	}()
 }

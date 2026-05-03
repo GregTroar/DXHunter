@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"log"
 	"os"
@@ -61,6 +62,8 @@ func GracefulShutdown(tcpClients []*TCPClient, tcpServer *TCPServer, flexClient 
 }
 
 func main() {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	// Generate our config based on the config supplied
 	// by the user in the flags
@@ -133,7 +136,7 @@ func main() {
 	if cRepo != nil {
 		defer cRepo.Close()
 		globalLogbookCache = NewLogbookCache(cRepo)
-		globalLogbookCache.StartAutoRefresh(cRepo, 30*time.Second)
+		globalLogbookCache.StartAutoRefresh(ctx, cRepo, 30*time.Second)
 	}
 
 	// ✅ Créer le canal pour le traitement centralisé des spots
@@ -234,10 +237,10 @@ func main() {
 	}
 
 	// Start ADXO activations refresher
-	StartADXORefresher(HTTPServer.broadcast, HTTPServer.Watchlist)
+	StartADXORefresher(ctx, HTTPServer.broadcast, HTTPServer.Watchlist)
 
 	// Start DX-World news refresher
-	StartDXWorldRefresher(HTTPServer.broadcast)
+	StartDXWorldRefresher(ctx, HTTPServer.broadcast)
 
 	// Bridge telnet client commands → master cluster TCPClient
 	// Commands arriving from external telnet clients (TCPServer.CmdChan) are forwarded

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/xml"
 	"fmt"
 	"html"
@@ -181,14 +182,19 @@ func FetchDXWorld() ([]DXWorldNews, error) {
 // Background refresh
 // ============================================================================
 
-func StartDXWorldRefresher(broadcast chan WSMessage) {
+func StartDXWorldRefresher(ctx context.Context, broadcast chan WSMessage) {
 	go func() {
 		refreshDXWorld(broadcast)
 
 		ticker := time.NewTicker(30 * time.Minute)
 		defer ticker.Stop()
-		for range ticker.C {
-			refreshDXWorld(broadcast)
+		for {
+			select {
+			case <-ticker.C:
+				refreshDXWorld(broadcast)
+			case <-ctx.Done():
+				return
+			}
 		}
 	}()
 }

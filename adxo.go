@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/xml"
 	"fmt"
 	"io"
@@ -319,14 +320,19 @@ func parseADXODate(s string, fallbackYear int) (time.Time, error) {
 // Background refresh
 // ============================================================================
 
-func StartADXORefresher(broadcast chan WSMessage, watchlist *Watchlist) {
+func StartADXORefresher(ctx context.Context, broadcast chan WSMessage, watchlist *Watchlist) {
 	go func() {
 		refreshADXO(broadcast, watchlist)
 
 		ticker := time.NewTicker(1 * time.Hour)
 		defer ticker.Stop()
-		for range ticker.C {
-			refreshADXO(broadcast, watchlist)
+		for {
+			select {
+			case <-ticker.C:
+				refreshADXO(broadcast, watchlist)
+			case <-ctx.Done():
+				return
+			}
 		}
 	}()
 }
