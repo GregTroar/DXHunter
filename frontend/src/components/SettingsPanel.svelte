@@ -23,6 +23,7 @@
   });
 
   async function save() {
+    if (saving) return;
     saving    = true;
     saveError = '';
     saveOk    = false;
@@ -60,6 +61,7 @@
   let clusterTestResult = []; // null | { ok: bool, msg: string } per index
 
   async function testCluster(i) {
+    if (clusterTesting[i]) return;
     clusterTesting[i]    = true;
     clusterTestResult[i] = null;
     clusterTesting = [...clusterTesting];
@@ -83,6 +85,7 @@
   }
 
   async function testQRZ() {
+    if (qrzTesting) return;
     qrzTesting    = true;
     qrzTestResult = null;
     try {
