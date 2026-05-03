@@ -31,6 +31,10 @@ type Watchlist struct {
 	entries  map[string]*WatchlistEntry
 	filePath string
 	mutex    sync.RWMutex
+
+	saveMu    sync.Mutex   // protects saveTimer
+	saveTimer *time.Timer
+	ioMu      sync.Mutex   // serialises concurrent file writes
 }
 
 func NewWatchlist(filePath string) *Watchlist {
@@ -77,31 +81,52 @@ func (w *Watchlist) load() {
 	Log.Infof("Loaded %d entries from watchlist", len(w.entries))
 }
 
-func (w *Watchlist) saveUnsafe() error {
-	entries := make([]WatchlistEntry, 0, len(w.entries))
-	for _, entry := range w.entries {
-		entries = append(entries, *entry)
-	}
-
-	data, err := json.MarshalIndent(entries, "", "  ")
-	if err != nil {
-		Log.Errorf("Error marshaling watchlist: %v", err)
-		return fmt.Errorf("error marshaling watchlist: %w", err)
-	}
-
-	if err := os.WriteFile(w.filePath, data, 0644); err != nil {
-		Log.Errorf("Error writing watchlist file %s: %v", w.filePath, err)
-		return fmt.Errorf("error writing watchlist file: %w", err)
-	}
-
-	Log.Debugf("Watchlist saved successfully (%d entries)", len(entries))
-	return nil
-}
-
-func (w *Watchlist) save() error {
+// snapshotEntries returns a shallow copy of all entries under a brief read lock.
+func (w *Watchlist) snapshotEntries() []WatchlistEntry {
 	w.mutex.RLock()
 	defer w.mutex.RUnlock()
-	return w.saveUnsafe()
+	out := make([]WatchlistEntry, 0, len(w.entries))
+	for _, e := range w.entries {
+		out = append(out, *e)
+	}
+	return out
+}
+
+// persist writes a snapshot to disk. Serialised via ioMu so concurrent callers
+// don't interleave writes. Called only from goroutines — never while holding mutex.
+func (w *Watchlist) persist(entries []WatchlistEntry) {
+	data, err := json.MarshalIndent(entries, "", "  ")
+	if err != nil {
+		Log.Errorf("Watchlist: marshal error: %v", err)
+		return
+	}
+	w.ioMu.Lock()
+	defer w.ioMu.Unlock()
+	if err := os.WriteFile(w.filePath, data, 0644); err != nil {
+		Log.Errorf("Watchlist: write error for %s: %v", w.filePath, err)
+		return
+	}
+	Log.Debugf("Watchlist saved (%d entries)", len(entries))
+}
+
+// scheduleSave debounces disk writes: the file is written 2 s after the last
+// mutation. Safe to call while holding w.mutex (only touches saveMu internally).
+func (w *Watchlist) scheduleSave() {
+	w.saveMu.Lock()
+	defer w.saveMu.Unlock()
+	if w.saveTimer != nil {
+		w.saveTimer.Stop()
+	}
+	w.saveTimer = time.AfterFunc(2*time.Second, func() {
+		w.persist(w.snapshotEntries())
+	})
+}
+
+// save snapshots current state and persists it asynchronously.
+// The entries mutex is held only for the snapshot (microseconds), never during I/O.
+func (w *Watchlist) save() error {
+	go w.persist(w.snapshotEntries())
+	return nil
 }
 
 func (w *Watchlist) Add(callsign string) error {
@@ -142,12 +167,8 @@ func (w *Watchlist) addWithContestFlag(callsign string, isContest bool) error {
 
 	Log.Infof("Added %s to watchlist (contest: %v)", callsign, isContest)
 
-	if err := w.saveUnsafe(); err != nil {
-		Log.Errorf("Failed to save watchlist after adding %s: %v", callsign, err)
-		return err
-	}
-
-	Log.Debugf("Watchlist saved successfully after adding %s", callsign)
+	w.scheduleSave()
+	Log.Debugf("Watchlist save scheduled after adding %s", callsign)
 	return nil
 }
 
@@ -165,11 +186,7 @@ func (w *Watchlist) Remove(callsign string) error {
 	delete(w.entries, callsign)
 	Log.Infof("Removed %s from watchlist", callsign)
 
-	if err := w.saveUnsafe(); err != nil {
-		Log.Errorf("Failed to save watchlist after removing %s: %v", callsign, err)
-		return err
-	}
-
+	w.scheduleSave()
 	return nil
 }
 
@@ -187,7 +204,8 @@ func (w *Watchlist) SetNotify(callsign string, notify bool) error {
 	entry.Notify = notify
 	Log.Infof("Notifications %s for %s", map[bool]string{true: "enabled", false: "disabled"}[notify], callsign)
 
-	return w.saveUnsafe()
+	w.scheduleSave()
+	return nil
 }
 
 // AddActiveSpot marks a spot as active for a watchlist entry
@@ -419,7 +437,7 @@ func (w *Watchlist) CleanupStale(maxAge time.Duration) []string {
 	}
 
 	if len(removed) > 0 {
-		_ = w.saveUnsafe()
+		w.scheduleSave()
 	}
 	return removed
 }
