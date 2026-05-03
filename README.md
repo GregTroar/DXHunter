@@ -251,19 +251,6 @@ FlexDXCluster shares the UDP port with other apps already listening on 2237.
 
 ---
 
-## Building from source
-
-**Prerequisites:** Go 1.21+, Node.js 18+
-
-```bash
-# Install dependencies and build everything
-make build
-
-# Or step by step:
-cd frontend && npm install && npm run build && cd ..
-go build -ldflags="-H=windowsgui" -o FlexDXCluster.exe .
-```
-
 ## Running
 
 ```bash
