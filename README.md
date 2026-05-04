@@ -1,6 +1,6 @@
-# FlexDXCluster
+# DXHunter
 
-**FlexDXCluster is a DX cluster client built for one purpose: helping you chase new DXCC entities, new bands, new modes and new slots.**
+**DXHunter is a DX cluster client built for one purpose: helping you chase new DXCC entities, new bands, new modes and new slots.**
 
 Every spot arriving from the cluster is cross-referenced against your logbook (**Log4OM** or **Ham Radio Deluxe**) and classified — New DXCC, New Band, New Mode, New Slot, or Already Worked. Interesting spots are pushed directly to your **FlexRadio panadapter** so you can tune with a single click. FT8/FT4 decodes are enriched the same way in real time.
 
@@ -184,7 +184,7 @@ Without a logbook, the following features are unavailable: New DXCC / Band / Mod
 ## Setup
 
 ### First run
-Just launch `FlexDXCluster.exe`. If no `config.yml` is found, the setup wizard opens at `http://localhost:8080`. Fill in your details and click **Save & Start**. Done.
+Just launch `DXHunter.exe`. If no `config.yml` is found, the setup wizard opens at `http://localhost:8080`. Fill in your details and click **Save & Start**. Done.
 
 ### Manual configuration
 If you prefer to edit `config.yml` directly:
@@ -236,7 +236,7 @@ telnetserver:
 ### Log4OM setup
 1. Log4OM → **Network** → **DX Cluster** → server: `localhost:7300`
 2. Log4OM → **Database** → note the SQLite path and set it in `sqlite_path`
-3. Optionally enable **UDP Callsign** in Log4OM to receive frequency/mode from FlexDXCluster
+3. Optionally enable **UDP Callsign** in Log4OM to receive frequency/mode from DXHunter
 
 ### Ham Radio Deluxe setup
 1. Set `logbook_type: "hrd"` in `config.yml`
@@ -247,16 +247,16 @@ telnetserver:
 - **Port:** 2237
 - Enable *Accept UDP requests*
 
-FlexDXCluster shares the UDP port with other apps already listening on 2237.
+DXHunter shares the UDP port with other apps already listening on 2237.
 
 ---
 
 ## Running
 
 ```bash
-FlexDXCluster.exe
+DXHunter.exe
 # or with explicit config path:
-FlexDXCluster.exe --config C:\path\to\config.yml
+DXHunter.exe --config C:\path\to\config.yml
 ```
 
 Open `http://localhost:8080` in a browser (or any browser on the network).
