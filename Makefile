@@ -1,5 +1,5 @@
 # Variables
-BINARY_NAME=FlexDXCluster.exe
+BINARY_NAME=DXHunter.exe
 FRONTEND_DIR=frontend
 DIST_DIR=$(FRONTEND_DIR)/dist
 GO_FILES=$(shell find . -name '*.go' -not -path "./$(FRONTEND_DIR)/*")
@@ -7,9 +7,9 @@ CGO_ENABLED ?= 1
 GOFLAGS = CGO_ENABLED=$(CGO_ENABLED)
 
 # Cross-compilation targets
-BINARY_LINUX_AMD64   = FlexDXCluster-linux-amd64
-BINARY_DARWIN_AMD64  = FlexDXCluster-darwin-amd64
-BINARY_DARWIN_ARM64  = FlexDXCluster-darwin-arm64
+BINARY_LINUX_AMD64   = DXHunter-linux-amd64
+BINARY_DARWIN_AMD64  = DXHunter-darwin-amd64
+BINARY_DARWIN_ARM64  = DXHunter-darwin-arm64
 
 .PHONY: all build build-all frontend backend run clean dev help install-deps \
         build-linux build-darwin-amd64 build-darwin-arm64 \
@@ -20,7 +20,7 @@ all: build
 
 ## help: Affiche cette aide
 help:
-	@echo "FlexDXCluster - Makefile"
+	@echo "DXHunter - Makefile"
 	@echo ""
 	@echo "Commandes disponibles:"
 	@echo "  make build              - Build complet Windows (frontend + backend)"
@@ -55,13 +55,13 @@ frontend:
 ## backend: Build le backend Go
 backend:
 	@echo "Building Go binary..."
-	go build -ldflags -H=windowsgui .
+	go build -o $(BINARY_NAME) -ldflags -H=windowsgui .
 	@echo "Backend built successfully"
 
 ## backend: Build le backend Go
 backendi: frontend
 	@echo "Building Go binary..."
-	go build .
+	go build -o $(BINARY_NAME) .
 	@echo "Backend built successfully"
 
 ## build: Build complet (frontend + backend)
@@ -87,7 +87,7 @@ buildi: install-deps frontend backendi
 
 ## run: Build et lance l'application
 run: build
-	@echo "Starting FlexDXCluster..."
+	@echo "Starting DXHunter..."
 	@echo ""
 	./$(BINARY_NAME)
 

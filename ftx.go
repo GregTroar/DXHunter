@@ -744,21 +744,24 @@ func (f *FTxService) checkLogStatus(callsign, dxcc, band, mode string) (newDXCC,
 
 // replyAddr returns the UDP address to use for outgoing control messages (Reply, HaltTX, etc.).
 //
-// When multicast is configured, we send to the multicast group address.  This is critical on
-// Windows: both WSJT-X and FlexDXCluster bind to the same port with SO_REUSEADDR, so a
-// unicast packet to 127.0.0.1:<port> is delivered to only one socket (OS-specific, often the
-// last-bound one — which may be FlexDXCluster, not WSJT-X).  Sending to the multicast address
-// guarantees delivery to every socket that has joined the group, including WSJT-X.
+// Multicast is only used for WSJT-X: on Windows both WSJT-X and FlexDXCluster bind to the
+// same port with SO_REUSEADDR, so a unicast packet goes to the last-bound socket only.
+// Sending to the multicast group guarantees delivery to WSJT-X even in that scenario.
+// MSHV and JTDX use true unicast and do not join any multicast group, so they must always
+// receive replies at their actual source address.
 func (f *FTxService) replyAddr() (*net.UDPAddr, error) {
-	if Cfg.FTx.Multicast && Cfg.FTx.MulticastIP != "" {
+	f.mu.RLock()
+	src := f.sourceAddr
+	id := f.clientID
+	f.mu.RUnlock()
+
+	isWSJTX := strings.Contains(strings.ToUpper(id), "WSJT")
+	if isWSJTX && Cfg.FTx.Multicast && Cfg.FTx.MulticastIP != "" {
 		ip := net.ParseIP(Cfg.FTx.MulticastIP)
 		if ip != nil {
 			return &net.UDPAddr{IP: ip, Port: Cfg.FTx.Port}, nil
 		}
 	}
-	f.mu.RLock()
-	src := f.sourceAddr
-	f.mu.RUnlock()
 	if src == nil {
 		return nil, fmt.Errorf("no source address known yet")
 	}

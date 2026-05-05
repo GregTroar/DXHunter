@@ -47,7 +47,7 @@
     </svg>
     <div>
       <h1 class="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-        FlexDXCluster
+        DXHunter
       </h1>
       <div class="flex items-center gap-2 text-xs text-slate-400">
         <span class="font-semibold text-blue-400">{stats.myCallsign || 'N/A'}</span>
