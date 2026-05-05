@@ -91,7 +91,7 @@ func main() {
 	log := NewLog()
 	defer CloseLog()
 
-	DeleteDatabase("./flex.sqlite", log)
+	DeleteDatabase("./dxhunter.sqlite", log)
 
 	// Load cty.plist — base DXCC disponible globalement via ctyDB
 	ctyPath := resolveCtyPath()
@@ -113,7 +113,7 @@ func main() {
 	}()
 
 	// Database to keep track of all spots
-	fRepo := NewFlexDXDatabase("flex.sqlite")
+	fRepo := NewFlexDXDatabase("dxhunter.sqlite")
 	defer fRepo.db.Close()
 
 	// POTA cache (persistent across restarts)

@@ -46,7 +46,7 @@ func NewLog() *log.Logger {
 	// ✅ Chemin du log à côté de l'exe
 	exe, _ := os.Executable()
 	exePath := filepath.Dir(exe)
-	logPath := filepath.Join(exePath, "flexradio.log")
+	logPath := filepath.Join(exePath, "dxhunter.log")
 
 	if Cfg.General.DeleteLogFileAtStart {
 		if _, err := os.Stat(logPath); err == nil {
