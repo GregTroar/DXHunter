@@ -121,17 +121,17 @@ build-darwin-arm64: frontend _bin-darwin-arm64
 # Cibles internes — Go uniquement, sans rebuild du frontend
 _bin-linux:
 	@echo "Building Linux amd64..."
-	GOOS=linux GOARCH=amd64 go build -o $(BINARY_LINUX_AMD64) .
+	cmd /C "set CGO_ENABLED=0&&set GOOS=linux&&set GOARCH=amd64&&go build -o $(BINARY_LINUX_AMD64) ."
 	@echo "  -> $(BINARY_LINUX_AMD64)"
 
 _bin-darwin-amd64:
 	@echo "Building macOS Intel (amd64)..."
-	GOOS=darwin GOARCH=amd64 go build -o $(BINARY_DARWIN_AMD64) .
+	cmd /C "set CGO_ENABLED=0&&set GOOS=darwin&&set GOARCH=amd64&&go build -o $(BINARY_DARWIN_AMD64) ."
 	@echo "  -> $(BINARY_DARWIN_AMD64)"
 
 _bin-darwin-arm64:
 	@echo "Building macOS Apple Silicon (arm64)..."
-	GOOS=darwin GOARCH=arm64 go build -o $(BINARY_DARWIN_ARM64) .
+	cmd /C "set CGO_ENABLED=0&&set GOOS=darwin&&set GOARCH=arm64&&go build -o $(BINARY_DARWIN_ARM64) ."
 	@echo "  -> $(BINARY_DARWIN_ARM64)"
 
 ## build-all: Build pour toutes les plateformes (frontend compilé une seule fois)

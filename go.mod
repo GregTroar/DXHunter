@@ -1,4 +1,4 @@
-module git.rouggy.com/rouggy/FlexDXCluster
+module git.rouggy.com/rouggy/DXHunter
 
 go 1.25.0
 
