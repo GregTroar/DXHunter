@@ -355,6 +355,7 @@
     autoCallManualLocked = false;
     _acLastPeriod        = '';
     _acNeedRerun         = false;
+    _acMissPendingPeriod = '';
     if (!contestMode) recentlyWorked = new Set();
   }
 
@@ -364,9 +365,13 @@
   //     Normal mode: wait for a positive flag (newDXCC/newBand/newMode/newSlot).
   //     Contest mode: rerun as soon as ANY decode is enriched — contest stations may have all
   //     new-flags=false (already-worked DXCC/band/mode) yet still be eligible (not worked today).
+  //  3. Target absent on first check (sets _acMissPendingPeriod) → re-fire if target decode
+  //     arrives late in the same period. Miss is only counted at the next period boundary if the
+  //     target never appeared (grace window for late-arriving WSJT-X decodes, typically ~1 s).
   // TX periods produce no decodes → reactive never fires → not counted as miss (correct).
-  let _acLastPeriod = '';
-  let _acNeedRerun  = false;
+  let _acLastPeriod        = '';
+  let _acNeedRerun         = false;
+  let _acMissPendingPeriod = ''; // period where target was absent; counted on the next period if still absent
 
   $: if (autoCallEnabled && groupedDecodes.length > 0) {
     const g = groupedDecodes[0];
@@ -380,6 +385,12 @@
         : g.decodes.some(d => d.newDXCC || d.newBand || d.newMode || d.newSlot);
       if (hasPositive) {
         _acNeedRerun = false;
+        _handleAutoCallPeriod(g.time);
+      }
+    } else if (_acMissPendingPeriod === g.time && autoCallTarget) {
+      // A miss was deferred this period — recheck if the target's decode has since arrived
+      const pendingTargetUC = (autoCallTarget.dxCall || '').toUpperCase();
+      if (g.decodes.some(d => (d.dxCall || '').toUpperCase() === pendingTargetUC)) {
         _handleAutoCallPeriod(g.time);
       }
     }
@@ -396,6 +407,28 @@
       // in the preceding period and be absent from the current batch.
       const prevGroup   = groupedDecodes[1]; // second newest = previous period
       const prevDecodes = (prevGroup && prevGroup.time !== periodTime) ? prevGroup.decodes : [];
+
+      outer: {
+      // A miss from the previous period was deferred (grace window for late-arriving decodes).
+      // Count it now that a full period has elapsed without the target appearing.
+      if (_acMissPendingPeriod && _acMissPendingPeriod !== periodTime && autoCallTarget) {
+        _acMissPendingPeriod = '';
+        autoCallMissed++;
+        if (autoCallMissed >= AUTO_MISS_MAX) {
+          const stalledUC = (autoCallTarget.dxCall || '').toUpperCase();
+          if (priorityCalls.length > 0) {
+            autoCallStopped     = true;
+            autoCallStoppedCall = stalledUC;
+          } else {
+            autoCallManualLocked = false;
+          }
+          autoCallTarget   = null;
+          autoCallMissed   = 0;
+          autoCallAttempts = 0;
+          action = { type: 'halt' };
+          break outer;
+        }
+      }
 
       if (priorityCalls.length > 0) {
         // ── Watch call mode: only call stations from the priority list ─────────
@@ -435,6 +468,7 @@
             action = { type: 'clearDXCall' };
           } else if (targetDecode) {
             autoCallTarget = targetDecode; // refresh: use current-period decode so Reply has fresh timestamp
+            _acMissPendingPeriod = '';
             const wasInMiss = autoCallMissed > 0;
             autoCallMissed = 0;
             const replied = decodes.some(d =>
@@ -458,16 +492,8 @@
               // else: MSHV already transmitting — do not interrupt
             }
           } else {
-            // Target not decoded this period → miss
-            autoCallMissed++;
-            if (autoCallMissed >= AUTO_MISS_MAX) {
-              autoCallStopped     = true;
-              autoCallStoppedCall = targetUC;
-              autoCallTarget      = null;
-              autoCallMissed      = 0;
-              autoCallAttempts    = 0;
-              action = { type: 'halt' };
-            }
+            // Target not decoded this period — defer one period to allow late-arriving decodes
+            _acMissPendingPeriod = periodTime;
           }
         } else {
           // No current target (or stale) — find best priority call decoded this period
@@ -503,6 +529,7 @@
             action = { type: 'clearDXCall' };
           } else if (targetSeen) {
             autoCallTarget = targetSeen; // refresh: use current-period decode so Reply has fresh timestamp
+            _acMissPendingPeriod = '';
             const wasInMiss = autoCallMissed > 0;
             autoCallMissed = 0;
             const replied = decodes.some(d =>
@@ -529,15 +556,8 @@
               // else: MSHV already transmitting — do not interrupt
             }
           } else {
-            // Target not decoded this RX period → miss
-            autoCallMissed++;
-            if (autoCallMissed >= AUTO_MISS_MAX) {
-              autoCallTarget       = null;
-              autoCallMissed       = 0;
-              autoCallAttempts     = 0;
-              autoCallManualLocked = false;
-              action = { type: 'halt' };
-            }
+            // Target not decoded this period — defer one period to allow late-arriving decodes
+            _acMissPendingPeriod = periodTime;
           }
         } else if (!autoCallManualLocked && (!ftxTXStatus.transmitting || contestMode)) {
           // No target → check first if a station is calling us back (late response),
@@ -557,6 +577,7 @@
           }
         }
       }
+      } // end outer:
     } finally {
       autoCallBusy = false;
     }
