@@ -12,6 +12,7 @@
   const dispatch = createEventDispatcher();
   
   let newCallsign = '';
+  let searchQuery  = '';
   let watchlistSpots = [];
   let refreshInterval;
   let selectedBand = 'ALL';
@@ -43,6 +44,9 @@
   }
   
   $: displayList = getDisplayList(watchlist, watchlistSpots, showOnlyActive, showOnlyNotWorked, selectedMode);
+  $: filteredDisplayList = searchQuery
+    ? displayList.filter(e => e.callsign.toUpperCase().includes(searchQuery.toUpperCase()))
+    : displayList;
   $: matchingSpots = watchlistSpots.length;
   $: filteredSpots = countFilteredSpots(watchlistSpots, selectedBand, selectedMode, showOnlyNotWorked);
   $: notWorkedCount = watchlistSpots.filter(s => !s.workedBandMode).length;
@@ -543,51 +547,69 @@ function getDisplayList(wl, wlSpots, activeOnly, onlyNotWorked, modeFilter) {
       </div>
     </div>
     
-    <!-- Champ d'ajout de callsign -->
+    <!-- Champ d'ajout + recherche -->
     <div class="flex gap-2">
-      <input 
-        type="text" 
+      <input
+        type="text"
         bind:value={newCallsign}
         on:keypress={handleKeyPress}
         placeholder="Enter callsign or prefix (e.g., VK9)"
         class="flex-1 px-3 py-2 bg-slate-700/50 border border-slate-600 rounded text-sm text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
       />
-      <button 
+      <button
         on:click={addToWatchlist}
         class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded text-sm font-medium transition-colors">
         Add
       </button>
+      <div class="relative">
+        <svg class="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/>
+        </svg>
+        <input
+          type="text"
+          bind:value={searchQuery}
+          placeholder="Filter list…"
+          class="pl-7 pr-2 py-2 w-32 bg-slate-700/50 border border-slate-600 rounded text-sm text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
+        />
+        {#if searchQuery}
+          <button on:click={() => searchQuery = ''} class="absolute right-1.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs leading-none">✕</button>
+        {/if}
+      </div>
     </div>
   </div>
   
   <div class="flex-1 p-3 overflow-y-auto" style="overflow-y: auto; min-height: 0; flex: 1 1 0;">
-    {#if displayList.length === 0}
+    {#if filteredDisplayList.length === 0}
       <div class="text-center py-8 text-slate-400">
         <svg class="w-12 h-12 mx-auto mb-3 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
         </svg>
         <p class="text-sm">
-          {showOnlyNotWorked 
-            ? 'No unworked spots for watchlist callsigns' 
-            : (showOnlyActive 
-              ? 'No active spots for watchlist callsigns' 
-              : (selectedBand !== 'ALL' || selectedMode !== 'ALL'
-                ? 'No spots match the selected filters'
-                : 'No callsigns in watchlist'))}
+          {searchQuery
+            ? `No callsigns match "${searchQuery}"`
+            : (showOnlyNotWorked
+              ? 'No unworked spots for watchlist callsigns'
+              : (showOnlyActive
+                ? 'No active spots for watchlist callsigns'
+                : (selectedBand !== 'ALL' || selectedMode !== 'ALL'
+                  ? 'No spots match the selected filters'
+                  : 'No callsigns in watchlist')))}
         </p>
         <p class="text-xs mt-1">
-          {showOnlyNotWorked 
-            ? 'Click "Not Worked" to see all spots' 
-            : (showOnlyActive 
-              ? 'Click "Active Only" to see all entries' 
-              : (selectedBand !== 'ALL' || selectedMode !== 'ALL'
-                ? 'Try changing band or mode filters'
-                : 'Add callsigns or prefixes to monitor'))}
+          {searchQuery
+            ? 'Try a different search term or clear the filter'
+            : (showOnlyNotWorked
+              ? 'Click "Not Worked" to see all spots'
+              : (showOnlyActive
+                ? 'Click "Active Only" to see all entries'
+                : (selectedBand !== 'ALL' || selectedMode !== 'ALL'
+                  ? 'Try changing band or mode filters'
+                  : 'Add callsigns or prefixes to monitor')))}
         </p>
       </div>
     {:else}
-      {#each displayList as entry}
+      {#each filteredDisplayList as entry}
         {@const matchingSpots = getMatchingSpotsForCallsign(entry.callsign)}
         {@const count = matchingSpots.length}
         {@const neededCount = matchingSpots.filter(s => !s.workedBandMode).length}
