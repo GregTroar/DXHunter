@@ -17,6 +17,7 @@ Written in Go (backend) and Svelte + TailwindCSS (frontend). No external depende
 | Chase **New Slots** | New Band+Mode combinations (slots) highlighted in light blue. |
 | **FlexRadio integration** | Spots pushed to the panadapter with color coding. Click a spot in the UI to tune the radio. |
 | **FTx monitoring** | WSJT-X / JTDX / MSHV decodes enriched with log status badges in real time. |
+| Chase **Hamaward awards** | Set a 3-letter award code — matching stations are auto-watched and prioritised in autocall. |
 | **Stay informed** | Watchlist alerts, POTA/SOTA activations, DXpedition calendar, DX-World news, solar data. |
 
 ---
@@ -92,9 +93,8 @@ After completing the wizard, the application starts all services automatically a
 - **LoTW indicator** on each decode
 - Watchlist highlight: watched callsigns highlighted directly in the decode list
 - Filters: CQ only, My Call only
-- **Autocall**: click a decode to send a Reply command back to WSJT-X/MSHV
+- **Autocall**: click a decode to send a Reply command back to WSJT-X/MSHV — or let the engine pick the best candidate automatically (prioritises New DXCC > Band > Mode > Slot, then [ClubLog Most Wanted](https://clublog.org/mostwanted.php) rank, then SNR)
 - **Halt TX**: cancel auto-sequence from the dashboard
-- **TX Slot Advisor**: analyses the last decoded period and suggests the best TX frequency — finds the largest clear gap (1000–3000 Hz passband)
 - Countdown timer to next TX/RX period (15s FT8 / 7.5s FT4 / 3.25s FT2)
 - Pause / Resume / Clear
 
@@ -135,11 +135,16 @@ After completing the wizard, the application starts all services automatically a
 - **Windows native toast notifications** for watchlist hits (callsign, country, frequency, mode, spotter)
 - Click a toast to tune FlexRadio directly to the spot frequency
 
-### Contest Mode
-- Toggle contest mode on/off
-- Configure contest prefix and a list of special contest callsigns
-- Contest stations auto-added to watchlist
-- Watchlist filtered to show contest callsigns during a contest
+### Award Chasing Mode
+
+Designed for chasing **[Hamaward](https://hamaward.cloud/awards)** awards. Each award on Hamaward is identified by a 3-letter code (e.g. `SAC`, `WAE`, `EU`). Set that code as the contest prefix and DXHunter will focus exclusively on eligible stations.
+
+- Toggle award chasing on/off
+- Set the **3-letter Hamaward award code** as the contest prefix — only stations whose callsign matches that prefix are tracked
+- Optionally add a list of specific callsigns to chase
+- Matching stations are **auto-added to the watchlist** at startup
+- Watchlist filtered to show only award-eligible stations during a chase session
+- FTx autocall prioritises award stations when enabled
 
 ### Web Dashboard
 - Embedded Svelte SPA served at `http://localhost:8080`
@@ -250,19 +255,6 @@ telnetserver:
 FlexDXCluster shares the UDP port with other apps already listening on 2237.
 
 ---
-
-## Building from source
-
-**Prerequisites:** Go 1.21+, Node.js 18+
-
-```bash
-# Install dependencies and build everything
-make build
-
-# Or step by step:
-cd frontend && npm install && npm run build && cd ..
-go build -ldflags="-H=windowsgui" -o FlexDXCluster.exe .
-```
 
 ## Running
 
