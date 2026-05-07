@@ -95,6 +95,8 @@ type Config struct {
 		BackgroundColorMyCallsign  string   `yaml:"background_color_my_callsign"`
 		SpotColorWorked            string   `yaml:"spot_color_worked"`
 		BackgroundColorWorked      string   `yaml:"background_color_worked"`
+		WorkUnconfirmed            bool     `yaml:"work_unconfirmed"`
+		ConfirmationSources        []string `yaml:"confirmation_sources"` // "LOTW", "EQSL", "QSL"
 	} `yaml:"general"`
 
 	Database struct {

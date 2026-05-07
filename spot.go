@@ -25,6 +25,7 @@ type TelnetSpot struct {
 	NewMode        bool
 	NewSlot        bool
 	CallsignWorked bool
+	Unconfirmed    bool   // worked but not confirmed by configured sources
 	ClusterName    string // Nom du cluster source
 	POTARef        string // ex: "BB-0036"
 	SOTARef        string // ex: "F/AB-123"
@@ -92,12 +93,27 @@ func ProcessTelnetSpot(re *regexp.Regexp, reShort *regexp.Regexp, spotRaw string
 	spot.NewSlot = false
 
 	if globalLogbookCache != nil {
-		spot.NewDXCC = !globalLogbookCache.HasDXCC(spot.DXCC)
-		spot.NewMode = !globalLogbookCache.HasDXCCMode(spot.DXCC, spot.Mode)
-		spot.NewBand = !globalLogbookCache.HasDXCCBand(spot.DXCC, spot.Band)
-		spot.CallsignWorked = globalLogbookCache.HasCallBandMode(spot.DX, spot.Band, spot.Mode)
-		if !spot.NewDXCC && !spot.NewBand && !spot.NewMode {
-			spot.NewSlot = !globalLogbookCache.HasDXCCBandMode(spot.DXCC, spot.Band, spot.Mode)
+		if Cfg.General.WorkUnconfirmed && len(Cfg.General.ConfirmationSources) > 0 {
+			spot.NewDXCC = !globalLogbookCache.IsConfirmedDXCC(spot.DXCC)
+			spot.NewBand = !globalLogbookCache.IsConfirmedDXCCBand(spot.DXCC, spot.Band)
+			spot.NewMode = !globalLogbookCache.IsConfirmedDXCCMode(spot.DXCC, spot.Mode)
+			spot.CallsignWorked = globalLogbookCache.HasCallBandMode(spot.DX, spot.Band, spot.Mode)
+			if !spot.NewDXCC && !spot.NewBand && !spot.NewMode {
+				spot.NewSlot = !globalLogbookCache.IsConfirmedDXCCBandMode(spot.DXCC, spot.Band, spot.Mode)
+			}
+			// Unconfirmed = flag is "new" only because it's worked but not yet confirmed
+			spot.Unconfirmed = (spot.NewDXCC && globalLogbookCache.HasDXCC(spot.DXCC)) ||
+				(spot.NewBand && globalLogbookCache.HasDXCCBand(spot.DXCC, spot.Band)) ||
+				(spot.NewMode && globalLogbookCache.HasDXCCMode(spot.DXCC, spot.Mode)) ||
+				(spot.NewSlot && globalLogbookCache.HasDXCCBandMode(spot.DXCC, spot.Band, spot.Mode))
+		} else {
+			spot.NewDXCC = !globalLogbookCache.HasDXCC(spot.DXCC)
+			spot.NewMode = !globalLogbookCache.HasDXCCMode(spot.DXCC, spot.Mode)
+			spot.NewBand = !globalLogbookCache.HasDXCCBand(spot.DXCC, spot.Band)
+			spot.CallsignWorked = globalLogbookCache.HasCallBandMode(spot.DX, spot.Band, spot.Mode)
+			if !spot.NewDXCC && !spot.NewBand && !spot.NewMode {
+				spot.NewSlot = !globalLogbookCache.HasDXCCBandMode(spot.DXCC, spot.Band, spot.Mode)
+			}
 		}
 	}
 

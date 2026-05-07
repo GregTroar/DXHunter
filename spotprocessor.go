@@ -101,6 +101,7 @@ func (sp *SpotProcessor) processSpot(spot TelnetSpot) {
 		NewMode:         spot.NewMode,
 		NewSlot:         spot.NewSlot,
 		Worked:          spot.CallsignWorked,
+		Unconfirmed:     spot.Unconfirmed,
 		InWatchlist:     false,
 		CountryName:     spot.CountryName,
 		DXCC:            spot.DXCC,

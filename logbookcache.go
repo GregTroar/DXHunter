@@ -16,6 +16,11 @@ type LogbookCache struct {
 	dxccBand     map[string]bool
 	dxccBandMode map[string]bool
 	callBandMode map[string]bool
+	// confirmed maps — only contacts with LoTWConfirmed=true
+	confDXCC       map[string]bool
+	confDXCCMode   map[string]bool
+	confDXCCBand   map[string]bool
+	confDXCCBandMode map[string]bool
 }
 
 var globalLogbookCache *LogbookCache
@@ -34,6 +39,10 @@ func (c *LogbookCache) rebuild(repo LogbookProvider) {
 	dxccBand := make(map[string]bool, 512)
 	dxccBandMode := make(map[string]bool, 512)
 	callBandMode := make(map[string]bool, len(contacts))
+	confDXCC := make(map[string]bool, 128)
+	confDXCCMode := make(map[string]bool, 256)
+	confDXCCBand := make(map[string]bool, 256)
+	confDXCCBandMode := make(map[string]bool, 512)
 
 	for _, ct := range contacts {
 		mode := cacheNormalizeMode(ct.Mode)
@@ -43,6 +52,12 @@ func (c *LogbookCache) rebuild(repo LogbookProvider) {
 		dxccBand[ct.DXCC+"|"+band] = true
 		dxccBandMode[ct.DXCC+"|"+band+"|"+mode] = true
 		callBandMode[ct.Callsign+"|"+band+"|"+mode] = true
+		if ct.LoTWConfirmed {
+			confDXCC[ct.DXCC] = true
+			confDXCCMode[ct.DXCC+"|"+mode] = true
+			confDXCCBand[ct.DXCC+"|"+band] = true
+			confDXCCBandMode[ct.DXCC+"|"+band+"|"+mode] = true
+		}
 	}
 
 	c.mu.Lock()
@@ -51,6 +66,10 @@ func (c *LogbookCache) rebuild(repo LogbookProvider) {
 	c.dxccBand = dxccBand
 	c.dxccBandMode = dxccBandMode
 	c.callBandMode = callBandMode
+	c.confDXCC = confDXCC
+	c.confDXCCMode = confDXCCMode
+	c.confDXCCBand = confDXCCBand
+	c.confDXCCBandMode = confDXCCBandMode
 	c.mu.Unlock()
 
 	Log.Infof("LogbookCache: refreshed with %d contacts", len(contacts))
@@ -100,6 +119,30 @@ func (c *LogbookCache) HasCallBandMode(call, band, mode string) bool {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	return c.callBandMode[call+"|"+band+"|"+cacheNormalizeMode(mode)]
+}
+
+func (c *LogbookCache) IsConfirmedDXCC(dxcc string) bool {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return c.confDXCC[dxcc]
+}
+
+func (c *LogbookCache) IsConfirmedDXCCBand(dxcc, band string) bool {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return c.confDXCCBand[dxcc+"|"+strings.ToUpper(band)]
+}
+
+func (c *LogbookCache) IsConfirmedDXCCMode(dxcc, mode string) bool {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return c.confDXCCMode[dxcc+"|"+cacheNormalizeMode(mode)]
+}
+
+func (c *LogbookCache) IsConfirmedDXCCBandMode(dxcc, band, mode string) bool {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return c.confDXCCBandMode[dxcc+"|"+strings.ToUpper(band)+"|"+cacheNormalizeMode(mode)]
 }
 
 // cacheNormalizeMode collapses USB/LSB/SSB into a single key so the cache

@@ -104,6 +104,7 @@ type FTxDecode struct {
 	NewSlot       bool    `json:"newSlot"`
 	Worked        bool    `json:"worked"`
 	WorkedToday   bool    `json:"workedToday"`
+	Unconfirmed   bool    `json:"unconfirmed"`
 	LowConfidence bool    `json:"lowConfidence"`
 	SourceAddr    string  `json:"-"` // UDP source — used to send Reply
 }
@@ -601,7 +602,7 @@ func (f *FTxService) handleDecode(r *bytes.Reader, src *net.UDPAddr) {
 	// when they finish, the result is patched in place; otherwise discarded.
 	if f.contactRepo != nil && dxCall != "" && decode.DXCC != "" && band != "" {
 		go func(d FTxDecode, tMs uint32) {
-			d.NewDXCC, d.NewBand, d.NewMode, d.NewSlot, d.Worked, d.WorkedToday =
+			d.NewDXCC, d.NewBand, d.NewMode, d.NewSlot, d.Worked, d.WorkedToday, d.Unconfirmed =
 				f.checkLogStatus(dxCall, d.DXCC, band, mode)
 			f.enrichInBatch(tMs, d)
 		}(decode, timeMs)
@@ -644,6 +645,7 @@ type FTxEnrichUpdate struct {
 	NewSlot     bool   `json:"newSlot"`
 	Worked      bool   `json:"worked"`
 	WorkedToday bool   `json:"workedToday"`
+	Unconfirmed bool   `json:"unconfirmed"`
 }
 
 // enrichInBatch patches a decode still in the pending batch, or sends a
@@ -661,6 +663,7 @@ func (f *FTxService) enrichInBatch(timeMs uint32, enriched FTxDecode) {
 				f.batchDecodes[i].NewSlot = enriched.NewSlot
 				f.batchDecodes[i].Worked = enriched.Worked
 				f.batchDecodes[i].WorkedToday = enriched.WorkedToday
+				f.batchDecodes[i].Unconfirmed = enriched.Unconfirmed
 				break
 			}
 		}
@@ -681,6 +684,7 @@ func (f *FTxService) enrichInBatch(timeMs uint32, enriched FTxDecode) {
 		NewSlot:     enriched.NewSlot,
 		Worked:      enriched.Worked,
 		WorkedToday: enriched.WorkedToday,
+		Unconfirmed: enriched.Unconfirmed,
 	}
 	select {
 	case f.broadcast <- WSMessage{Type: "ftxEnrich", Data: update}:
@@ -708,7 +712,7 @@ func (f *FTxService) flushLocked() {
 }
 
 // checkLogStatus reads the in-memory log cache — zero DB calls, microsecond latency.
-func (f *FTxService) checkLogStatus(callsign, dxcc, band, mode string) (newDXCC, newBand, newMode, newSlot, worked, workedToday bool) {
+func (f *FTxService) checkLogStatus(callsign, dxcc, band, mode string) (newDXCC, newBand, newMode, newSlot, worked, workedToday, unconfirmed bool) {
 	contacts := f.lc.byDXCCContacts(dxcc)
 
 	modeUpper := strings.ToUpper(mode)
@@ -716,7 +720,11 @@ func (f *FTxService) checkLogStatus(callsign, dxcc, band, mode string) (newDXCC,
 	callUpper := strings.ToUpper(callsign)
 	today := time.Now().UTC().Format("2006-01-02")
 
+	useUnconf := Cfg.General.WorkUnconfirmed && len(Cfg.General.ConfirmationSources) > 0
+
 	var hasCountry, hasBand, hasMode, hasBandMode, hasCall, hasCallToday bool
+	var confCountry, confBand, confMode, confBandMode bool
+
 	for _, c := range contacts {
 		cMode := strings.ToUpper(c.Mode)
 		cBand := strings.ToUpper(c.Band)
@@ -739,12 +747,35 @@ func (f *FTxService) checkLogStatus(callsign, dxcc, band, mode string) (newDXCC,
 				hasCallToday = true
 			}
 		}
+		if useUnconf && c.LoTWConfirmed {
+			confCountry = true
+			if cBand == bandUpper {
+				confBand = true
+			}
+			if modeMatch {
+				confMode = true
+			}
+			if cBand == bandUpper && modeMatch {
+				confBandMode = true
+			}
+		}
 	}
 
-	newDXCC = !hasCountry
-	newBand = !hasBand
-	newMode = !hasMode
-	newSlot = !hasBandMode && !newDXCC && !newBand && !newMode
+	if useUnconf {
+		newDXCC = !confCountry
+		newBand = !confBand
+		newMode = !confMode
+		newSlot = !confBandMode && !newDXCC && !newBand && !newMode
+		unconfirmed = (newDXCC && hasCountry) ||
+			(newBand && hasBand) ||
+			(newMode && hasMode) ||
+			(newSlot && hasBandMode)
+	} else {
+		newDXCC = !hasCountry
+		newBand = !hasBand
+		newMode = !hasMode
+		newSlot = !hasBandMode && !newDXCC && !newBand && !newMode
+	}
 	worked = hasCall
 	workedToday = hasCallToday
 	return

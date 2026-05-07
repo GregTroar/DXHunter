@@ -86,6 +86,7 @@
     showNewBandMode: false,
     showNewSlot: false,
     showWorked: false,
+    showUnconfirmed: false,
     showWatchlist: false,
     showContest: false,
     showPOTA: false,
@@ -166,9 +167,9 @@ function applyFilters(allSpots, filters, wl) {
     filters.band40M || filters.band30M || filters.band20M || filters.band17M || 
     filters.band15M || filters.band12M || filters.band10M || filters.band6M;
   
-  const typeFiltersActive = filters.showNewDXCC || filters.showNewBand || 
-    filters.showNewMode || filters.showNewBandMode || filters.showNewSlot || 
-    filters.showWorked || filters.showWatchlist || filters.showContest ||
+  const typeFiltersActive = filters.showNewDXCC || filters.showNewBand ||
+    filters.showNewMode || filters.showNewBandMode || filters.showNewSlot ||
+    filters.showWorked || filters.showUnconfirmed || filters.showWatchlist || filters.showContest ||
     filters.showPOTA || filters.showSOTA;
   
   const modeFiltersActive = filters.showFT8 || filters.showFT4 || filters.showFT2 || filters.showRTTY || filters.showSSB || filters.showCW;
@@ -236,9 +237,8 @@ function applyFilters(allSpots, filters, wl) {
         matchesType = true;
       }
       
-      if (filters.showWorked && spot.Worked) {
-        matchesType = true;
-      }
+      if (filters.showWorked && spot.Worked) matchesType = true;
+      if (filters.showUnconfirmed && spot.Unconfirmed) matchesType = true;
       if (filters.showPOTA && spot.POTARef) matchesType = true;
       if (filters.showSOTA && spot.SOTARef) matchesType = true;
     }
@@ -284,6 +284,7 @@ function applyFilters(allSpots, filters, wl) {
         showNewBandMode: false,
         showNewSlot: false,
         showWorked: false,
+        showUnconfirmed: false,
         showWatchlist: false,
         showPOTA: false,
         showSOTA: false,

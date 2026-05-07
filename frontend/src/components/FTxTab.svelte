@@ -842,16 +842,16 @@
                 <span class="px-3 py-0 leading-none rounded text-[11px] font-semibold bg-orange-500/30 text-orange-300 border border-orange-500/50 whitespace-nowrap">WL</span>
               {/if}
               {#if decode.newDXCC}
-                <span class="px-3 py-0 leading-none rounded text-[11px] font-semibold bg-green-500/30 text-green-300 border border-green-500/50 whitespace-nowrap">DXCC</span>
+                <span class="px-3 py-0 leading-none rounded text-[11px] font-semibold bg-green-500/30 text-green-300 border border-green-500/50 whitespace-nowrap">DXCC{decode.unconfirmed ? ' (U)' : ''}</span>
               {/if}
               {#if decode.newBand && !decode.newDXCC}
-                <span class="px-3 py-0 leading-none rounded text-[11px] font-semibold bg-yellow-500/30 text-yellow-300 border border-yellow-500/50 whitespace-nowrap">Band</span>
+                <span class="px-3 py-0 leading-none rounded text-[11px] font-semibold bg-yellow-500/30 text-yellow-300 border border-yellow-500/50 whitespace-nowrap">Band{decode.unconfirmed ? ' (U)' : ''}</span>
               {/if}
               {#if decode.newMode && !decode.newDXCC}
-                <span class="px-3 py-0 leading-none rounded text-[11px] font-semibold bg-orange-500/30 text-orange-300 border border-orange-500/50 whitespace-nowrap">Mode</span>
+                <span class="px-3 py-0 leading-none rounded text-[11px] font-semibold bg-orange-500/30 text-orange-300 border border-orange-500/50 whitespace-nowrap">Mode{decode.unconfirmed ? ' (U)' : ''}</span>
               {/if}
               {#if decode.newSlot && !decode.newDXCC}
-                <span class="px-3 py-0 leading-none rounded text-[11px] font-semibold bg-cyan-500/30 text-cyan-300 border border-cyan-500/50 whitespace-nowrap">Slot</span>
+                <span class="px-3 py-0 leading-none rounded text-[11px] font-semibold bg-cyan-500/30 text-cyan-300 border border-cyan-500/50 whitespace-nowrap">Slot{decode.unconfirmed ? ' (U)' : ''}</span>
               {/if}
               {#if decode.worked && !decode.newDXCC && !decode.newBand && !decode.newMode && !decode.newSlot}
                 <span class="px-3 py-0 leading-none rounded text-[11px] bg-slate-500/30 text-slate-400 border border-slate-500/40 whitespace-nowrap">Wkd</span>

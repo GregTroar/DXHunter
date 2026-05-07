@@ -17,6 +17,7 @@
   $: newModeCount = spots ? countSpotsByType(spots, 'newMode') : 0;
   $: newSlotCount = spots ? countSpotsByType(spots, 'newSlot') : 0;
   $: workedCount = spots ? countSpotsByType(spots, 'worked') : 0;
+  $: unconfirmedCount = spots ? spots.filter(s => s.Unconfirmed).length : 0;
   
   $: ft8Count  = spots ? countSpotsByMode(spots, 'ft8') : 0;
   $: ft4Count  = spots ? countSpotsByMode(spots, 'ft4') : 0;
@@ -135,12 +136,19 @@
       Slot ({newSlotCount})
     </button>
     
-    <button 
+    <button
       on:click={() => dispatch('toggleFilter', 'showWorked')}
       class={spotFilters.showWorked ? 'px-2 py-0.5 text-xs rounded transition-colors bg-cyan-600 text-white' : 'px-2 py-0.5 text-xs rounded transition-colors bg-slate-700/50 text-slate-300 hover:bg-slate-700'}>
       Wkd ({workedCount})
     </button>
-    
+
+    <button
+      on:click={() => dispatch('toggleFilter', 'showUnconfirmed')}
+      class={spotFilters.showUnconfirmed ? 'px-2 py-0.5 text-xs rounded transition-colors bg-amber-600 text-white' : 'px-2 py-0.5 text-xs rounded transition-colors bg-slate-700/50 text-slate-300 hover:bg-slate-700'}
+      title="Worked but not confirmed by selected sources">
+      Unconf ({unconfirmedCount})
+    </button>
+
     <span class="text-slate-600 mx-1">|</span>
     <span class="text-xs font-bold text-slate-400 mr-2">MODE:</span>
     

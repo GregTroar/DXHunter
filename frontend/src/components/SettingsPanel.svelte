@@ -196,6 +196,42 @@
                   </label>
                 {/if}
               </div>
+
+              <!-- Chase unconfirmed -->
+              <div class="border-t border-slate-700/40 pt-3 space-y-2">
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" bind:checked={cfg.general.workUnconfirmed} class="accent-amber-500" />
+                  <span class="text-slate-300 font-semibold">Chase unconfirmed slots</span>
+                </label>
+                <p class="text-slate-500 text-xs">When enabled, worked-but-unconfirmed entities show as new (with "(U)" badge). Requires restart to reprocess existing spots.</p>
+                {#if cfg.general.workUnconfirmed}
+                  <div class="space-y-1">
+                    <span class="text-slate-500 text-xs">Confirmation sources</span>
+                    <div class="flex gap-3">
+                      {#each ['LOTW', 'EQSL', 'QSL'] as src}
+                        <label class="flex items-center gap-1.5 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            class="accent-amber-500"
+                            checked={cfg.general.confirmationSources?.includes(src)}
+                            on:change={(e) => {
+                              const sources = cfg.general.confirmationSources ? [...cfg.general.confirmationSources] : [];
+                              if (e.target.checked) {
+                                if (!sources.includes(src)) sources.push(src);
+                              } else {
+                                const idx = sources.indexOf(src);
+                                if (idx !== -1) sources.splice(idx, 1);
+                              }
+                              cfg.general.confirmationSources = sources;
+                            }}
+                          />
+                          <span class="text-slate-300 text-xs font-mono">{src}</span>
+                        </label>
+                      {/each}
+                    </div>
+                  </div>
+                {/if}
+              </div>
             </div>
           {/if}
         </div>

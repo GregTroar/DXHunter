@@ -125,10 +125,12 @@ type ConfigGeneralDTO struct {
 	SendFreqModeToLog    bool   `json:"sendFreqModeToLog"`
 	FlexRadioSpot        bool   `json:"flexRadioSpot"`
 	TelnetServer         bool   `json:"telnetServer"`
-	ContestMode          bool   `json:"contestMode"`
-	ContestPrefix        string `json:"contestPrefix"`
-	DeleteLogFileAtStart bool   `json:"deleteLogFileAtStart"`
-	LogToFile            bool   `json:"logToFile"`
+	ContestMode          bool     `json:"contestMode"`
+	ContestPrefix        string   `json:"contestPrefix"`
+	DeleteLogFileAtStart bool     `json:"deleteLogFileAtStart"`
+	LogToFile            bool     `json:"logToFile"`
+	WorkUnconfirmed      bool     `json:"workUnconfirmed"`
+	ConfirmationSources  []string `json:"confirmationSources"`
 }
 
 type ConfigDatabaseDTO struct {
@@ -206,6 +208,7 @@ func configToDTO() ConfigDTO {
 			FlexRadioSpot: Cfg.General.FlexRadioSpot, TelnetServer: Cfg.General.TelnetServer,
 			ContestMode: Cfg.General.ContestMode, ContestPrefix: Cfg.General.ContestPrefix,
 			DeleteLogFileAtStart: Cfg.General.DeleteLogFileAtStart, LogToFile: Cfg.General.LogToFile,
+			WorkUnconfirmed: Cfg.General.WorkUnconfirmed, ConfirmationSources: Cfg.General.ConfirmationSources,
 		},
 		Database: ConfigDatabaseDTO{
 			MySQL:         Cfg.Database.MySQL,
@@ -1663,6 +1666,8 @@ func (s *HTTPServer) saveConfigAPI(w http.ResponseWriter, r *http.Request) {
 	Cfg.General.ContestPrefix = dto.General.ContestPrefix
 	Cfg.General.DeleteLogFileAtStart = dto.General.DeleteLogFileAtStart
 	Cfg.General.LogToFile = dto.General.LogToFile
+	Cfg.General.WorkUnconfirmed = dto.General.WorkUnconfirmed
+	Cfg.General.ConfirmationSources = dto.General.ConfirmationSources
 	Cfg.Database.MySQL = dto.Database.MySQL
 	Cfg.SQLite.SQLitePath = dto.Database.SQLitePath
 	Cfg.Database.MySQLHost = dto.Database.MySQLHost
