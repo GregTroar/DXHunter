@@ -695,9 +695,6 @@
       {:else if autoCallTarget}
         <span class="font-mono text-emerald-300 font-semibold">{autoCallTarget.dxCall}</span>
         <span class="text-[10px] text-emerald-500/80 font-semibold">{acPriorityLabel(autoCallTarget)}</span>
-        {#if mwRank(autoCallTarget.dxcc) !== Infinity}
-          <span class="text-[10px] text-amber-400/80" title="ClubLog Most Wanted rank">#{mwRank(autoCallTarget.dxcc)}</span>
-        {/if}
         {#if autoCallAttempts > 0}
           <span class="text-[10px] text-orange-400">Call:{autoCallAttempts}/{isWatchlisted(autoCallTarget?.dxCall) ? AUTO_WATCHLIST_ATTEMPT_MAX : AUTO_ATTEMPT_MAX}</span>
         {/if}
@@ -716,6 +713,10 @@
         on:input={(e) => { priorityCall = e.target.value.toUpperCase(); autoCallStopped = false; autoCallStoppedCall = ''; autoCallTarget = null; autoCallAttempts = 0; autoCallMissed = 0; }}
         class="w-36 px-1.5 py-0.5 rounded text-xs font-mono bg-slate-800 border {priorityCalls.length > 0 ? 'border-amber-500/60 text-amber-300' : 'border-slate-600 text-slate-400'} placeholder-slate-600 focus:outline-none focus:border-amber-500/80"
         title="Watch calls: comma or space separated — only call these stations when decoded (Auto must be ON)" />
+
+      {#if autoCallTarget && mwRank(autoCallTarget.dxcc) !== Infinity}
+        <span class="px-1.5 py-0 rounded border text-[10px] font-mono font-semibold bg-amber-500/10 border-amber-500/35 text-amber-300" title="ClubLog Most Wanted">MW #{mwRank(autoCallTarget.dxcc)}</span>
+      {/if}
 
     {/if}
 
