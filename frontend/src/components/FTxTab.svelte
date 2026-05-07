@@ -234,7 +234,10 @@
   onMount(async () => {
     try {
       const res = await fetch('/api/mostwanted');
-      if (res.ok) mostWantedMap = await res.json();
+      if (res.ok) {
+        const json = await res.json();
+        mostWantedMap = json.data ?? json;
+      }
     } catch (e) {
       console.warn('Most Wanted fetch failed:', e);
     }
