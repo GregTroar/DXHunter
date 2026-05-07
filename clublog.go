@@ -317,3 +317,97 @@ func refreshClubLogWatchlist(watchlist *Watchlist, broadcast chan WSMessage) {
 		}
 	}
 }
+
+// ── Most Wanted cache ─────────────────────────────────────────────────────────
+
+// mostWantedCache holds adif_string → rank, refreshed daily.
+var (
+	mwMu        sync.RWMutex
+	mwRankMap   map[string]int // adif (string) → rank (1 = most wanted)
+	mwFetchedAt time.Time
+)
+
+const mwTTL = 24 * time.Hour
+const mwURL = "https://clublog.org/mostwanted.php?api=1"
+
+// GetMostWanted returns the cached adif→rank map, fetching if stale.
+func GetMostWanted() map[string]int {
+	mwMu.RLock()
+	if mwRankMap != nil && time.Since(mwFetchedAt) < mwTTL {
+		cp := make(map[string]int, len(mwRankMap))
+		for k, v := range mwRankMap {
+			cp[k] = v
+		}
+		mwMu.RUnlock()
+		return cp
+	}
+	mwMu.RUnlock()
+
+	mwMu.Lock()
+	defer mwMu.Unlock()
+	// Double-check after acquiring write lock
+	if mwRankMap != nil && time.Since(mwFetchedAt) < mwTTL {
+		cp := make(map[string]int, len(mwRankMap))
+		for k, v := range mwRankMap {
+			cp[k] = v
+		}
+		return cp
+	}
+
+	fresh, err := fetchMostWanted()
+	if err != nil {
+		Log.Warnf("ClubLog MostWanted fetch failed: %v", err)
+		if mwRankMap != nil {
+			cp := make(map[string]int, len(mwRankMap))
+			for k, v := range mwRankMap {
+				cp[k] = v
+			}
+			return cp // return stale data on error
+		}
+		return nil
+	}
+	mwRankMap = fresh
+	mwFetchedAt = time.Now()
+	cp := make(map[string]int, len(fresh))
+	for k, v := range fresh {
+		cp[k] = v
+	}
+	return cp
+}
+
+// fetchMostWanted calls the ClubLog API and returns adif→rank.
+func fetchMostWanted() (map[string]int, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, mwURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	// API returns { "1": "344", "2": "123", ... }  rank → adif
+	var raw map[string]string
+	if err := json.Unmarshal(body, &raw); err != nil {
+		return nil, fmt.Errorf("parse: %w", err)
+	}
+
+	out := make(map[string]int, len(raw))
+	for rankStr, adif := range raw {
+		var rank int
+		fmt.Sscanf(rankStr, "%d", &rank)
+		if rank > 0 && adif != "" {
+			out[adif] = rank
+		}
+	}
+	return out, nil
+}

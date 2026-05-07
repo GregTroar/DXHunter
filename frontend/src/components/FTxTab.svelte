@@ -223,6 +223,23 @@
   const AUTO_ATTEMPT_MAX          = 7;
   const AUTO_WATCHLIST_ATTEMPT_MAX = 15;
 
+  // Most Wanted: adif (string) → rank (1 = most wanted globally)
+  let mostWantedMap = {}; // populated on mount
+
+  function mwRank(adif) {
+    if (!adif || !mostWantedMap[adif]) return Infinity;
+    return mostWantedMap[adif];
+  }
+
+  onMount(async () => {
+    try {
+      const res = await fetch('/api/mostwanted');
+      if (res.ok) mostWantedMap = await res.json();
+    } catch (e) {
+      console.warn('Most Wanted fetch failed:', e);
+    }
+  });
+
   function isWatchlisted(call) {
     if (!call || !watchlist?.length) return false;
     const uc = call.toUpperCase();
@@ -295,6 +312,8 @@
       const aWL = wlUC.has((a.dxCall || '').toUpperCase()) ? 1 : 0;
       const bWL = wlUC.has((b.dxCall || '').toUpperCase()) ? 1 : 0;
       if (aWL !== bWL) return bWL - aWL;
+      const mwDiff = mwRank(a.dxcc) - mwRank(b.dxcc); // lower rank = more wanted
+      if (mwDiff !== 0) return mwDiff;
       const aCQ = a.isCQ ? 1 : 0;
       const bCQ = b.isCQ ? 1 : 0;
       if (aCQ !== bCQ) return bCQ - aCQ;
@@ -733,6 +752,9 @@
       {:else if autoCallTarget}
         <span class="font-mono text-emerald-300 font-semibold">{autoCallTarget.dxCall}</span>
         <span class="text-[10px] text-emerald-500/80 font-semibold">{acPriorityLabel(autoCallTarget)}</span>
+        {#if mwRank(autoCallTarget.dxcc) !== Infinity}
+          <span class="text-[10px] text-amber-400/80" title="ClubLog Most Wanted rank">#{mwRank(autoCallTarget.dxcc)}</span>
+        {/if}
         {#if autoCallAttempts > 0}
           <span class="text-[10px] text-orange-400">Call:{autoCallAttempts}/{isWatchlisted(autoCallTarget?.dxCall) ? AUTO_WATCHLIST_ATTEMPT_MAX : AUTO_ATTEMPT_MAX}</span>
         {/if}

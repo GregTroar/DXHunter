@@ -462,6 +462,7 @@ func (s *HTTPServer) setupRoutes() {
 	api.HandleFunc("/dxworld", s.HandleDXWorld).Methods("GET", "OPTIONS")
 	api.HandleFunc("/qrz", s.HandleQRZ).Methods("GET", "OPTIONS")
 	api.HandleFunc("/cty/update", s.updateCtyPlist).Methods("POST", "OPTIONS")
+	api.HandleFunc("/mostwanted", s.handleMostWanted).Methods("GET", "OPTIONS")
 
 	// WebSocket (seul point d'entrée pour les commandes Telnet maintenant)
 	api.HandleFunc("/ws", s.handleWebSocket).Methods("GET")
@@ -1531,6 +1532,15 @@ func (s *HTTPServer) shutdownApp(w http.ResponseWriter, r *http.Request) {
 // ============================================================================
 // API HANDLERS - External Data
 // ============================================================================
+
+func (s *HTTPServer) handleMostWanted(w http.ResponseWriter, r *http.Request) {
+	data := GetMostWanted()
+	if data == nil {
+		s.sendError(w, "most wanted data unavailable")
+		return
+	}
+	s.sendSuccess(w, data, "")
+}
 
 func (s *HTTPServer) HandleADXO(w http.ResponseWriter, r *http.Request) {
 	if adxoCache.NeedsRefresh() {
