@@ -238,21 +238,32 @@ func parseCtyEntryDict(decoder *xml.Decoder, prefix string) (*CtyEntry, error) {
 // ============================================================================
 
 // GetDXCC résout un callsign vers son pays/DXCC.
-// Logique :
-//  1. Correspondance exacte (ExactCallsign=true) — priorité absolue
-//  2. Préfixe le plus long qui correspond au début du callsign
+// Priorité :
+//  1. ClubLog exceptions (callsign exact, date-valid) — le plus précis
+//  2. cty.plist correspondance exacte
+//  3. ClubLog prefixes (préfixe le plus long, date-valid)
+//  4. cty.plist préfixe le plus long
 func GetDXCC(callsign string) DXCC {
 	if ctyDB == nil {
 		Log.Warn("ctyDB not initialized")
 		return DXCC{}
 	}
 
+	callsign = strings.ToUpper(strings.TrimSpace(callsign))
+
+	// 1. ClubLog exception (exact callsign, highest priority)
+	if e := LookupClubLogException(callsign); e != nil {
+		return DXCC{
+			Callsign:    callsign,
+			CountryName: e.Name,
+			DXCC:        fmt.Sprintf("%d", e.ADIF),
+		}
+	}
+
 	ctyDB.mu.RLock()
 	defer ctyDB.mu.RUnlock()
 
-	callsign = strings.ToUpper(strings.TrimSpace(callsign))
-
-	// 1. Correspondance exacte
+	// 2. cty.plist correspondance exacte
 	if entry, ok := ctyDB.entries[callsign]; ok && entry.ExactCallsign {
 		return DXCC{
 			Callsign:    callsign,
@@ -261,13 +272,22 @@ func GetDXCC(callsign string) DXCC {
 		}
 	}
 
-	// 2. Préfixe le plus long
+	// 3. ClubLog prefix (longest match)
+	if clb := LookupClubLogPrefix(callsign); clb != nil {
+		return DXCC{
+			Callsign:    callsign,
+			CountryName: clb.Name,
+			DXCC:        fmt.Sprintf("%d", clb.ADIF),
+		}
+	}
+
+	// 4. cty.plist préfixe le plus long
 	var best *CtyEntry
 	bestLen := 0
 
 	for prefix, entry := range ctyDB.entries {
 		if entry.ExactCallsign {
-			continue // déjà traité au-dessus
+			continue
 		}
 		if strings.HasPrefix(callsign, prefix) && len(prefix) > bestLen {
 			best = entry

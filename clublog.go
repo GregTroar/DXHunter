@@ -1,12 +1,17 @@
 package main
 
 import (
+	"bytes"
+	"compress/gzip"
 	"context"
 	"database/sql"
 	"encoding/json"
+	"encoding/xml"
 	"fmt"
 	"io"
 	"net/http"
+	"os"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -316,6 +321,218 @@ func refreshClubLogWatchlist(watchlist *Watchlist, broadcast chan WSMessage) {
 			Data: watchlist.GetAll(),
 		}
 	}
+}
+
+// ── CTY prefixes & exceptions (ClubLog) ───────────────────────────────────────
+
+type clbXMLRoot struct {
+	XMLName    xml.Name       `xml:"clublog"`
+	Prefixes   []clbXMLRecord `xml:"prefixes>prefix"`
+	Exceptions []clbXMLRecord `xml:"exceptions>exception"`
+}
+
+type clbXMLRecord struct {
+	Call   string  `xml:"call"`
+	Entity string  `xml:"entity"`
+	ADIF   int     `xml:"adif"`
+	CQZone int     `xml:"cqz"`
+	Cont   string  `xml:"cont"`
+	Lat    float64 `xml:"lat"`
+	Lon    float64 `xml:"long"`
+	Start  string  `xml:"start"`
+	End    string  `xml:"end"`
+}
+
+type ClubLogCTYEntry struct {
+	ADIF   int
+	Name   string
+	CQZone int
+	Cont   string
+	Lat    float64
+	Lon    float64
+	Start  time.Time
+	End    time.Time
+}
+
+type clbPrefixEntry struct {
+	Prefix string
+	Entry  ClubLogCTYEntry
+}
+
+type ClubLogCTYDB struct {
+	exceptions map[string]ClubLogCTYEntry
+	prefixes   []clbPrefixEntry // sorted longest first
+	mu         sync.RWMutex
+}
+
+var clCtyDB *ClubLogCTYDB
+
+func LookupClubLogException(callsign string) *ClubLogCTYEntry {
+	if clCtyDB == nil {
+		return nil
+	}
+	clCtyDB.mu.RLock()
+	defer clCtyDB.mu.RUnlock()
+	if e, ok := clCtyDB.exceptions[callsign]; ok && clbDateValid(e, time.Now().UTC()) {
+		cp := e
+		return &cp
+	}
+	return nil
+}
+
+func LookupClubLogPrefix(callsign string) *ClubLogCTYEntry {
+	if clCtyDB == nil {
+		return nil
+	}
+	clCtyDB.mu.RLock()
+	defer clCtyDB.mu.RUnlock()
+	now := time.Now().UTC()
+	for _, pe := range clCtyDB.prefixes {
+		if strings.HasPrefix(callsign, pe.Prefix) && clbDateValid(pe.Entry, now) {
+			cp := pe.Entry
+			return &cp
+		}
+	}
+	return nil
+}
+
+func clbDateValid(e ClubLogCTYEntry, now time.Time) bool {
+	if !e.Start.IsZero() && now.Before(e.Start) {
+		return false
+	}
+	if !e.End.IsZero() && now.After(e.End) {
+		return false
+	}
+	return true
+}
+
+func parseClubLogCTY(data []byte) (*ClubLogCTYDB, error) {
+	var root clbXMLRoot
+	if err := xml.Unmarshal(data, &root); err != nil {
+		return nil, fmt.Errorf("clublog cty xml parse: %w", err)
+	}
+	db := &ClubLogCTYDB{
+		exceptions: make(map[string]ClubLogCTYEntry, len(root.Exceptions)),
+	}
+	for _, r := range root.Exceptions {
+		call := strings.ToUpper(strings.TrimSpace(r.Call))
+		if call != "" {
+			db.exceptions[call] = clbRecordToEntry(r)
+		}
+	}
+	db.prefixes = make([]clbPrefixEntry, 0, len(root.Prefixes))
+	for _, r := range root.Prefixes {
+		pfx := strings.ToUpper(strings.TrimSpace(r.Call))
+		if pfx != "" {
+			db.prefixes = append(db.prefixes, clbPrefixEntry{Prefix: pfx, Entry: clbRecordToEntry(r)})
+		}
+	}
+	sort.Slice(db.prefixes, func(i, j int) bool {
+		return len(db.prefixes[i].Prefix) > len(db.prefixes[j].Prefix)
+	})
+	return db, nil
+}
+
+func clbRecordToEntry(r clbXMLRecord) ClubLogCTYEntry {
+	const layout = "2006-01-02T15:04:05"
+	e := ClubLogCTYEntry{ADIF: r.ADIF, Name: r.Entity, CQZone: r.CQZone, Cont: r.Cont, Lat: r.Lat, Lon: r.Lon}
+	if r.Start != "" {
+		if t, err := time.Parse(layout, r.Start); err == nil {
+			e.Start = t
+		}
+	}
+	if r.End != "" {
+		if t, err := time.Parse(layout, r.End); err == nil {
+			e.End = t
+		}
+	}
+	return e
+}
+
+const clbCTYPath      = "clublog_cty.xml"
+const clbCTYURL       = "https://cdn.clublog.org/cty.php?api=%s"
+const clbLastChangeURL = "https://clublog.org/cty_last_change.php"
+
+func FetchClubLogCTY(apiKey string) error {
+	if apiKey == "" {
+		return fmt.Errorf("no ClubLog API key configured")
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf(clbCTYURL, apiKey), nil)
+	if err != nil {
+		return err
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("clublog cty: HTTP %d", resp.StatusCode)
+	}
+	body, err := readMaybeGzip(resp)
+	if err != nil {
+		return fmt.Errorf("clublog cty read: %w", err)
+	}
+	db, err := parseClubLogCTY(body)
+	if err != nil {
+		return err
+	}
+	path := resolveSiblingPath(clbCTYPath)
+	if err := os.WriteFile(path, body, 0644); err != nil {
+		Log.Warnf("ClubLog CTY: could not save to disk: %v", err)
+	}
+	clCtyDB = db
+	Log.Infof("ClubLog CTY loaded: %d exceptions, %d prefixes", len(db.exceptions), len(db.prefixes))
+	return nil
+}
+
+func LoadClubLogCTYFromDisk() error {
+	path := resolveSiblingPath(clbCTYPath)
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return err
+	}
+	db, err := parseClubLogCTY(data)
+	if err != nil {
+		return fmt.Errorf("clublog cty parse from disk: %w", err)
+	}
+	clCtyDB = db
+	Log.Infof("ClubLog CTY loaded from disk: %d exceptions, %d prefixes", len(db.exceptions), len(db.prefixes))
+	return nil
+}
+
+func ClubLogCTYLastChange() (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, clbLastChangeURL, nil)
+	if err != nil {
+		return "", err
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	b, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(string(b)), nil
+}
+
+func readMaybeGzip(resp *http.Response) ([]byte, error) {
+	raw, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	gr, err := gzip.NewReader(bytes.NewReader(raw))
+	if err != nil {
+		return raw, nil
+	}
+	defer gr.Close()
+	return io.ReadAll(gr)
 }
 
 // ── Most Wanted cache ─────────────────────────────────────────────────────────

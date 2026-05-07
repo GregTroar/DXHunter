@@ -236,6 +236,40 @@ func main() {
 		log.Infof("ClubLog API key configured")
 	}
 
+	// Load ClubLog CTY (more accurate exceptions/prefixes, overrides cty.plist)
+	if err := LoadClubLogCTYFromDisk(); err != nil {
+		// Not present on disk yet — fetch in background if API key available
+		if Cfg.ClubLog.APIKey != "" {
+			go func() {
+				if err := FetchClubLogCTY(Cfg.ClubLog.APIKey); err != nil {
+					log.Warnf("ClubLog CTY initial fetch failed: %v", err)
+				}
+			}()
+		}
+	} else if Cfg.ClubLog.APIKey != "" {
+		// File present — check for updates in background
+		go func() {
+			remote, err := ClubLogCTYLastChange()
+			if err != nil {
+				return
+			}
+			path := resolveSiblingPath(clbCTYPath)
+			fi, err := os.Stat(path)
+			if err != nil {
+				return
+			}
+			// Parse remote timestamp and compare with file mtime
+			if t, err := time.Parse("2006-01-02 15:04:05", remote); err == nil {
+				if t.After(fi.ModTime()) {
+					log.Infof("ClubLog CTY update available, downloading…")
+					if err := FetchClubLogCTY(Cfg.ClubLog.APIKey); err != nil {
+						log.Warnf("ClubLog CTY update failed: %v", err)
+					}
+				}
+			}
+		}()
+	}
+
 	// Start ADXO activations refresher
 	StartADXORefresher(ctx, HTTPServer.broadcast, HTTPServer.Watchlist)
 

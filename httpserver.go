@@ -462,6 +462,7 @@ func (s *HTTPServer) setupRoutes() {
 	api.HandleFunc("/dxworld", s.HandleDXWorld).Methods("GET", "OPTIONS")
 	api.HandleFunc("/qrz", s.HandleQRZ).Methods("GET", "OPTIONS")
 	api.HandleFunc("/cty/update", s.updateCtyPlist).Methods("POST", "OPTIONS")
+	api.HandleFunc("/cty/update-clublog", s.updateClubLogCTY).Methods("POST", "OPTIONS")
 	api.HandleFunc("/mostwanted", s.handleMostWanted).Methods("GET", "OPTIONS")
 
 	// WebSocket (seul point d'entrée pour les commandes Telnet maintenant)
@@ -1532,6 +1533,26 @@ func (s *HTTPServer) shutdownApp(w http.ResponseWriter, r *http.Request) {
 // ============================================================================
 // API HANDLERS - External Data
 // ============================================================================
+
+func (s *HTTPServer) updateClubLogCTY(w http.ResponseWriter, r *http.Request) {
+	apiKey := Cfg.ClubLog.APIKey
+	if apiKey == "" {
+		s.sendError(w, "no ClubLog API key configured")
+		return
+	}
+	if err := FetchClubLogCTY(apiKey); err != nil {
+		s.sendError(w, err.Error())
+		return
+	}
+	exc, pfx := 0, 0
+	if clCtyDB != nil {
+		clCtyDB.mu.RLock()
+		exc = len(clCtyDB.exceptions)
+		pfx = len(clCtyDB.prefixes)
+		clCtyDB.mu.RUnlock()
+	}
+	s.sendSuccess(w, map[string]any{"exceptions": exc, "prefixes": pfx}, "ClubLog CTY updated")
+}
 
 func (s *HTTPServer) handleMostWanted(w http.ResponseWriter, r *http.Request) {
 	data := GetMostWanted()
