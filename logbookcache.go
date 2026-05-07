@@ -27,11 +27,11 @@ var globalLogbookCache *LogbookCache
 
 func NewLogbookCache(repo LogbookProvider) *LogbookCache {
 	c := &LogbookCache{}
-	c.rebuild(repo)
+	c.Rebuild(repo)
 	return c
 }
 
-func (c *LogbookCache) rebuild(repo LogbookProvider) {
+func (c *LogbookCache) Rebuild(repo LogbookProvider) {
 	contacts := repo.ListAll()
 
 	dxcc := make(map[string]bool, 512)
@@ -47,16 +47,18 @@ func (c *LogbookCache) rebuild(repo LogbookProvider) {
 	for _, ct := range contacts {
 		mode := cacheNormalizeMode(ct.Mode)
 		band := strings.ToUpper(ct.Band)
-		dxcc[ct.DXCC] = true
-		dxccMode[ct.DXCC+"|"+mode] = true
-		dxccBand[ct.DXCC+"|"+band] = true
-		dxccBandMode[ct.DXCC+"|"+band+"|"+mode] = true
-		callBandMode[ct.Callsign+"|"+band+"|"+mode] = true
-		if ct.LoTWConfirmed {
-			confDXCC[ct.DXCC] = true
-			confDXCCMode[ct.DXCC+"|"+mode] = true
-			confDXCCBand[ct.DXCC+"|"+band] = true
-			confDXCCBandMode[ct.DXCC+"|"+band+"|"+mode] = true
+
+		// Index using Log4OM's stored DXCC code.
+		indexContact(ct.DXCC, band, mode, ct.Callsign, ct.LoTWConfirmed,
+			dxcc, dxccMode, dxccBand, dxccBandMode, callBandMode,
+			confDXCC, confDXCCMode, confDXCCBand, confDXCCBandMode)
+
+		// Also index using the cty.plist DXCC code so lookups succeed even when
+		// Log4OM stores a different numeric code (e.g. 0 for newer entities like Kosovo).
+		if ctyInfo := GetDXCC(ct.Callsign); ctyInfo.DXCC != "" && ctyInfo.DXCC != ct.DXCC {
+			indexContact(ctyInfo.DXCC, band, mode, ct.Callsign, ct.LoTWConfirmed,
+				dxcc, dxccMode, dxccBand, dxccBandMode, callBandMode,
+				confDXCC, confDXCCMode, confDXCCBand, confDXCCBandMode)
 		}
 	}
 
@@ -75,6 +77,24 @@ func (c *LogbookCache) rebuild(repo LogbookProvider) {
 	Log.Infof("LogbookCache: refreshed with %d contacts", len(contacts))
 }
 
+func indexContact(
+	dxccKey, band, mode, callsign string, confirmed bool,
+	dxcc, dxccMode, dxccBand, dxccBandMode, callBandMode map[string]bool,
+	confDXCC, confDXCCMode, confDXCCBand, confDXCCBandMode map[string]bool,
+) {
+	dxcc[dxccKey] = true
+	dxccMode[dxccKey+"|"+mode] = true
+	dxccBand[dxccKey+"|"+band] = true
+	dxccBandMode[dxccKey+"|"+band+"|"+mode] = true
+	callBandMode[callsign+"|"+band+"|"+mode] = true
+	if confirmed {
+		confDXCC[dxccKey] = true
+		confDXCCMode[dxccKey+"|"+mode] = true
+		confDXCCBand[dxccKey+"|"+band] = true
+		confDXCCBandMode[dxccKey+"|"+band+"|"+mode] = true
+	}
+}
+
 // StartAutoRefresh rebuilds the cache on the given interval in a background goroutine.
 func (c *LogbookCache) StartAutoRefresh(ctx context.Context, repo LogbookProvider, interval time.Duration) {
 	go func() {
@@ -83,7 +103,7 @@ func (c *LogbookCache) StartAutoRefresh(ctx context.Context, repo LogbookProvide
 		for {
 			select {
 			case <-ticker.C:
-				c.rebuild(repo)
+				c.Rebuild(repo)
 			case <-ctx.Done():
 				return
 			}

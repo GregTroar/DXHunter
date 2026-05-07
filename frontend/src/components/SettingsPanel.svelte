@@ -200,7 +200,12 @@
               <!-- Chase unconfirmed -->
               <div class="border-t border-slate-700/40 pt-3 space-y-2">
                 <label class="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" bind:checked={cfg.general.workUnconfirmed} class="accent-amber-500" />
+                  <input type="checkbox" bind:checked={cfg.general.workUnconfirmed} class="accent-amber-500"
+                    on:change={(e) => {
+                      if (e.target.checked && (!cfg.general.confirmationSources || cfg.general.confirmationSources.length === 0)) {
+                        cfg.general.confirmationSources = ['LOTW'];
+                      }
+                    }} />
                   <span class="text-slate-300 font-semibold">Chase unconfirmed slots</span>
                 </label>
                 <p class="text-slate-500 text-xs">When enabled, worked-but-unconfirmed entities show as new (with "(U)" badge). Requires restart to reprocess existing spots.</p>

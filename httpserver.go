@@ -1653,6 +1653,8 @@ func (s *HTTPServer) saveConfigAPI(w http.ResponseWriter, r *http.Request) {
 	oldSQLitePath := Cfg.SQLite.SQLitePath
 	oldLogbookType := Cfg.Database.LogbookType
 	oldContestMode := Cfg.General.ContestMode
+	oldWorkUnconfirmed := Cfg.General.WorkUnconfirmed
+	oldConfirmationSources := append([]string{}, Cfg.General.ConfirmationSources...)
 	oldClusters := make([]ClusterConfig, len(Cfg.Clusters))
 	copy(oldClusters, Cfg.Clusters)
 
@@ -1753,6 +1755,9 @@ func (s *HTTPServer) saveConfigAPI(w http.ResponseWriter, r *http.Request) {
 
 	if oldSQLitePath != Cfg.SQLite.SQLitePath || oldLogbookType != Cfg.Database.LogbookType {
 		go s.ReloadLogbook()
+	} else if (oldWorkUnconfirmed != Cfg.General.WorkUnconfirmed || !stringSliceEqual(oldConfirmationSources, Cfg.General.ConfirmationSources)) &&
+		globalLogbookCache != nil && s.ContactRepo != nil {
+		go globalLogbookCache.Rebuild(s.ContactRepo)
 	}
 
 	if oldContestMode != Cfg.General.ContestMode && s.Watchlist != nil {
