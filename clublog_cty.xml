@@ -1,4 +1,4 @@
-<clublog date='2026-05-07T08:30:07+00:00' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:noNamespaceSchemaLocation='https://cdn.clublog.org/cty.xsd'>
+<clublog date='2026-05-07T20:30:08+00:00' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:noNamespaceSchemaLocation='https://cdn.clublog.org/cty.xsd'>
 <entities>
 	<entity>
 		<adif>1</adif>
@@ -44350,8 +44350,8 @@
 		<adif>15</adif>
 		<cqz>17</cqz>
 		<cont>AS</cont>
-		<long>41.04</long>
-		<lat>53.52</lat>
+		<long>59.04</long>
+		<lat>53.44</lat>
 		<start>2026-05-01T00:00:00+00:00</start>
 		<end>2026-05-09T23:59:59+00:00</end>
 	</exception>
@@ -320156,16 +320156,16 @@
 		<call>S2/HA5BUS</call>
 		<entity>INVALID</entity>
 		<adif>0</adif>
-		<long>91.29</long>
-		<lat>23.77</lat>
+		<long>89.04</long>
+		<lat>24.52</lat>
 		<end>1992-03-31T23:59:59+00:00</end>
 	</exception>
 	<exception record='22240'>
 		<call>S2/HA5BUS</call>
 		<entity>INVALID</entity>
 		<adif>0</adif>
-		<long>91.29</long>
-		<lat>23.77</lat>
+		<long>89.04</long>
+		<lat>24.52</lat>
 		<start>1992-04-23T00:00:00+00:00</start>
 	</exception>
 	<exception record='22260'>
@@ -321842,7 +321842,7 @@
 		<entity>INVALID</entity>
 		<adif>0</adif>
 		<long>44.38</long>
-		<lat>32.35</lat>
+		<lat>33.27</lat>
 		<start>2015-04-05T00:00:00+00:00</start>
 		<end>2015-04-19T23:59:59+00:00</end>
 	</exception>
