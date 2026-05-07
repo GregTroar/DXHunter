@@ -264,8 +264,8 @@
   }
 
   // Best candidate:
-  //   Normal mode : new DXCC/band/mode/slot → watchlist first → highest SNR
-  //   Contest mode: any contest-watchlist station not yet worked this session → highest SNR
+  //   Normal mode : new DXCC/band/mode/slot → watchlist first → CQ first → highest SNR
+  //   Contest mode: any contest-watchlist station not yet worked this session → CQ first → highest SNR
   function acBestCandidate(decodes) {
     const wlUC = new Set(watchlist.map(w => w.callsign?.toUpperCase()).filter(Boolean));
 
@@ -275,7 +275,12 @@
         return contestWatchlistUC.has(uc) && !recentlyWorked.has(uc) && !d.workedToday;
       });
       if (!eligible.length) return null;
-      eligible.sort((a, b) => b.snr - a.snr);
+      eligible.sort((a, b) => {
+        const aCQ = a.isCQ ? 1 : 0;
+        const bCQ = b.isCQ ? 1 : 0;
+        if (aCQ !== bCQ) return bCQ - aCQ;
+        return b.snr - a.snr;
+      });
       return eligible[0];
     }
 
@@ -290,6 +295,9 @@
       const aWL = wlUC.has((a.dxCall || '').toUpperCase()) ? 1 : 0;
       const bWL = wlUC.has((b.dxCall || '').toUpperCase()) ? 1 : 0;
       if (aWL !== bWL) return bWL - aWL;
+      const aCQ = a.isCQ ? 1 : 0;
+      const bCQ = b.isCQ ? 1 : 0;
+      if (aCQ !== bCQ) return bCQ - aCQ;
       return b.snr - a.snr;
     });
     return eligible[0];
