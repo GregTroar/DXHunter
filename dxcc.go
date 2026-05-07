@@ -239,10 +239,10 @@ func parseCtyEntryDict(decoder *xml.Decoder, prefix string) (*CtyEntry, error) {
 
 // GetDXCC résout un callsign vers son pays/DXCC.
 // Priorité :
-//  1. ClubLog exceptions (callsign exact, date-valid) — le plus précis
+//  1. ClubLog exceptions (callsign exact, date-valid) — overrides pour calls rares/spéciaux
 //  2. cty.plist correspondance exacte
-//  3. ClubLog prefixes (préfixe le plus long, date-valid)
-//  4. cty.plist préfixe le plus long
+//  3. cty.plist préfixe le plus long — base stable, source principale pour les préfixes courants
+//  4. ClubLog préfixe (fallback pour les préfixes absents de cty.plist)
 func GetDXCC(callsign string) DXCC {
 	if ctyDB == nil {
 		Log.Warn("ctyDB not initialized")
@@ -251,11 +251,11 @@ func GetDXCC(callsign string) DXCC {
 
 	callsign = strings.ToUpper(strings.TrimSpace(callsign))
 
-	// 1. ClubLog exception (exact callsign, highest priority)
+	// 1. ClubLog exception (callsign exact — ex: VK9NL, ZD9W, expéditions rares)
 	if e := LookupClubLogException(callsign); e != nil {
 		return DXCC{
 			Callsign:    callsign,
-			CountryName: e.Name,
+			CountryName: titleCase(e.Name),
 			DXCC:        fmt.Sprintf("%d", e.ADIF),
 		}
 	}
@@ -272,19 +272,9 @@ func GetDXCC(callsign string) DXCC {
 		}
 	}
 
-	// 3. ClubLog prefix (longest match)
-	if clb := LookupClubLogPrefix(callsign); clb != nil {
-		return DXCC{
-			Callsign:    callsign,
-			CountryName: clb.Name,
-			DXCC:        fmt.Sprintf("%d", clb.ADIF),
-		}
-	}
-
-	// 4. cty.plist préfixe le plus long
+	// 3. cty.plist préfixe le plus long (source principale — cohérente avec le log)
 	var best *CtyEntry
 	bestLen := 0
-
 	for prefix, entry := range ctyDB.entries {
 		if entry.ExactCallsign {
 			continue
@@ -294,7 +284,6 @@ func GetDXCC(callsign string) DXCC {
 			bestLen = len(prefix)
 		}
 	}
-
 	if best != nil {
 		best = applyDXCCExceptions(callsign, best, bestLen)
 		return DXCC{
@@ -304,8 +293,31 @@ func GetDXCC(callsign string) DXCC {
 		}
 	}
 
+	// 4. ClubLog préfixe (fallback pour appels non couverts par cty.plist)
+	if clb := LookupClubLogPrefix(callsign); clb != nil {
+		return DXCC{
+			Callsign:    callsign,
+			CountryName: titleCase(clb.Name),
+			DXCC:        fmt.Sprintf("%d", clb.ADIF),
+		}
+	}
+
 	Log.Warnf("Could not find DXCC for callsign: %s", callsign)
 	return DXCC{}
+}
+
+// titleCase converts "FEDERAL REPUBLIC OF GERMANY" → "Federal Republic Of Germany".
+func titleCase(s string) string {
+	if s == "" {
+		return s
+	}
+	words := strings.Fields(s)
+	for i, w := range words {
+		if len(w) > 0 {
+			words[i] = strings.ToUpper(w[:1]) + strings.ToLower(w[1:])
+		}
+	}
+	return strings.Join(words, " ")
 }
 
 // applyDXCCExceptions corrects prefix matches for callsigns that require
