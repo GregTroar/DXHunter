@@ -770,6 +770,10 @@ func (f *FTxService) checkLogStatus(callsign, dxcc, band, mode string) (newDXCC,
 			(newBand && hasBand) ||
 			(newMode && hasMode) ||
 			(newSlot && hasBandMode)
+		// QSO already done — suppress "new unconfirmed" so it shows Wkd instead.
+		if hasCall {
+			newDXCC, newBand, newMode, newSlot, unconfirmed = false, false, false, false, false
+		}
 	} else {
 		newDXCC = !hasCountry
 		newBand = !hasBand
