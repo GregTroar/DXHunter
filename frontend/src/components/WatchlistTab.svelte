@@ -717,15 +717,15 @@ function getDisplayList(wl, wlSpots, activeOnly, onlyNotWorked, modeFilter) {
                     <span class="text-slate-400 font-mono truncate">{formatFreq(spot.frequencyMhz)}</span>
                     <!-- Badge statut DXCC (par rapport au pays dans le log) -->
                     {#if spot.newDXCC}
-                      <span class="px-1.5 py-0.5 bg-green-500/20 text-green-400 border border-green-500/30 rounded text-xs font-semibold flex-shrink-0">🌍 New DXCC</span>
+                      <span class="px-1.5 py-0.5 bg-green-500/20 text-green-400 border border-green-500/30 rounded text-xs font-semibold flex-shrink-0">🌍 New DXCC{spot.unconfirmed ? ' (U)' : ''}</span>
                     {:else if spot.newBand && spot.newMode}
-                      <span class="px-1.5 py-0.5 bg-purple-500/20 text-purple-400 border border-purple-500/30 rounded text-xs font-semibold flex-shrink-0">New B&M</span>
+                      <span class="px-1.5 py-0.5 bg-purple-500/20 text-purple-400 border border-purple-500/30 rounded text-xs font-semibold flex-shrink-0">New B&M{spot.unconfirmed ? ' (U)' : ''}</span>
                     {:else if spot.newBand}
-                      <span class="px-1.5 py-0.5 bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 rounded text-xs font-semibold flex-shrink-0">New Band</span>
+                      <span class="px-1.5 py-0.5 bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 rounded text-xs font-semibold flex-shrink-0">New Band{spot.unconfirmed ? ' (U)' : ''}</span>
                     {:else if spot.newMode}
-                      <span class="px-1.5 py-0.5 bg-orange-500/20 text-orange-400 border border-orange-500/30 rounded text-xs font-semibold flex-shrink-0">New Mode</span>
+                      <span class="px-1.5 py-0.5 bg-orange-500/20 text-orange-400 border border-orange-500/30 rounded text-xs font-semibold flex-shrink-0">New Mode{spot.unconfirmed ? ' (U)' : ''}</span>
                     {:else if spot.newSlot}
-                      <span class="px-1.5 py-0.5 bg-sky-500/20 text-sky-400 border border-sky-500/30 rounded text-xs font-semibold flex-shrink-0">New Slot</span>
+                      <span class="px-1.5 py-0.5 bg-sky-500/20 text-sky-400 border border-sky-500/30 rounded text-xs font-semibold flex-shrink-0">New Slot{spot.unconfirmed ? ' (U)' : ''}</span>
                     {/if}
                   </div>
                   <div class="flex items-center gap-2 flex-shrink-0 ml-2">

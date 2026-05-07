@@ -255,6 +255,7 @@ type WatchlistSpot struct {
 	NewSlot         bool   `json:"newSlot"`
 	Worked          bool   `json:"worked"`
 	WorkedBandMode  bool   `json:"workedBandMode"`
+	Unconfirmed     bool   `json:"unconfirmed"`
 }
 
 type RemoteControlRequest struct {
@@ -1317,6 +1318,7 @@ func (s *HTTPServer) getWatchlistSpotsWithStatus(w http.ResponseWriter, r *http.
 				NewSlot:         spot.NewSlot,
 				Worked:          spot.Worked,
 				WorkedBandMode:  workedMap[spot.DX],
+				Unconfirmed:     spot.Unconfirmed,
 			})
 		}
 	}
