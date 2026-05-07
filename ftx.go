@@ -526,6 +526,14 @@ func (f *FTxService) handleDecode(r *bytes.Reader, src *net.UDPAddr) {
 	var lowConf bool
 	binary.Read(r, binary.BigEndian, &lowConf)
 
+	// OffAir = true means this is an echo of our own TX (WSJT-X standard).
+	// Drop it — we don't want our own transmissions appearing as decoded spots.
+	var offAir bool
+	binary.Read(r, binary.BigEndian, &offAir)
+	if offAir {
+		return
+	}
+
 	// Format time from ms since midnight
 	totalSec := timeMs / 1000
 	hh := totalSec / 3600

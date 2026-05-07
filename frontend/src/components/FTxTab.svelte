@@ -356,7 +356,10 @@
     if (g.time !== _acLastPeriod) {
       _acLastPeriod = g.time;
       _acNeedRerun  = false;
-      _handleAutoCallPeriod(g.time);
+      // Skip periods consisting entirely of TX echoes (MSHV uses mode="TX" instead of OffAir flag)
+      if (!g.decodes.every(d => d.mode === 'TX')) {
+        _handleAutoCallPeriod(g.time);
+      }
     } else if (_acNeedRerun) {
       const hasPositive = contestMode
         ? g.decodes.some(d => typeof d.newDXCC !== 'undefined') // any enriched decode

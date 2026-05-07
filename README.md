@@ -93,7 +93,8 @@ After completing the wizard, the application starts all services automatically a
 - **LoTW indicator** on each decode
 - Watchlist highlight: watched callsigns highlighted directly in the decode list
 - Filters: CQ only, My Call only
-- **Autocall**: click a decode to send a Reply command back to WSJT-X/MSHV — or let the engine pick the best candidate automatically (prioritises New DXCC > Band > Mode > Slot, then [ClubLog Most Wanted](https://clublog.org/mostwanted.php) rank, then SNR)
+- **Autocall**: click a decode to send a Reply command back to WSJT-X/MSHV — or let the engine pick the best candidate automatically (prioritises New DXCC > Band > Mode > Slot, then **ClubLog Most Wanted** rank, then SNR)
+- **ClubLog Most Wanted** ranking is personalised to your QTH: the list is fetched using your configured callsign so rankings reflect what stations *you* need most, not a global average. A station with a higher Most Wanted rank wins the tiebreaker in autocall and its rank is shown as a badge (`MW #N`) in the autocall status bar
 - **Halt TX**: cancel auto-sequence from the dashboard
 - Countdown timer to next TX/RX period (15s FT8 / 7.5s FT4 / 3.25s FT2)
 - Pause / Resume / Clear
@@ -114,6 +115,8 @@ After completing the wizard, the application starts all services automatically a
 ### QRZ Callsign Lookup
 - Look up any callsign directly from the dashboard
 - Displays name, QTH, DXCC country, grid locator, license class and bio
+- Distance and azimuth calculated from your grid locator to the station's grid
+- **ClubLog Most Wanted rank** displayed for the looked-up station (personalised to your QTH)
 - Requires a QRZ XML subscription (API key configured in Settings)
 
 ### Greyline
