@@ -464,6 +464,7 @@ func (s *HTTPServer) setupRoutes() {
 	api.HandleFunc("/cty/update", s.updateCtyPlist).Methods("POST", "OPTIONS")
 	api.HandleFunc("/cty/update-clublog", s.updateClubLogCTY).Methods("POST", "OPTIONS")
 	api.HandleFunc("/mostwanted", s.handleMostWanted).Methods("GET", "OPTIONS")
+	api.HandleFunc("/flex/clear-spots", s.handleFlexClearSpots).Methods("POST", "OPTIONS")
 
 	// WebSocket (seul point d'entrée pour les commandes Telnet maintenant)
 	api.HandleFunc("/ws", s.handleWebSocket).Methods("GET")
@@ -1521,13 +1522,22 @@ func (s *HTTPServer) tuneFlexRadio(frequency, mode string) {
 
 func (s *HTTPServer) shutdownApp(w http.ResponseWriter, r *http.Request) {
 	s.Log.Info("Shutdown request received from dashboard")
-	s.sendSuccess(w, map[string]string{"message": "Shutting down FlexDXCluster"}, "")
+	s.sendSuccess(w, map[string]string{"message": "Shutting down DXHunter"}, "")
 
 	go func() {
 		time.Sleep(500 * time.Millisecond)
 		GracefulShutdown(s.TCPClients, s.TCPServer, s.FlexClient, s.FlexRepo, s.ContactRepo)
 		os.Exit(0)
 	}()
+}
+
+func (s *HTTPServer) handleFlexClearSpots(w http.ResponseWriter, r *http.Request) {
+	if !s.isFlexConnected() {
+		s.sendError(w, "FlexRadio not connected")
+		return
+	}
+	s.FlexClient.ClearAllSpots()
+	s.sendSuccess(w, map[string]string{"message": "Panadapter spots cleared"}, "")
 }
 
 // ============================================================================
@@ -1762,7 +1772,7 @@ func (s *HTTPServer) testQRZConfig(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	url := fmt.Sprintf("https://xmldata.qrz.com/xml/current/?username=%s&password=%s&agent=FlexDXClusterGui",
+	url := fmt.Sprintf("https://xmldata.qrz.com/xml/current/?username=%s&password=%s&agent=DXHunterGui",
 		req.Username, req.Password)
 
 	client := &http.Client{Timeout: 10 * time.Second}

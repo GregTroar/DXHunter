@@ -212,7 +212,7 @@ func (fc *FlexClient) StartFlexClient() {
 			// Message moins alarmiste
 			if fc.reconnectAttempts == 1 {
 				Log.Warnf("FlexRadio not available: %v", err)
-				Log.Info("FlexDXCluster will continue without FlexRadio and retry connection periodically")
+				Log.Info("DXHunter will continue without FlexRadio and retry connection periodically")
 			} else {
 				Log.Infof("FlexRadio still not available. Next retry in %v", fc.reconnectDelay)
 			}
@@ -275,6 +275,18 @@ func (fc *FlexClient) SendSpot(stringSpot string) {
 	if fc.IsConnected {
 		fc.Write(stringSpot)
 	}
+}
+
+// ClearAllSpots removes all spots from the FlexRadio panadapter and the local database.
+func (fc *FlexClient) ClearAllSpots() {
+	if !fc.IsConnected {
+		return
+	}
+	cmd := fmt.Sprintf("C%v|spot clear", CommandNumber)
+	fc.Write(cmd)
+	CommandNumber++
+	fc.Repo.DeleteAllSpots()
+	Log.Info("Cleared all spots from FlexRadio panadapter")
 }
 
 func (fc *FlexClient) ReadLine() {

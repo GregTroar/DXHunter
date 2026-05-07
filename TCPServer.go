@@ -85,7 +85,7 @@ func (s *TCPServer) StartServer() {
 func (s *TCPServer) handleConnection() {
 	conn := s.Conn
 
-	conn.Write([]byte("Welcome to the FlexDXCluster telnet server! Type 'bye' to exit.\n"))
+	conn.Write([]byte("Welcome to the DXHunter telnet server! Type 'bye' to exit.\n"))
 
 	reader := bufio.NewReader(conn)
 

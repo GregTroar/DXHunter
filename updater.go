@@ -113,7 +113,7 @@ func downloadCtyZip() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("User-Agent", "FlexDXCluster/1.0")
+	req.Header.Set("User-Agent", "DXHunter/1.0")
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -139,7 +139,7 @@ func downloadCtyZip() ([]byte, error) {
 // findLatestCtyArticleURL scrape la home page et retourne l'URL du dernier article CTY
 func findLatestCtyArticleURL(client *http.Client) (string, error) {
 	req, _ := http.NewRequest("GET", "https://www.country-files.com/", nil)
-	req.Header.Set("User-Agent", "FlexDXCluster/1.0")
+	req.Header.Set("User-Agent", "DXHunter/1.0")
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -166,7 +166,7 @@ func findLatestCtyArticleURL(client *http.Client) (string, error) {
 // findCtyDownloadURL scrape un article et retourne le lien XML (cty.plist)
 func findCtyDownloadURL(client *http.Client, articleURL string) (string, error) {
 	req, _ := http.NewRequest("GET", articleURL, nil)
-	req.Header.Set("User-Agent", "FlexDXCluster/1.0")
+	req.Header.Set("User-Agent", "DXHunter/1.0")
 
 	resp, err := client.Do(req)
 	if err != nil {

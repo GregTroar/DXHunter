@@ -7,6 +7,14 @@
 
   const dispatch = createEventDispatcher();
 
+  async function clearFlexSpots() {
+    try {
+      await fetch('/api/flex/clear-spots', { method: 'POST' });
+    } catch (e) {
+      console.error('Clear flex spots failed:', e);
+    }
+  }
+
   function getSFIColor(sfi) {
     const value = parseInt(sfi);
     if (isNaN(value)) return 'text-slate-500';
@@ -104,6 +112,17 @@
       <span class="w-1.5 h-1.5 {stats.flexStatus === 'connected' ? 'bg-green-500 animate-pulse' : 'bg-red-500'} rounded-full"></span>
       Flex
     </span>
+    {#if stats.flexStatus === 'connected'}
+      <button
+        on:click={clearFlexSpots}
+        class="px-2 py-1 text-xs bg-slate-700 hover:bg-amber-600/30 border border-slate-600 hover:border-amber-500/50 text-slate-400 hover:text-amber-300 rounded transition-colors flex items-center gap-1"
+        title="Clear all FlexRadio panadapter spots">
+        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+        </svg>
+        <span class="hidden lg:inline">Clear Pan</span>
+      </button>
+    {/if}
 
     <button
       on:click={() => dispatch('settings')}

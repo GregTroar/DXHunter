@@ -175,7 +175,7 @@ func main() {
 	// Initialize HTTP Server for Dashboard
 	HTTPServer := NewHTTPServer(fRepo, cRepo, TCPServer, TCPClients, FlexClient, "8080", cfgPath, consoleChan, SpotChanToHTTPServer)
 	InitLogHook()
-	log.Infof("Running FlexDXCluster version %s", version)
+	log.Infof("Running DXHunter version %s", version)
 	if cRepo != nil {
 		if Cfg.Database.LogbookType == "hrd" {
 			log.Infof("Logbook: Ham Radio Deluxe — %d contacts", cRepo.CountEntries())

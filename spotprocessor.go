@@ -86,7 +86,7 @@ func (sp *SpotProcessor) processSpot(spot TelnetSpot) {
 		FrequencyHz:     spot.Frequency,
 		Band:            spot.Band,
 		Mode:            spot.Mode,
-		Source:          "FlexDXCluster",
+		Source:          "DXHunter",
 		SpotterCallsign: spot.Spotter,
 		TimeStamp:       time.Now().Unix(),
 		UTCTime:         spot.Time,

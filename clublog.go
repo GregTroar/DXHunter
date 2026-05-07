@@ -179,7 +179,7 @@ func (c *ClubLogClient) WatchCallsign(callsign string) (*ClubLogWatchData, error
 	if err != nil {
 		return nil, fmt.Errorf("clublog request %s: %w", callsign, err)
 	}
-	req.Header.Set("User-Agent", "FlexDXCluster/2.1 (amateur radio dx cluster)")
+	req.Header.Set("User-Agent", "DXHunter/2.1 (amateur radio dx cluster)")
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {

@@ -41,12 +41,12 @@ func runTray(
 
 	systray.Run(func() {
 		systray.SetIcon(appIcon)
-		systray.SetTitle("FlexDXCluster")
-		systray.SetTooltip("FlexDXCluster — Ham radio DX cluster")
+		systray.SetTitle("DXHunter")
+		systray.SetTooltip("DXHunter — Ham radio DX cluster")
 
-		mOpen := systray.AddMenuItem("Open FlexDXCluster", "Open the dashboard in your browser")
+		mOpen := systray.AddMenuItem("Open DXHunter", "Open the dashboard in your browser")
 		systray.AddSeparator()
-		mQuit := systray.AddMenuItem("Quit", "Exit FlexDXCluster")
+		mQuit := systray.AddMenuItem("Quit", "Exit DXHunter")
 
 		go func() {
 			for {

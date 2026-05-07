@@ -839,6 +839,13 @@ func (r *FlexDXClusterRepository) DeleteSpotByFlexSpotNumber(flexSpotNumber stri
 	}
 }
 
+func (r *FlexDXClusterRepository) DeleteAllSpots() {
+	_, err := r.db.Exec("DELETE FROM spots")
+	if err != nil {
+		r.Log.Errorf("could not clear all spots from database: %v", err)
+	}
+}
+
 func DeleteDatabase(filePath string, log *log.Logger) {
 	_, err := os.Stat(filePath)
 	if !os.IsNotExist(err) {

@@ -752,7 +752,7 @@ func (f *FTxService) checkLogStatus(callsign, dxcc, band, mode string) (newDXCC,
 
 // replyAddr returns the UDP address to use for outgoing control messages (Reply, HaltTX, etc.).
 //
-// Multicast is only used for WSJT-X: on Windows both WSJT-X and FlexDXCluster bind to the
+// Multicast is only used for WSJT-X: on Windows both WSJT-X and DXHunter bind to the
 // same port with SO_REUSEADDR, so a unicast packet goes to the last-bound socket only.
 // Sending to the multicast group guarantees delivery to WSJT-X even in that scenario.
 // MSHV and JTDX use true unicast and do not join any multicast group, so they must always

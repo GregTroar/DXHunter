@@ -106,7 +106,7 @@ func qrzLogin() (string, error) {
 		return "", fmt.Errorf("QRZ credentials not configured")
 	}
 
-	url := fmt.Sprintf("https://xmldata.qrz.com/xml/current/?username=%s&password=%s&agent=FlexDXClusterGui",
+	url := fmt.Sprintf("https://xmldata.qrz.com/xml/current/?username=%s&password=%s&agent=DXHunterGui",
 		user, pass)
 
 	client := &http.Client{Timeout: 10 * time.Second}

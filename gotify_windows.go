@@ -25,13 +25,13 @@ func WindowsToast(spot FlexSpot) {
 		freq = "?"
 	}
 
-	title := fmt.Sprintf("FlexDXCluster - %s (%s)", spot.DX, spot.CountryName)
+	title := fmt.Sprintf("DXHunter - %s (%s)", spot.DX, spot.CountryName)
 	msg := fmt.Sprintf("Freq: %s  Mode: %s\nSpotter: %s  Time: %s", freq, spot.Mode, spot.SpotterCallsign, spot.UTCTime)
 	tuneURL := fmt.Sprintf("http://localhost:8080/api/tune?callsign=%s&freq=%s&mode=%s",
 		spot.DX, spot.FrequencyMhz, spot.Mode)
 
 	notification := toast.Notification{
-		AppID:               "FlexDXCluster",
+		AppID:               "DXHunter",
 		Title:               title,
 		Message:             msg,
 		Audio:               toast.Default,
