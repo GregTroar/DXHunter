@@ -1,3 +1,6 @@
+# Version — seul endroit à modifier pour une nouvelle release
+VERSION = 2.45
+
 # Variables
 BINARY_NAME=DXHunter.exe
 FRONTEND_DIR=frontend
@@ -5,6 +8,7 @@ DIST_DIR=$(FRONTEND_DIR)/dist
 GO_FILES=$(shell find . -name '*.go' -not -path "./$(FRONTEND_DIR)/*")
 CGO_ENABLED ?= 1
 GOFLAGS = CGO_ENABLED=$(CGO_ENABLED)
+LDFLAGS = -X main.version=$(VERSION) -H=windowsgui
 
 # Cross-compilation targets
 BINARY_LINUX_AMD64   = DXHunter-linux-amd64
@@ -55,7 +59,7 @@ frontend:
 ## backend: Build le backend Go
 backend:
 	@echo "Building Go binary..."
-	go build -o $(BINARY_NAME) -ldflags -H=windowsgui .
+	go build -o $(BINARY_NAME) -ldflags "$(LDFLAGS)" .
 	@echo "Backend built successfully"
 
 ## backend: Build le backend Go
@@ -121,12 +125,12 @@ build-darwin-arm64: frontend _bin-darwin-arm64
 # Cibles internes — Go uniquement, sans rebuild du frontend
 _bin-linux:
 	@echo "Building Linux amd64..."
-	cmd /C "set CGO_ENABLED=0&&set GOOS=linux&&set GOARCH=amd64&&go build -o $(BINARY_LINUX_AMD64) ."
+	cmd /C "set CGO_ENABLED=0&&set GOOS=linux&&set GOARCH=amd64&&go build -o $(BINARY_LINUX_AMD64) -ldflags \"-X main.version=$(VERSION)\" ."
 	@echo "  -> $(BINARY_LINUX_AMD64)"
 
 _bin-darwin-amd64:
 	@echo "Building macOS Intel (amd64)..."
-	cmd /C "set CGO_ENABLED=0&&set GOOS=darwin&&set GOARCH=amd64&&go build -o $(BINARY_DARWIN_AMD64) ."
+	cmd /C "set CGO_ENABLED=0&&set GOOS=darwin&&set GOARCH=amd64&&go build -o $(BINARY_DARWIN_AMD64) -ldflags \"-X main.version=$(VERSION)\" ."
 	@echo "  -> $(BINARY_DARWIN_AMD64)"
 
 _bin-darwin-arm64:

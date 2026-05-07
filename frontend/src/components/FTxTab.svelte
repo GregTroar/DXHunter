@@ -715,7 +715,7 @@
         title="Watch calls: comma or space separated — only call these stations when decoded (Auto must be ON)" />
 
       {#if autoCallTarget && mwRank(autoCallTarget.dxcc) !== Infinity}
-        <span class="px-1.5 py-0 rounded border text-[10px] font-mono font-semibold bg-amber-500/10 border-amber-500/35 text-amber-300" title="ClubLog Most Wanted">MW #{mwRank(autoCallTarget.dxcc)}</span>
+        <span class="px-2 py-0.5 rounded border text-xs font-mono font-semibold bg-amber-500/10 border-amber-500/35 text-amber-300" title="ClubLog Most Wanted">MW #{mwRank(autoCallTarget.dxcc)}</span>
       {/if}
 
     {/if}

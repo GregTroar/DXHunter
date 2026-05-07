@@ -12,6 +12,9 @@ import (
 
 var Mutex sync.Mutex
 
+// version is injected at build time via -ldflags "-X main.version=X.Y.Z"
+var version = "dev"
+
 func ParseFlags() (string, bool, error) {
 	// String that contains the configured configuration path
 	var configPath string
@@ -172,7 +175,7 @@ func main() {
 	// Initialize HTTP Server for Dashboard
 	HTTPServer := NewHTTPServer(fRepo, cRepo, TCPServer, TCPClients, FlexClient, "8080", cfgPath, consoleChan, SpotChanToHTTPServer)
 	InitLogHook()
-	log.Info("Running FlexDXCluster version 2.44")
+	log.Infof("Running FlexDXCluster version %s", version)
 	if cRepo != nil {
 		if Cfg.Database.LogbookType == "hrd" {
 			log.Infof("Logbook: Ham Radio Deluxe — %d contacts", cRepo.CountEntries())
