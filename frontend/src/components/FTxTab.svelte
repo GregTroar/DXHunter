@@ -12,8 +12,6 @@
 
   let filterCQOnly = false;
   let filterMyCall = false;
-  let showSlotAdvisor = false;
-  let isDXpedition = true;
 
   let clearedAt = 0;
 
@@ -46,13 +44,6 @@
 
   const cols = '50px 34px 36px 52px 48px 36px minmax(0,1.6fr) minmax(0,1fr) minmax(170px,1.4fr)';
 
-  const SIG_WIDTH = 60;  // Hz — practical FT8 signal width
-
-  // Passband: DXpeditions listen 1000-3000 Hz, normal QSO 0-3000 Hz
-  $: DF_MIN   = isDXpedition ? 1000 : 0;
-  $: DF_MAX   = 3000;
-  $: DF_RANGE = DF_MAX - DF_MIN;
-
   $: visibleDecodes = clearedAt > 0
     ? ftxDecodes.filter(d => d.receivedAt > clearedAt)
     : ftxDecodes;
@@ -78,49 +69,6 @@
   })();
 
   $: lastPeriodCount = groupedDecodes.length > 0 ? groupedDecodes[0].decodes.length : 0;
-
-  // ── TX Slot Advisor ─────────────────────────────────────────────────────────
-  // Cherche les espaces entre signaux consécutifs ≥ SIG_WIDTH Hz.
-  // Calculé uniquement si le panel est ouvert — pas de ressource gaspillée sinon.
-  $: slotAnalysis = (() => {
-    if (!showSlotAdvisor) return null;
-
-    // Uniquement la dernière période reçue (index 0).
-    const recent = groupedDecodes[0]?.decodes || [];
-    if (recent.length === 0) return null;
-
-    // DFs triés dans le passband utile
-    const dfs = [...new Set(
-      recent.map(d => d.df).filter(df => df >= DF_MIN && df <= DF_MAX)
-    )].sort((a, b) => a - b);
-
-    if (dfs.length === 0) return null;
-
-    // Tous les gaps entre signaux consécutifs (+ bords du passband), sans filtre minimum.
-    // Sur bande saturée on veut quand même proposer quelque chose.
-    const allEdges = [DF_MIN, ...dfs, DF_MAX];
-    const gaps = [];
-    for (let i = 0; i < allEdges.length - 1; i++) {
-      const lo   = allEdges[i];
-      const hi   = allEdges[i + 1];
-      const size = hi - lo;
-      if (size > 0) {
-        // ok: gap suffisant pour un signal FT8 (≥ SIG_WIDTH)
-        // tight: gap serré mais utilisable (≥ 30 Hz)
-        // busy: bande vraiment saturée, risque de collision
-        const quality = size >= SIG_WIDTH ? 'ok' : size >= 30 ? 'tight' : 'busy';
-        gaps.push({ lo, hi, size, df: Math.round((lo + hi) / 2), quality });
-      }
-    }
-
-    // Le DX décode tout 1000-3000 Hz : plus grand gap = moins de QRM = meilleur décodage.
-    gaps.sort((a, b) => b.size - a.size);
-
-    return { dfs, gaps, best: gaps[0] || null };
-  })();
-
-  // Convert Hz to % position in the spectrum bar
-  function dfPct(hz) { return ((hz - DF_MIN) / DF_RANGE) * 100; }
 
   // ── Watchlist active+not-worked match ───────────────────────────────────────
   // spots are TelnetSpot (no json tags) → fields are DX/NewDXCC/NewBand/etc. (PascalCase).
@@ -701,14 +649,6 @@
 
     <span class="text-slate-500">|</span>
 
-    <button
-      on:click={() => showSlotAdvisor = !showSlotAdvisor}
-      class="px-2 py-0.5 rounded text-xs font-semibold transition-colors {showSlotAdvisor ? 'bg-violet-500/25 text-violet-300 border border-violet-500/50' : 'bg-slate-700 text-slate-400 border border-slate-600 hover:border-slate-500'}">
-      📡 Slots
-    </button>
-
-    <span class="text-slate-500">|</span>
-
     <label class="flex items-center gap-1 cursor-pointer select-none text-slate-300">
       <input type="checkbox" bind:checked={filterCQOnly} class="accent-blue-500" /> CQ
     </label>
@@ -806,108 +746,6 @@
 
   </div>
 
-  <!-- TX Slot Advisor Panel -->
-  {#if showSlotAdvisor}
-    <div class="px-3 py-2 bg-slate-950 border-b border-violet-500/30 flex-shrink-0">
-      <div class="flex items-center gap-3 mb-1.5">
-        <span class="text-violet-400 font-semibold uppercase tracking-wide text-[10px]">TX Slot Advisor</span>
-        <span class="text-slate-600 text-[10px]">{slotAnalysis?.dfs?.length ?? 0} signals · {DF_MIN}-{DF_MAX} Hz</span>
-        <div class="flex items-center gap-1.5 ml-auto cursor-pointer select-none">
-          <span class="text-slate-500 text-[10px]">DXpedition</span>
-          <div
-            role="switch"
-            aria-checked={isDXpedition}
-            tabindex="0"
-            on:click={() => isDXpedition = !isDXpedition}
-            on:keydown={(e) => e.key === 'Enter' && (isDXpedition = !isDXpedition)}
-            class="relative w-8 h-4 rounded-full transition-colors cursor-pointer {isDXpedition ? 'bg-violet-500/60' : 'bg-slate-600'}">
-            <div class="absolute top-0.5 h-3 w-3 rounded-full bg-white shadow transition-transform {isDXpedition ? 'translate-x-4' : 'translate-x-0.5'}"></div>
-          </div>
-        </div>
-      </div>
-
-      {#if !slotAnalysis || slotAnalysis.dfs.length === 0}
-        <div class="text-slate-600 text-[10px]">Pas encore de décodes à analyser.</div>
-      {:else}
-        <!-- Best suggestion -->
-        {#if slotAnalysis.best}
-          {@const q = slotAnalysis.best.quality}
-          <div class="flex items-center gap-3 mb-2">
-            <div class="flex items-center gap-1.5">
-              <span class="text-slate-500 text-[10px]">Meilleur créneau :</span>
-              <span class="font-bold text-sm font-mono {q === 'ok' ? 'text-green-300' : q === 'tight' ? 'text-yellow-300' : 'text-red-400'}">{slotAnalysis.best.df} Hz</span>
-              <span class="text-slate-600 text-[10px]">({slotAnalysis.best.size} Hz)</span>
-              {#if q === 'ok'}
-                <span class="text-[10px] text-green-500">✓ libre</span>
-              {:else if q === 'tight'}
-                <span class="text-[10px] text-yellow-500">⚠ serré</span>
-              {:else}
-                <span class="text-[10px] text-red-500">✗ saturé</span>
-              {/if}
-            </div>
-            {#if slotAnalysis.gaps.length > 1}
-              <span class="text-slate-600">|</span>
-              <div class="flex gap-2">
-                {#each slotAnalysis.gaps.slice(1, 4) as g}
-                  <span class="font-mono text-[11px] {g.quality === 'ok' ? 'text-blue-300' : g.quality === 'tight' ? 'text-yellow-400/70' : 'text-red-400/60'}">{g.df} <span class="text-slate-600">({g.size})</span></span>
-                {/each}
-              </div>
-            {/if}
-          </div>
-        {/if}
-
-        <!-- Spectrum bar -->
-        <div class="relative h-5 rounded overflow-hidden bg-slate-800 mb-1" style="width:100%">
-
-          <!-- Free gap highlights (top 3) -->
-          {#each slotAnalysis.gaps.slice(0, 3) as gap, i}
-            <div
-              class="absolute top-0 h-full {i === 0 ? 'bg-green-500/25' : 'bg-blue-500/12'}"
-              style="left:{dfPct(gap.lo)}%; width:{dfPct(gap.hi) - dfPct(gap.lo)}%">
-            </div>
-          {/each}
-
-          <!-- Signal marks -->
-          {#each slotAnalysis.dfs as df}
-            <div
-              class="absolute top-0 h-full w-px bg-red-500/70"
-              style="left:{dfPct(df)}%">
-            </div>
-          {/each}
-
-          <!-- Best suggestion marker -->
-          {#if slotAnalysis.best}
-            <div
-              class="absolute top-0 h-full w-0.5 bg-green-400"
-              style="left:{dfPct(slotAnalysis.best.df)}%">
-            </div>
-          {/if}
-
-          <!-- Alt suggestions markers -->
-          {#each slotAnalysis.gaps.slice(1, 4) as gap}
-            <div
-              class="absolute top-0 h-full w-0.5 bg-blue-400/70"
-              style="left:{dfPct(gap.df)}%">
-            </div>
-          {/each}
-        </div>
-
-        <!-- Frequency axis labels -->
-        <div class="relative h-3 text-[9px] text-slate-600 font-mono select-none">
-          {#each (isDXpedition ? [1000, 1250, 1500, 1750, 2000, 2250, 2500, 2750, 3000] : [0, 250, 500, 750, 1000, 1250, 1500, 1750, 2000, 2250, 2500, 2750, 3000]) as f}
-            <span class="absolute -translate-x-1/2" style="left:{dfPct(f)}%">{f}</span>
-          {/each}
-        </div>
-
-        <!-- Legend -->
-        <div class="flex gap-3 mt-1 text-[9px] text-slate-600">
-          <span><span class="text-red-400">▌</span> Signal occupé</span>
-          <span><span class="text-green-400">▌</span> Meilleur créneau</span>
-          <span><span class="text-blue-400">▌</span> Alternatives</span>
-        </div>
-      {/if}
-    </div>
-  {/if}
 
   {#if !ftxEnabled}
     <div class="flex-1 flex items-center justify-center text-slate-500 text-sm">
