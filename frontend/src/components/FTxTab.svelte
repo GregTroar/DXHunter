@@ -347,6 +347,17 @@
   // QRZ panel: auto-follows autoCallTarget, or clicked row
   let qrzCallsign = '';
 
+  // Resolve dxcc ADIF for the callsign currently shown in QRZ panel (from decodes or autoCallTarget)
+  $: _qrzDxcc = (() => {
+    if (!qrzCallsign) return null;
+    if (autoCallTarget && (autoCallTarget.dxCall || '').toUpperCase() === qrzCallsign) return autoCallTarget.dxcc;
+    for (const d of ftxDecodes) {
+      if ((d.dxCall || '').toUpperCase() === qrzCallsign) return d.dxcc;
+    }
+    return null;
+  })();
+  $: qrzMwRank = (_qrzDxcc && mwRank(_qrzDxcc) !== Infinity) ? mwRank(_qrzDxcc) : null;
+
   async function clearMSHVDXCall() {
     try {
       await fetch('/api/ftx/configure', {
@@ -1028,7 +1039,7 @@
 
 <!-- ── Right: QRZ panel ───────────────────────────────────────────────────── -->
 <div class="w-72 flex-shrink-0">
-  <QRZPanel callsign={qrzCallsign} {myGrid} />
+  <QRZPanel callsign={qrzCallsign} {myGrid} mostWantedRank={qrzMwRank} />
 </div>
 
 </div><!-- end outer flex -->

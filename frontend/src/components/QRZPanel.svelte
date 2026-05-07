@@ -1,6 +1,7 @@
 <script>
-  export let callsign = '';   // auto-populated by parent (autoCallTarget)
-  export let myGrid   = '';   // my Maidenhead locator for distance/azimuth
+  export let callsign       = '';   // auto-populated by parent (autoCallTarget)
+  export let myGrid         = '';   // my Maidenhead locator for distance/azimuth
+  export let mostWantedRank = null; // ClubLog Most Wanted rank (1 = most wanted), null if unknown
 
   let manualSearch = '';
   let activeCall   = '';      // call currently displayed
@@ -173,6 +174,13 @@
           <div class="flex gap-1.5">
             <span class="text-slate-500 w-14 flex-shrink-0">Azimuth</span>
             <span class="text-cyan-300 font-mono font-semibold">{qsoPath.bearing}°</span>
+          </div>
+        {/if}
+
+        {#if mostWantedRank !== null}
+          <div class="flex gap-1.5 {!qsoPath ? 'pt-1 border-t border-slate-700/40 mt-1' : ''}">
+            <span class="text-slate-500 w-14 flex-shrink-0">Most Wtd</span>
+            <span class="text-amber-400 font-mono font-semibold">#{mostWantedRank}</span>
           </div>
         {/if}
 
