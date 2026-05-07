@@ -545,7 +545,7 @@ var (
 )
 
 const mwTTL = 24 * time.Hour
-const mwURL = "https://clublog.org/mostwanted.php?api=1"
+const mwURLBase = "https://clublog.org/mostwanted.php?api=1"
 
 // GetMostWanted returns the cached adif→rank map, fetching if stale.
 func GetMostWanted() map[string]int {
@@ -597,7 +597,12 @@ func fetchMostWanted() (map[string]int, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, mwURL, nil)
+	call := strings.ToUpper(strings.TrimSpace(Cfg.General.Callsign))
+	url := mwURLBase
+	if call != "" {
+		url += "&callsign=" + call
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
 	}
