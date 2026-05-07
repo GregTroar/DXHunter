@@ -135,7 +135,7 @@ _bin-darwin-amd64:
 
 _bin-darwin-arm64:
 	@echo "Building macOS Apple Silicon (arm64)..."
-	cmd /C "set CGO_ENABLED=0&&set GOOS=darwin&&set GOARCH=arm64&&go build -o $(BINARY_DARWIN_ARM64) ."
+	cmd /C "set CGO_ENABLED=0&&set GOOS=darwin&&set GOARCH=arm64&&go build -o $(BINARY_DARWIN_ARM64) -ldflags \"-X main.version=$(VERSION)\" ."
 	@echo "  -> $(BINARY_DARWIN_ARM64)"
 
 ## build-all: Build pour toutes les plateformes (frontend compilé une seule fois)
