@@ -1,6 +1,6 @@
-# DXHunter
+# FlexDXCluster
 
-**DXHunter is a DX cluster client built for one purpose: helping you chase new DXCC entities, new bands, new modes and new slots.**
+**FlexDXCluster is a DX cluster client built for one purpose: helping you chase new DXCC entities, new bands, new modes and new slots.**
 
 Every spot arriving from the cluster is cross-referenced against your logbook (**Log4OM** or **Ham Radio Deluxe**) and classified — New DXCC, New Band, New Mode, New Slot, or Already Worked. Interesting spots are pushed directly to your **FlexRadio panadapter** so you can tune with a single click. FT8/FT4 decodes are enriched the same way in real time.
 
@@ -17,6 +17,7 @@ Written in Go (backend) and Svelte + TailwindCSS (frontend). No external depende
 | Chase **New Slots** | New Band+Mode combinations (slots) highlighted in light blue. |
 | **FlexRadio integration** | Spots pushed to the panadapter with color coding. Click a spot in the UI to tune the radio. |
 | **FTx monitoring** | WSJT-X / JTDX / MSHV decodes enriched with log status badges in real time. |
+| Chase **Hamaward awards** | Set a 3-letter award code — matching stations are auto-watched and prioritised in autocall. |
 | **Stay informed** | Watchlist alerts, POTA/SOTA activations, DXpedition calendar, DX-World news, solar data. |
 
 ---
@@ -92,9 +93,9 @@ After completing the wizard, the application starts all services automatically a
 - **LoTW indicator** on each decode
 - Watchlist highlight: watched callsigns highlighted directly in the decode list
 - Filters: CQ only, My Call only
-- **Autocall**: click a decode to send a Reply command back to WSJT-X/MSHV
+- **Autocall**: click a decode to send a Reply command back to WSJT-X/MSHV — or let the engine pick the best candidate automatically (prioritises New DXCC > Band > Mode > Slot, then **ClubLog Most Wanted** rank, then SNR)
+- **ClubLog Most Wanted** ranking is personalised to your QTH: the list is fetched using your configured callsign so rankings reflect what stations *you* need most, not a global average. A station with a higher Most Wanted rank wins the tiebreaker in autocall and its rank is shown as a badge (`MW #N`) in the autocall status bar
 - **Halt TX**: cancel auto-sequence from the dashboard
-- **TX Slot Advisor**: analyses the last decoded period and suggests the best TX frequency — finds the largest clear gap (1000–3000 Hz passband)
 - Countdown timer to next TX/RX period (15s FT8 / 7.5s FT4 / 3.25s FT2)
 - Pause / Resume / Clear
 
@@ -114,6 +115,8 @@ After completing the wizard, the application starts all services automatically a
 ### QRZ Callsign Lookup
 - Look up any callsign directly from the dashboard
 - Displays name, QTH, DXCC country, grid locator, license class and bio
+- Distance and azimuth calculated from your grid locator to the station's grid
+- **ClubLog Most Wanted rank** displayed for the looked-up station (personalised to your QTH)
 - Requires a QRZ XML subscription (API key configured in Settings)
 
 ### Greyline
@@ -135,11 +138,16 @@ After completing the wizard, the application starts all services automatically a
 - **Windows native toast notifications** for watchlist hits (callsign, country, frequency, mode, spotter)
 - Click a toast to tune FlexRadio directly to the spot frequency
 
-### Contest Mode
-- Toggle contest mode on/off
-- Configure contest prefix and a list of special contest callsigns
-- Contest stations auto-added to watchlist
-- Watchlist filtered to show contest callsigns during a contest
+### Award Chasing Mode
+
+Designed for chasing **[Hamaward](https://hamaward.cloud/awards)** awards. Each award on Hamaward is identified by a 3-letter code (e.g. `SAC`, `WAE`, `EU`). Set that code as the contest prefix and DXHunter will focus exclusively on eligible stations.
+
+- Toggle award chasing on/off
+- Set the **3-letter Hamaward award code** as the contest prefix — only stations whose callsign matches that prefix are tracked
+- Optionally add a list of specific callsigns to chase
+- Matching stations are **auto-added to the watchlist** at startup
+- Watchlist filtered to show only award-eligible stations during a chase session
+- FTx autocall prioritises award stations when enabled
 
 ### Web Dashboard
 - Embedded Svelte SPA served at `http://localhost:8080`
@@ -184,7 +192,7 @@ Without a logbook, the following features are unavailable: New DXCC / Band / Mod
 ## Setup
 
 ### First run
-Just launch `DXHunter.exe`. If no `config.yml` is found, the setup wizard opens at `http://localhost:8080`. Fill in your details and click **Save & Start**. Done.
+Just launch `FlexDXCluster.exe`. If no `config.yml` is found, the setup wizard opens at `http://localhost:8080`. Fill in your details and click **Save & Start**. Done.
 
 ### Manual configuration
 If you prefer to edit `config.yml` directly:
@@ -236,7 +244,7 @@ telnetserver:
 ### Log4OM setup
 1. Log4OM → **Network** → **DX Cluster** → server: `localhost:7300`
 2. Log4OM → **Database** → note the SQLite path and set it in `sqlite_path`
-3. Optionally enable **UDP Callsign** in Log4OM to receive frequency/mode from DXHunter
+3. Optionally enable **UDP Callsign** in Log4OM to receive frequency/mode from FlexDXCluster
 
 ### Ham Radio Deluxe setup
 1. Set `logbook_type: "hrd"` in `config.yml`
@@ -247,16 +255,16 @@ telnetserver:
 - **Port:** 2237
 - Enable *Accept UDP requests*
 
-DXHunter shares the UDP port with other apps already listening on 2237.
+FlexDXCluster shares the UDP port with other apps already listening on 2237.
 
 ---
 
 ## Running
 
 ```bash
-DXHunter.exe
+FlexDXCluster.exe
 # or with explicit config path:
-DXHunter.exe --config C:\path\to\config.yml
+FlexDXCluster.exe --config C:\path\to\config.yml
 ```
 
 Open `http://localhost:8080` in a browser (or any browser on the network).
