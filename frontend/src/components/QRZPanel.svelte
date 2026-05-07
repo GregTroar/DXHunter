@@ -1,7 +1,9 @@
 <script>
   export let callsign       = '';   // auto-populated by parent (autoCallTarget)
   export let myGrid         = '';   // my Maidenhead locator for distance/azimuth
-  export let mostWantedRank = null; // ClubLog Most Wanted rank (1 = most wanted), null if unknown
+  export let mostWantedMap  = {};   // ClubLog Most Wanted: adif → rank (1 = most wanted)
+
+  $: mwRank = (info?.dxcc && mostWantedMap[info.dxcc]) ? mostWantedMap[info.dxcc] : null;
 
   let manualSearch = '';
   let activeCall   = '';      // call currently displayed
@@ -177,10 +179,10 @@
           </div>
         {/if}
 
-        {#if mostWantedRank !== null}
+        {#if mwRank !== null}
           <div class="flex gap-1.5 {!qsoPath ? 'pt-1 border-t border-slate-700/40 mt-1' : ''}">
             <span class="text-slate-500 w-14 flex-shrink-0">Most Wtd</span>
-            <span class="text-amber-400 font-mono font-semibold">#{mostWantedRank}</span>
+            <span class="text-amber-400 font-mono font-semibold">#{mwRank}</span>
           </div>
         {/if}
 
