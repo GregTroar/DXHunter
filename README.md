@@ -1,5 +1,9 @@
 # DXHunter
 
+<a href="https://www.paypal.com/donate?hosted_button_id=R9TC4KXWR96UE" target="_blank">
+  <img src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_SM.gif" alt="Donate with PayPal" />
+</a>
+
 **DXHunter is a DX cluster client built for one purpose: helping you chase new DXCC entities, new bands, new modes and new slots as well as any of the Hamaward.cloud awards.**
 
 Every spot arriving from the cluster is cross-referenced against your logbook (**Log4OM** or **Ham Radio Deluxe**) and classified — New DXCC, New Band, New Mode, New Slot, or Already Worked. Interesting spots are pushed directly to your **FlexRadio panadapter** so you can tune with a single click. FT8/FT4 decodes are enriched the same way in real time.
