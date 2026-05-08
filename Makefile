@@ -1,5 +1,5 @@
 # Version — seul endroit à modifier pour une nouvelle release
-VERSION = 2.46
+VERSION = 2.47
 
 # Variables
 BINARY_NAME=DXHunter.exe
