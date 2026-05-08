@@ -1,4 +1,4 @@
-<clublog date='2026-05-07T20:30:08+00:00' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:noNamespaceSchemaLocation='https://cdn.clublog.org/cty.xsd'>
+<clublog date='2026-05-08T08:30:08+00:00' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:noNamespaceSchemaLocation='https://cdn.clublog.org/cty.xsd'>
 <entities>
 	<entity>
 		<adif>1</adif>
@@ -44350,8 +44350,8 @@
 		<adif>15</adif>
 		<cqz>17</cqz>
 		<cont>AS</cont>
-		<long>59.04</long>
-		<lat>53.44</lat>
+		<long>41.04</long>
+		<lat>53.52</lat>
 		<start>2026-05-01T00:00:00+00:00</start>
 		<end>2026-05-09T23:59:59+00:00</end>
 	</exception>
@@ -44394,8 +44394,8 @@
 		<adif>15</adif>
 		<cqz>18</cqz>
 		<cont>AS</cont>
-		<long>61.37</long>
-		<lat>55.15</lat>
+		<long>89.54</long>
+		<lat>56.23</lat>
 		<start>2026-05-01T00:00:00+00:00</start>
 		<end>2026-05-09T23:59:59+00:00</end>
 	</exception>
@@ -44608,7 +44608,7 @@
 		<start>2026-05-01T00:00:00+00:00</start>
 		<end>2026-05-09T23:59:59+00:00</end>
 	</exception>
-	<exception record='57412'>
+	<exception record='57418'>
 		<call>RV1CC/M</call>
 		<entity>ASIATIC RUSSIA</entity>
 		<adif>15</adif>
@@ -44617,7 +44617,7 @@
 		<long>30.46</long>
 		<lat>59.94</lat>
 		<start>2026-04-29T00:00:00+00:00</start>
-		<end>2026-04-29T23:59:59+00:00</end>
+		<end>2026-05-07T23:59:59+00:00</end>
 	</exception>
 	<exception record='6773'>
 		<call>ZL3HI/A</call>
@@ -118608,6 +118608,17 @@
 		<lat>-27.48</lat>
 		<start>2025-02-18T00:00:00+00:00</start>
 		<end>2026-03-31T23:59:59+00:00</end>
+	</exception>
+	<exception record='57417'>
+		<call>VJ2L</call>
+		<entity>LORD HOWE ISLAND</entity>
+		<adif>147</adif>
+		<cqz>30</cqz>
+		<cont>OC</cont>
+		<long>159.10</long>
+		<lat>-31.60</lat>
+		<start>2026-06-01T00:00:00+00:00</start>
+		<end>2026-06-14T23:59:59+00:00</end>
 	</exception>
 	<exception record='5218'>
 		<call>SM4CGA/YV5BVY</call>
@@ -242366,8 +242377,8 @@
 		<adif>291</adif>
 		<cqz>4</cqz>
 		<cont>NA</cont>
-		<long>-66.12</long>
-		<lat>18.44</lat>
+		<long>-97.29</long>
+		<lat>32.90</lat>
 		<start>1996-06-06T00:00:00+00:00</start>
 	</exception>
 	<exception record='45579'>
