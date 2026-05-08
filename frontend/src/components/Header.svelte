@@ -54,8 +54,11 @@
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.348 14.651a3.75 3.75 0 010-5.303m5.304 0a3.75 3.75 0 010 5.303m-7.425 2.122a6.75 6.75 0 010-9.546m9.546 0a6.75 6.75 0 010 9.546M5.106 18.894c-3.808-3.808-3.808-9.98 0-13.789m13.788 0c3.808 3.808 3.808 9.981 0 13.79M12 12h.008v.007H12V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
     </svg>
     <div>
-      <h1 class="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+      <h1 class="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent flex items-baseline gap-2">
         DXHunter
+        {#if stats.version}
+          <span class="text-xs font-normal text-slate-500">v{stats.version}</span>
+        {/if}
       </h1>
       <div class="flex items-center gap-2 text-xs text-slate-400">
         <span class="font-semibold text-blue-400">{stats.myCallsign || 'N/A'}</span>

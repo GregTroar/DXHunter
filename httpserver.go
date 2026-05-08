@@ -83,6 +83,7 @@ type Stats struct {
 	LoTWReady        bool          `json:"lotwReady"`
 	LoTWCount        int           `json:"lotwCount"`
 	FTxEnabled       bool          `json:"ftxEnabled"`
+	Version          string        `json:"version"`
 }
 
 type ClusterInfo struct {
@@ -1998,6 +1999,7 @@ func (s *HTTPServer) calculateStats() Stats {
 		LoTWReady:        lotwReady,
 		LoTWCount:        lotwCount,
 		FTxEnabled:       Cfg.FTx.Enabled,
+		Version:          version,
 	}
 }
 
