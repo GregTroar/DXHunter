@@ -53,12 +53,16 @@ func (c *LogbookCache) Rebuild(repo LogbookProvider) {
 			dxcc, dxccMode, dxccBand, dxccBandMode, callBandMode,
 			confDXCC, confDXCCMode, confDXCCBand, confDXCCBandMode)
 
-		// Also index using the cty.plist DXCC code so lookups succeed even when
-		// Log4OM stores a different numeric code (e.g. 0 for newer entities like Kosovo).
-		if ctyInfo := GetDXCC(ct.Callsign); ctyInfo.DXCC != "" && ctyInfo.DXCC != ct.DXCC {
-			indexContact(ctyInfo.DXCC, band, mode, ct.Callsign, ct.LoTWConfirmed,
-				dxcc, dxccMode, dxccBand, dxccBandMode, callBandMode,
-				confDXCC, confDXCCMode, confDXCCBand, confDXCCBandMode)
+		// Only cross-index via cty.plist when Log4OM stored DXCC as "0" or empty —
+		// typical for newer entities (e.g. Kosovo) added after an older Log4OM install.
+		// Calling GetDXCC for every contact would be O(contacts × prefixes) and adds
+		// several seconds of startup delay for large logs.
+		if ct.DXCC == "0" || ct.DXCC == "" {
+			if ctyInfo := GetDXCC(ct.Callsign); ctyInfo.DXCC != "" {
+				indexContact(ctyInfo.DXCC, band, mode, ct.Callsign, ct.LoTWConfirmed,
+					dxcc, dxccMode, dxccBand, dxccBandMode, callBandMode,
+					confDXCC, confDXCCMode, confDXCCBand, confDXCCBandMode)
+			}
 		}
 	}
 
