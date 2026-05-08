@@ -59,6 +59,7 @@
   let ftxEnabled = false;
   let ftxDecodes = [];
   let ftxTXStatus = { transmitting: false, message: '', mode: '', clientId: 'MSHV' };
+  let ftxJustLogged = '';
 
   // Enrichment batching: instead of applying each ftxEnrich immediately (one map() per decode,
   // firing 50+ reactive recomputes per period), we queue enrichments and flush them together
@@ -589,6 +590,7 @@ function applyFilters(allSpots, filters, wl) {
               ? { ...d, newDXCC: false, newBand: false, newMode: false, newSlot: false, worked: true }
               : d
           );
+          ftxJustLogged = logged;
         }
         break;
       }
@@ -909,7 +911,7 @@ async function shutdownApp() {
           />
         </div>
         <div class="h-full" class:hidden={mainTab !== 'ftx'}>
-          <FTxTab {ftxEnabled} {ftxDecodes} {watchlist} spots={filteredSpots} {ftxTXStatus} myGrid={stats.myGrid} {contestMode} />
+          <FTxTab {ftxEnabled} {ftxDecodes} {watchlist} spots={filteredSpots} {ftxTXStatus} myGrid={stats.myGrid} {contestMode} justLogged={ftxJustLogged} />
         </div>
       </div>
     </div>

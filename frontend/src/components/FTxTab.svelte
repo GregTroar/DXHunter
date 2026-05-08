@@ -9,6 +9,7 @@
   export let ftxTXStatus = { transmitting: false, message: '', mode: '', clientId: '' };
   export let myGrid = '';
   export let contestMode = false;
+  export let justLogged = '';  // callsign of the most recently backend-logged QSO
 
   let filterCQOnly = false;
   let filterMyCall = false;
@@ -157,6 +158,10 @@
   // before Log4OM cache refreshes (typically within 30s).
   let recentlyWorked       = new Set();
 
+  // Mirror backend QSO-logged events into recentlyWorked so the guard holds even if
+  // acQSOComplete missed the RR73/73 decode or the Auto button was toggled off/on.
+  $: if (justLogged) recentlyWorked.add(justLogged);
+
   $: priorityCalls = priorityCall
     .split(/[\s,]+/)
     .map(c => c.trim().toUpperCase())
@@ -204,6 +209,7 @@
       if (contestMode && !contestWatchlistUC.has(uc)) return false;
       if (contestMode && d.workedToday) return false;
       return d.myCall && d.dxCall && !d.isCQ &&
+        !d.worked &&
         !recentlyWorked.has(uc) &&
         !acQSOComplete([d], d.dxCall);
     }) || null;
