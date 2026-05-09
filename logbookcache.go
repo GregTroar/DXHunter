@@ -57,11 +57,13 @@ func (c *LogbookCache) Rebuild(repo LogbookProvider) {
 		indexContact(ct.DXCC, band, mode, ct.Callsign, ct.LoTWConfirmed,
 			dxcc, dxccMode, dxccBand, dxccBandMode, callBandMode,
 			confDXCC, confDXCCMode, confDXCCBand, confDXCCBandMode)
-		if ct.LoTWQSL {
-			lotwDXCC[ct.DXCC] = true
-		}
-		if ct.QSLCard {
-			qslDXCC[ct.DXCC] = true
+		if ct.DXCC != "0" && ct.DXCC != "" {
+			if ct.LoTWQSL {
+				lotwDXCC[ct.DXCC] = true
+			}
+			if ct.QSLCard {
+				qslDXCC[ct.DXCC] = true
+			}
 		}
 
 		// Only cross-index via cty.plist when Log4OM stored DXCC as "0" or empty —
@@ -79,6 +81,8 @@ func (c *LogbookCache) Rebuild(repo LogbookProvider) {
 				if ct.QSLCard {
 					qslDXCC[ctyInfo.DXCC] = true
 				}
+			} else if ct.LoTWQSL || ct.QSLCard {
+				Log.Warnf("LogbookCache: confirmed contact %s (DXCC=0) not resolved by cty.plist — missing from confirmed count", ct.Callsign)
 			}
 		}
 	}
@@ -205,6 +209,7 @@ func (c *LogbookCache) DXCCQSLCount() int {
 	defer c.mu.RUnlock()
 	return len(c.qslDXCC)
 }
+
 
 func (c *LogbookCache) DXCCConfirmedAnyCount() int {
 	c.mu.RLock()

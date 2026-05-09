@@ -30,7 +30,7 @@ type Contact struct {
 }
 
 // parseQSOConfirmations checks the Log4OM qsoconfirmations JSON for a received QSL
-// from any of the given source codes (e.g. "LOTW", "EQSL", "QSL").
+// from any of the given source codes (e.g. "LOTW", "QSL").
 func parseQSOConfirmations(raw string, sources []string) bool {
 	if raw == "" || len(sources) == 0 {
 		return false
