@@ -106,10 +106,10 @@
   },
   {
     "callsign": "T31TTT",
-    "lastSeen": "2026-05-09T08:05:13.7968821+02:00",
+    "lastSeen": "2026-05-09T08:07:23.1574906+02:00",
     "lastSeenStr": "Just now",
     "addedAt": "2026-03-27T13:33:04.0668303+01:00",
-    "spotCount": 9251,
+    "spotCount": 9252,
     "isContest": false,
     "notify": true,
     "isExpedition": true,
@@ -346,10 +346,10 @@
   },
   {
     "callsign": "AO3RKB",
-    "lastSeen": "2026-05-09T08:04:29.8236292+02:00",
+    "lastSeen": "2026-05-09T08:07:26.2823431+02:00",
     "lastSeenStr": "Just now",
     "addedAt": "2026-05-01T22:07:45.7214221+02:00",
-    "spotCount": 1668,
+    "spotCount": 1670,
     "isContest": true,
     "notify": false,
     "isExpedition": false,
@@ -676,10 +676,10 @@
   },
   {
     "callsign": "J88IH",
-    "lastSeen": "2026-05-09T08:04:26.7919267+02:00",
+    "lastSeen": "2026-05-09T08:08:21.2471297+02:00",
     "lastSeenStr": "Just now",
     "addedAt": "2026-03-06T14:19:30.176185+01:00",
-    "spotCount": 3115,
+    "spotCount": 3116,
     "isContest": false,
     "notify": false,
     "isExpedition": false,
@@ -826,10 +826,10 @@
   },
   {
     "callsign": "I/AO5RKB",
-    "lastSeen": "2026-05-08T23:35:17.1472282+02:00",
-    "lastSeenStr": "3 hours ago",
+    "lastSeen": "2026-05-09T08:07:51.2114842+02:00",
+    "lastSeenStr": "Just now",
     "addedAt": "2026-05-01T20:37:35.6280202+02:00",
-    "spotCount": 715,
+    "spotCount": 717,
     "isContest": true,
     "notify": false,
     "isExpedition": false,
@@ -837,7 +837,7 @@
     "clubLogTotalQSOs": 0,
     "clubLogHasOQRS": false,
     "clubLogLiveStream": false,
-    "clubLogUpdatedAt": "2026-05-08T23:35:17.1492808+02:00"
+    "clubLogUpdatedAt": "2026-05-09T08:07:42.1628441+02:00"
   },
   {
     "callsign": "TO2FY",
