@@ -1,4 +1,4 @@
-<clublog date='2026-05-08T08:30:08+00:00' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:noNamespaceSchemaLocation='https://cdn.clublog.org/cty.xsd'>
+<clublog date='2026-05-08T20:30:08+00:00' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:noNamespaceSchemaLocation='https://cdn.clublog.org/cty.xsd'>
 <entities>
 	<entity>
 		<adif>1</adif>
@@ -44548,8 +44548,8 @@
 		<adif>15</adif>
 		<cqz>18</cqz>
 		<cont>AS</cont>
-		<long>61.37</long>
-		<lat>55.15</lat>
+		<long>41.04</long>
+		<lat>53.52</lat>
 		<start>2026-05-01T00:00:00+00:00</start>
 		<end>2026-05-09T23:59:59+00:00</end>
 	</exception>
