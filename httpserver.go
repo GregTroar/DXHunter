@@ -969,6 +969,7 @@ func (s *HTTPServer) broadcastUpdates() {
 				"percentage": float64(dxccCount) / 340.0 * 100.0,
 				"lotw":       globalLogbookCache.DXCCLoTWCount(),
 				"qsl":        globalLogbookCache.DXCCQSLCount(),
+				"confirmed":  globalLogbookCache.DXCCConfirmedAnyCount(),
 			}}
 			select {
 			case s.broadcast <- dxccMsg:
