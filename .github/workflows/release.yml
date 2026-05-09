@@ -44,7 +44,7 @@ jobs:
       - name: Build Windows (amd64)
         shell: pwsh
         env:
-          CGO_ENABLED: '1'
+          CGO_ENABLED: '0'
         run: |
           go build -o DXHunter.exe `
             -ldflags "-X main.version=${{ steps.version.outputs.VERSION }} -H=windowsgui" `
