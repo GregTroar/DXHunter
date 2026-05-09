@@ -25,6 +25,8 @@ type Contact struct {
 	Country         string
 	Date            string // UTC date "YYYY-MM-DD" — used for workedToday in FTx logCache
 	LoTWConfirmed   bool   // true if received QSL from any configured confirmation source
+	LoTWQSL         bool   // confirmed by LOTW specifically
+	QSLCard         bool   // confirmed by QSL card specifically
 }
 
 // parseQSOConfirmations checks the Log4OM qsoconfirmations JSON for a received QSL
@@ -238,6 +240,8 @@ func (r *Log4OMContactsRepository) ListAll() []Contact {
 			continue
 		}
 		c.LoTWConfirmed = parseQSOConfirmations(qsoConfs, Cfg.General.ConfirmationSources)
+		c.LoTWQSL = parseQSOConfirmations(qsoConfs, []string{"LOTW"})
+		c.QSLCard = parseQSOConfirmations(qsoConfs, []string{"QSL"})
 		contacts = append(contacts, c)
 	}
 	return contacts

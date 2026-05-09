@@ -55,6 +55,17 @@
         </div>
       </div>
       <div class="text-xs text-slate-400 text-right mt-1">{(dxccProgress.percentage || 0).toFixed(1)}% Complete</div>
+      <div class="flex gap-3 mt-2">
+        <span class="text-xs text-slate-400">
+          <span class="text-blue-400 font-semibold">LoTW</span>
+          <span class="text-slate-300 font-bold ml-1">{dxccProgress.lotw || 0}</span>
+        </span>
+        <span class="text-slate-600">·</span>
+        <span class="text-xs text-slate-400">
+          <span class="text-yellow-400 font-semibold">QSL</span>
+          <span class="text-slate-300 font-bold ml-1">{dxccProgress.qsl || 0}</span>
+        </span>
+      </div>
     </div>
   </div>
 

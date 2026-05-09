@@ -810,6 +810,8 @@ func (s *HTTPServer) sendInitialData(conn *websocket.Conn) {
 			"worked":     dxccCount,
 			"total":      340,
 			"percentage": float64(dxccCount) / 340.0 * 100.0,
+			"lotw":       globalLogbookCache.DXCCLoTWCount(),
+			"qsl":        globalLogbookCache.DXCCQSLCount(),
 		}})
 
 	}
@@ -964,6 +966,8 @@ func (s *HTTPServer) broadcastUpdates() {
 				"worked":     dxccCount,
 				"total":      340,
 				"percentage": float64(dxccCount) / 340.0 * 100.0,
+				"lotw":       globalLogbookCache.DXCCLoTWCount(),
+				"qsl":        globalLogbookCache.DXCCQSLCount(),
 			}}
 			select {
 			case s.broadcast <- dxccMsg:

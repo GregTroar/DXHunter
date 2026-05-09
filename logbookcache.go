@@ -21,6 +21,9 @@ type LogbookCache struct {
 	confDXCCMode   map[string]bool
 	confDXCCBand   map[string]bool
 	confDXCCBandMode map[string]bool
+	// per-source confirmation counts
+	lotwDXCC map[string]bool
+	qslDXCC  map[string]bool
 }
 
 var globalLogbookCache *LogbookCache
@@ -43,6 +46,8 @@ func (c *LogbookCache) Rebuild(repo LogbookProvider) {
 	confDXCCMode := make(map[string]bool, 256)
 	confDXCCBand := make(map[string]bool, 256)
 	confDXCCBandMode := make(map[string]bool, 512)
+	lotwDXCC := make(map[string]bool, 128)
+	qslDXCC := make(map[string]bool, 128)
 
 	for _, ct := range contacts {
 		mode := cacheNormalizeMode(ct.Mode)
@@ -52,6 +57,12 @@ func (c *LogbookCache) Rebuild(repo LogbookProvider) {
 		indexContact(ct.DXCC, band, mode, ct.Callsign, ct.LoTWConfirmed,
 			dxcc, dxccMode, dxccBand, dxccBandMode, callBandMode,
 			confDXCC, confDXCCMode, confDXCCBand, confDXCCBandMode)
+		if ct.LoTWQSL {
+			lotwDXCC[ct.DXCC] = true
+		}
+		if ct.QSLCard {
+			qslDXCC[ct.DXCC] = true
+		}
 
 		// Only cross-index via cty.plist when Log4OM stored DXCC as "0" or empty —
 		// typical for newer entities (e.g. Kosovo) added after an older Log4OM install.
@@ -62,6 +73,12 @@ func (c *LogbookCache) Rebuild(repo LogbookProvider) {
 				indexContact(ctyInfo.DXCC, band, mode, ct.Callsign, ct.LoTWConfirmed,
 					dxcc, dxccMode, dxccBand, dxccBandMode, callBandMode,
 					confDXCC, confDXCCMode, confDXCCBand, confDXCCBandMode)
+				if ct.LoTWQSL {
+					lotwDXCC[ctyInfo.DXCC] = true
+				}
+				if ct.QSLCard {
+					qslDXCC[ctyInfo.DXCC] = true
+				}
 			}
 		}
 	}
@@ -76,6 +93,8 @@ func (c *LogbookCache) Rebuild(repo LogbookProvider) {
 	c.confDXCCMode = confDXCCMode
 	c.confDXCCBand = confDXCCBand
 	c.confDXCCBandMode = confDXCCBandMode
+	c.lotwDXCC = lotwDXCC
+	c.qslDXCC = qslDXCC
 	c.mu.Unlock()
 
 	Log.Infof("LogbookCache: refreshed with %d contacts", len(contacts))
@@ -167,6 +186,24 @@ func (c *LogbookCache) IsConfirmedDXCCBandMode(dxcc, band, mode string) bool {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	return c.confDXCCBandMode[dxcc+"|"+strings.ToUpper(band)+"|"+cacheNormalizeMode(mode)]
+}
+
+func (c *LogbookCache) DXCCWorkedCount() int {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return len(c.dxcc)
+}
+
+func (c *LogbookCache) DXCCLoTWCount() int {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return len(c.lotwDXCC)
+}
+
+func (c *LogbookCache) DXCCQSLCount() int {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return len(c.qslDXCC)
 }
 
 // cacheNormalizeMode collapses USB/LSB/SSB into a single key so the cache
