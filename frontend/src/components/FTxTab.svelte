@@ -162,6 +162,18 @@
   // acQSOComplete missed the RR73/73 decode or the Auto button was toggled off/on.
   $: if (justLogged) recentlyWorked.add(justLogged);
 
+  // When MSHV starts transmitting RR73 or 73, mark the target as worked immediately.
+  // ftxQSOLogged arrives later and may lose the race with the next period — TX message
+  // fires at the start of the TX slot, well before the next RX decode batch.
+  // FT8 TX format: "TheirCall OurCall RR73" → parts[0] is their callsign.
+  $: if (ftxTXStatus.transmitting) {
+    const upper = (ftxTXStatus.message || '').toUpperCase().trim();
+    if (upper.endsWith(' RR73') || upper.endsWith(' 73')) {
+      const parts = upper.split(/\s+/);
+      if (parts.length >= 2) recentlyWorked.add(parts[0]);
+    }
+  }
+
   $: priorityCalls = priorityCall
     .split(/[\s,]+/)
     .map(c => c.trim().toUpperCase())
@@ -446,9 +458,15 @@
         if (autoCallTarget && targetIsOnList) {
           // Continue with current target
           const targetDecode = decodes.find(d => (d.dxCall || '').toUpperCase() === targetUC);
+          // Guard: justLogged/recentlyWorked may have fired between periods — clear immediately
+          if (recentlyWorked.has(targetUC) || targetDecode?.worked) {
+            recentlyWorked.add(targetUC);
+            autoCallTarget   = null;
+            autoCallAttempts = 0;
+            action = { type: 'clearDXCall' };
           // Check QSO complete first — may have arrived in the previous period even if target
           // is absent from the current batch.
-          if (acQSOComplete(decodes, targetUC) || acQSOComplete(prevDecodes, targetUC)) {
+          } else if (acQSOComplete(decodes, targetUC) || acQSOComplete(prevDecodes, targetUC)) {
             recentlyWorked.add(targetUC);
             autoCallTarget   = null;
             autoCallAttempts = 0;
@@ -506,9 +524,16 @@
           const targetUC   = (autoCallTarget.dxCall || '').toUpperCase();
           const targetSeen = decodes.find(d => (d.dxCall || '').toUpperCase() === targetUC);
 
-          // Check QSO complete first — RRR/RR73/73 may have arrived in the previous period
-          // even if the target station is absent from the current batch.
-          if (acQSOComplete(decodes, targetUC) || acQSOComplete(prevDecodes, targetUC)) {
+          // Guard: justLogged/recentlyWorked may have fired between periods — clear immediately
+          // Also clear if enrichment already marks this station as worked (backend logged it)
+          if (recentlyWorked.has(targetUC) || targetSeen?.worked) {
+            recentlyWorked.add(targetUC);
+            autoCallTarget       = null;
+            autoCallAttempts     = 0;
+            autoCallManualLocked = false;
+            action = { type: 'clearDXCall' };
+          // Check QSO complete — RRR/RR73/73 may have arrived in the previous period
+          } else if (acQSOComplete(decodes, targetUC) || acQSOComplete(prevDecodes, targetUC)) {
             recentlyWorked.add(targetUC);
             autoCallTarget       = null;
             autoCallAttempts     = 0;
