@@ -120,12 +120,12 @@ type ConfigDTO struct {
 }
 
 type ConfigGeneralDTO struct {
-	Callsign             string `json:"callsign"`
-	Grid                 string `json:"grid"`
-	LogLevel             string `json:"logLevel"`
-	SendFreqModeToLog    bool   `json:"sendFreqModeToLog"`
-	FlexRadioSpot        bool   `json:"flexRadioSpot"`
-	TelnetServer         bool   `json:"telnetServer"`
+	Callsign             string   `json:"callsign"`
+	Grid                 string   `json:"grid"`
+	LogLevel             string   `json:"logLevel"`
+	SendFreqModeToLog    bool     `json:"sendFreqModeToLog"`
+	FlexRadioSpot        bool     `json:"flexRadioSpot"`
+	TelnetServer         bool     `json:"telnetServer"`
 	ContestMode          bool     `json:"contestMode"`
 	ContestPrefix        string   `json:"contestPrefix"`
 	DeleteLogFileAtStart bool     `json:"deleteLogFileAtStart"`
@@ -802,7 +802,7 @@ func (s *HTTPServer) sendInitialData(conn *websocket.Conn) {
 
 	// Log data (guarded — ContactRepo may be nil if no logbook is configured)
 	if s.ContactRepo != nil {
-		s.safeWrite(conn, WSMessage{Type: "log", Data: s.ContactRepo.GetRecentQSOs("19")})
+		s.safeWrite(conn, WSMessage{Type: "log", Data: s.ContactRepo.GetRecentQSOs("18")})
 		s.safeWrite(conn, WSMessage{Type: "logStats", Data: s.ContactRepo.GetQSOStats()})
 
 		dxccCount := s.ContactRepo.GetDXCCCount()
@@ -812,6 +812,7 @@ func (s *HTTPServer) sendInitialData(conn *websocket.Conn) {
 			"percentage": float64(dxccCount) / 340.0 * 100.0,
 			"lotw":       globalLogbookCache.DXCCLoTWCount(),
 			"qsl":        globalLogbookCache.DXCCQSLCount(),
+			"confirmed":  globalLogbookCache.DXCCConfirmedAnyCount(),
 		}})
 
 	}
@@ -940,7 +941,7 @@ func (s *HTTPServer) broadcastUpdates() {
 				continue
 			}
 
-			qsos := s.ContactRepo.GetRecentQSOs("19")
+			qsos := s.ContactRepo.GetRecentQSOs("18")
 			if len(qsos) > 0 {
 				qsosMsg := WSMessage{Type: "log", Data: qsos}
 				select {
@@ -1147,6 +1148,9 @@ func (s *HTTPServer) getDXCCProgress(w http.ResponseWriter, r *http.Request) {
 		"worked":     count,
 		"total":      340,
 		"percentage": float64(count) / 340.0 * 100.0,
+		"lotw":       globalLogbookCache.DXCCLoTWCount(),
+		"qsl":        globalLogbookCache.DXCCQSLCount(),
+		"confirmed":  globalLogbookCache.DXCCConfirmedAnyCount(),
 	}, "")
 }
 

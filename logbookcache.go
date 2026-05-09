@@ -206,6 +206,19 @@ func (c *LogbookCache) DXCCQSLCount() int {
 	return len(c.qslDXCC)
 }
 
+func (c *LogbookCache) DXCCConfirmedAnyCount() int {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	union := make(map[string]bool, len(c.lotwDXCC)+len(c.qslDXCC))
+	for k := range c.lotwDXCC {
+		union[k] = true
+	}
+	for k := range c.qslDXCC {
+		union[k] = true
+	}
+	return len(union)
+}
+
 // cacheNormalizeMode collapses USB/LSB/SSB into a single key so the cache
 // matches the same equivalence that buildSSBModeCondition uses in DB queries.
 func cacheNormalizeMode(mode string) string {

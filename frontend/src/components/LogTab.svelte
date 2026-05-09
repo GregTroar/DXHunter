@@ -48,23 +48,17 @@
         <span class="text-sm font-semibold text-slate-300">DXCC Progress</span>
         <span class="text-sm font-bold text-green-400">{dxccProgress.worked || 0} / {dxccProgress.total || 340}</span>
       </div>
-      <div class="w-full bg-slate-700/30 rounded-full h-3 overflow-hidden">
-        <div
-          class="h-full rounded-full bg-gradient-to-r from-green-500 to-emerald-500 transition-all duration-500"
+      <div class="w-full bg-slate-700/30 rounded-full h-3 overflow-hidden relative">
+        <div class="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-green-600 to-emerald-500 transition-all duration-500"
           style="width: {dxccProgress.percentage || 0}%">
         </div>
+        <div class="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-blue-400 to-cyan-400 opacity-80 transition-all duration-500"
+          style="width: {((dxccProgress.confirmed || 0) / (dxccProgress.total || 340) * 100).toFixed(1)}%">
+        </div>
       </div>
-      <div class="text-xs text-slate-400 text-right mt-1">{(dxccProgress.percentage || 0).toFixed(1)}% Complete</div>
-      <div class="flex gap-3 mt-2">
-        <span class="text-xs text-slate-400">
-          <span class="text-blue-400 font-semibold">LoTW</span>
-          <span class="text-slate-300 font-bold ml-1">{dxccProgress.lotw || 0}</span>
-        </span>
-        <span class="text-slate-600">·</span>
-        <span class="text-xs text-slate-400">
-          <span class="text-yellow-400 font-semibold">QSL</span>
-          <span class="text-slate-300 font-bold ml-1">{dxccProgress.qsl || 0}</span>
-        </span>
+      <div class="flex items-center justify-between mt-1">
+        <span class="text-xs text-cyan-400">✓ {dxccProgress.confirmed || 0} confirmed</span>
+        <span class="text-xs text-slate-400">{(dxccProgress.percentage || 0).toFixed(1)}%</span>
       </div>
     </div>
   </div>
