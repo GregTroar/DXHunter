@@ -76,7 +76,7 @@ After completing the wizard, the application starts all services automatically a
 - **Smooth display**: spot list refreshes at 500 ms cadence regardless of burst rate from the cluster
 
 ### Logbook Integration & Dashboard
-- Supports **Log4OM 2** (SQLite or MySQL) and **Ham Radio Deluxe** (SQLite)
+- Supports **Log4OM 2** (SQLite or MySQL), **Ham Radio Deluxe** (SQLite) and **OpsLog** (SQLite or MySQL)
 - **In-memory cache**: all contacts are loaded at startup into indexed maps and refreshed every 30 seconds — spot enrichment is O(1) with zero database I/O on the critical path
 - Computes worked status for every spot: New DXCC, New Band, New Mode, New Band+Mode Slot, Worked
 - **ClubLog-style Logbook dashboard**:
